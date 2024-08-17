@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    active: local
+
+server:
+  port: 8084
+  servlet:
+    context-path: / 
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+logging:
+  level:
+    root: info
+    org.springframework: info

@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: local
+
+server:
+  port: 8083
+  servlet:
+    context-path: / 
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true

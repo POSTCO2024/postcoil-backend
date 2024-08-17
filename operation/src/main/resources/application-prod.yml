@@ -1,0 +1,24 @@
+# 실제 운영되는 환경입니다.
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+---
+spring:
+  datasource:
+    url:
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+
+logging:
+  level:
+    root: WARN
+    com.postco: INFO

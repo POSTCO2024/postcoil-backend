@@ -1,0 +1,6 @@
+rootProject.name = 'postcoil-backend'
+
+include('core')
+include('operation')
+include('control')
+include('schedule')

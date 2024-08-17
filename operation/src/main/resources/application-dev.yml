@@ -1,0 +1,26 @@
+# 개발 환경입니다.
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+---
+spring:
+  datasource:
+    url:
+    username:
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+logging:
+  level:
+    root: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
+    com.postco: DEBUG
