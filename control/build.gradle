@@ -22,6 +22,9 @@ dependencies {
     // swagger
     swaggerUI "org.webjars:swagger-ui:${swaggerUiVersion}"
 
+    // 쿼리 파라미터 로그 남기기
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.8.1'
+    
     // h2
     runtimeOnly 'com.h2database:h2'
 
