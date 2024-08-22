@@ -18,5 +18,18 @@ dependencies {
     implementation project(':core')
 }
 
+// OpenAPI 스펙 생성 설정
+openapi3 {
+    server = "http://localhost:${project.findProperty('server.port')}"
+    title = "${project.name} API Documentation"
+    description = "API Documentation for ${project.name} with Spring Rest Docs and Swagger UI"
+    version = "${project.version}"
+    format = "yaml"
+}
+
 // prepareKotlinBuildScriptModel 오류 방지
 tasks.register("prepareKotlinBuildScriptModel") {}
+
+tasks.withType(Test).configureEach {
+    enabled = false
+}

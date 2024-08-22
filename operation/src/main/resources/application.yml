@@ -1,4 +1,8 @@
 spring:
+  application:
+    name: operation
+
+spring:
   profiles:
     active: local
 

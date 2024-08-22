@@ -1,4 +1,8 @@
 spring:
+  application:
+    name: schedule
+---
+spring:
   profiles:
     active: local
 

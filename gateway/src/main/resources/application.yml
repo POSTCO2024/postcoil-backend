@@ -1,4 +1,6 @@
-spring.application.name=gateway
+spring:
+  application:
+    name: gateway
 
 ---
 server:
@@ -15,6 +17,13 @@ spring:
             preLogger: true
             postLogger: true
       routes:
+        - id: openapi
+          uri: http://localhost:${server.port}
+          predicates:
+            - Path=/v3/api-docs/**
+          filters:
+            - RewritePath=/v3/api-docs/(?<path>.*), /$\{path}/v3/api-docs
+
         - id: operation
           uri: http://localhost:8081/
           predicates:
@@ -45,4 +54,14 @@ spring:
                 baseMessage: Spring Cloud Gateway ScheduleFilter
                 preLogger: true
                 postLogger: true
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: control
+        url: /v3/api-docs/control
+      - name: operation
+        url: /v3/api-docs/operation
+      - name: schedule
+        url: /v3/api-docs/schedule
 

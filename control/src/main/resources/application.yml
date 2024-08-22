@@ -1,4 +1,9 @@
 spring:
+  application:
+    name: control
+
+---
+spring:
   profiles:
     active: local
 
@@ -10,3 +15,10 @@ server:
       charset: UTF-8
       enabled: true
       force: true
+
+---
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
