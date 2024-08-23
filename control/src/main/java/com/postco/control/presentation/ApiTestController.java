@@ -1,6 +1,6 @@
 package com.postco.control.presentation;
 
-import com.postco.control.presentation.domain.User;
+import com.postco.control.presentation.entity.User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 public class ApiTestController {
     @GetMapping("/{id}")
     public User getUserById(@PathVariable long id) {
-        return new User(id, "John Doe", "john@example.com");
+        return new User(id, "신찬규 바보", "chandex@example.com");
     }
 }
 

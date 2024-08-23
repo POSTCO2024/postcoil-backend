@@ -1,4 +1,4 @@
-package com.postco.control.presentation;
+package com.postco.schedule.presentation;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +14,7 @@ import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWit
 import static org.springframework.restdocs.payload.PayloadDocumentation.responseFields;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
@@ -25,7 +26,7 @@ class ApiTestControllerTest {
     public void getUserById_shouldReturnUser() throws Exception {
         mockMvc.perform(get("/api/users/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("신찬규 바보"))
+                .andExpect(jsonPath("$.name").value("스케쥴"))
                 .andExpect(jsonPath("$.email").value("chandex@example.com"))
                 .andDo(document("get-user",
                         preprocessRequest(prettyPrint()),

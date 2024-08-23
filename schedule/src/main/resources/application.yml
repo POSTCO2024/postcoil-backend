@@ -8,6 +8,7 @@ spring:
 
 server:
   port: 8084
+  max-http-header-size: 32KB
   servlet:
     context-path: / 
     encoding:
@@ -15,7 +16,11 @@ server:
       enabled: true
       force: true
 
-logging:
-  level:
-    root: info
-    org.springframework: info
+---
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.postco.schedule
+  paths-to-match: /api/**

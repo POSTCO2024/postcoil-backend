@@ -1,29 +1,26 @@
-package com.postco.control;
+package com.postco.operation;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.models.servers.Server;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-
-import java.util.List;
 
 @SpringBootApplication
-@OpenAPIDefinition(info = @Info(title = "Control API", version = "1.0", description = "Control Service API"))
-public class ControlApp {
+@OpenAPIDefinition(info = @Info(title = "Operation API", version = "1.0", description = "Operation Service API"))
+public class OperationApp {
 
     public static void main(String[] args) {
-        SpringApplication.run(ControlApp.class, args);
+        SpringApplication.run(OperationApp.class, args);
     }
 
     @Bean
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
-                .group("control")
+                .group("operation")
                 .pathsToMatch("/api/**")
                 .build();
     }
+
 }

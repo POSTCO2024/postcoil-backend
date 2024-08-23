@@ -1,4 +1,4 @@
-package com.postco.control.presentation.domain;
+package com.postco.control.presentation.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
