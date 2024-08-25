@@ -1,12 +1,27 @@
 spring:
+  application:
+    name: operation
+
+---
+spring:
   profiles:
     active: local
 
 server:
   port: 8081
+  max-http-header-size: 32KB
   servlet:
     context-path: / 
     encoding:
       charset: UTF-8
       enabled: true
       force: true
+
+---
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.postco.operation
+  paths-to-match: /api/**

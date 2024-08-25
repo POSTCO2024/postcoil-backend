@@ -24,7 +24,7 @@ public class MapperUtils {
         return source.map(element -> modelMapper.map(element, targetClass));
     }
 
-    public static <S, T> List<T> mapListWithProperty(List<S> source, Class<T> targetClass, PropertyMap map) {
+    public static <S, T> List<T> mapListWithProperty(List<S> source, Class<T> targetClass, PropertyMap<S, T> map) {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.addMappings(map);
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
