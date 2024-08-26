@@ -2,6 +2,10 @@ buildscript {
     ext {
         restdocsApiSpecVersion = '0.16.4'
         swaggerUiVersion = '4.15.5'
+        // kafka
+        kafkaVersion = '3.5.0'
+        springKafkaVersion = '2.9.13'
+
     }
 }
 
@@ -76,6 +80,10 @@ subprojects {
 
         // Swagger UI
         implementation "org.springdoc:springdoc-openapi-ui:1.6.14"
+
+        // Spring kafka
+        implementation "org.springframework.kafka:spring-kafka:${springKafkaVersion}"
+        implementation "org.apache.kafka:kafka-clients:${kafkaVersion}"
 
         // dev
         compileOnly 'org.springframework.boot:spring-boot-devtools'
