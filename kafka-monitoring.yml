@@ -1,6 +1,8 @@
 services:
   kafka-exporter:
     image: danielqsj/kafka-exporter:latest
+    networks:
+      - postcoil-net
     ports:
       - "9308:9308"
     command:
@@ -10,6 +12,8 @@ services:
 
   prometheus:
     image: prom/prometheus:latest
+    networks:
+      - postcoil-net
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -22,6 +26,8 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    networks:
+      - postcoil-net
     ports:
       - "3000:3000"
     environment:
