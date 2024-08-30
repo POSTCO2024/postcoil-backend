@@ -5,8 +5,12 @@ import org.modelmapper.convention.MatchingStrategies;
 
 public interface DTO {
     default <T> T convert(Class<T> destinationType) {
+        return getModelMapper().map(this, destinationType);
+    }
+
+    default ModelMapper getModelMapper() {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        return modelMapper.map(this, destinationType);
+        return modelMapper;
     }
 }

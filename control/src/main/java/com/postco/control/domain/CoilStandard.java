@@ -21,8 +21,8 @@ public class CoilStandard {
     private Long id;
 
     @NotNull
-    @Column(length = 15)
-    private String code;
+    @Column(length = 15, unique = true, nullable = false)
+    private String code;      // 코일 타입 코드
 
     @Column(length = 50)
     private String description;
