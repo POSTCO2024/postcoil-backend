@@ -15,7 +15,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class MaterialsProducer {
-    private static final String TOPIC = "materials_info";
+    private static final String TOPIC = "operation-material-data";
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;  // JSON 변환용
 
@@ -28,7 +28,7 @@ public class MaterialsProducer {
             kafkaTemplate.send(TOPIC, jsonMaterials).addCallback(
                     success -> log.info("Sent materials data to Kafka: {}", jsonMaterials),
                     failure -> {
-                        log.error("Failed to send materials data to Kafka", failure);
+                        log.error("Failed to send materials data to Kafka. Exception: {}", failure.getMessage(), failure);
                         throw new KafkaSendException("Failed to send materials data", failure);
                     }
             );
