@@ -1,9 +1,12 @@
 package com.postco.control.domain;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,38 +17,40 @@ import java.time.LocalDateTime;
 @Entity(name = "Order")
 @Table(name = "orders")
 public class Order implements com.postco.core.entity.Entity, Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id @GeneratedValue
+    @Column(name = "id")
     private Long id;
 
     @Column(nullable = false, unique = true)
     private String no;
 
-    @Column(nullable = false)
-    private String customerName;
+    private String customer;
 
-    @Column(nullable = false)
     private double thickness;
 
-    @Column(nullable = false)
     private double width;
 
-    @Column(nullable = false)
     private double length;
 
-    @Column(nullable = false)
+    @Column(name = "coil_type")
     private String coilType;
 
-    @Column(nullable = false)
     private int quantity;
 
-    @Column(nullable = false)
+    @Column(name = "due_date")
     private LocalDateTime dueDate;
 
-    @Column(nullable = false)
+    @Column(name = "order_date")
     private LocalDateTime orderDate;
 
-    @Column
     private String remarks;
 
+    @OneToMany(mappedBy = "order")
+    @JsonManagedReference // 순환 참조 방지
+    private List<Materials> materials = new ArrayList<>();
+
+    public void addMaterial(Materials material) {
+        this.materials.add(material);
+        material.setOrder(this);
+    }
 }

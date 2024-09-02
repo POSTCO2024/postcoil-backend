@@ -1,11 +1,9 @@
 package com.postco.control.service;
 
-import com.postco.control.domain.ErrorCriteriaMapper;
-import com.postco.control.domain.ExtractionCriteria;
-import com.postco.control.domain.ExtractionCriteriaMapper;
-import com.postco.control.domain.Order;
+import com.postco.control.domain.*;
 import com.postco.control.domain.repository.ExtractionCriteriaRepository;
 import com.postco.control.domain.repository.ErrorCriteriaRepository;
+import com.postco.control.domain.repository.MaterialsRepository;
 import com.postco.control.domain.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,23 +17,24 @@ public class ControlService {
 
     private final ExtractionCriteriaRepository extractionCriteriaRepository;
     private final ErrorCriteriaRepository errorCriteriaRepository;
-    private final OrderRepository ordersRepository;
+    private final MaterialsRepository materialsRepository;
 
     @Autowired
     public ControlService(ExtractionCriteriaRepository extractionCriteriaRepository,
                           ErrorCriteriaRepository errorCriteriaRepository,
+                          MaterialsRepository materialsRepository,
                           OrderRepository ordersRepository) {
         this.extractionCriteriaRepository = extractionCriteriaRepository;
         this.errorCriteriaRepository = errorCriteriaRepository;
-        this.ordersRepository = ordersRepository;
+        this.materialsRepository = materialsRepository;
     }
 
     /**
-     * ExtractionCriteria 테이블의 모든 기준을 가져와 Orders 테이블에서 조건에 맞는 주문을 추출합
+     * ExtractionCriteria 테이블의 모든 기준을 가져와 Materials 테이블에서 조건에 맞는 주문을 추출합
      *
-     * @return 조건에 맞는 Orders 리스트
+     * @return 조건에 맞는 Materials 리스트
      */
-    public List<Order> getFilteredOrders() {
+    public List<Materials> getFilteredMaterials() {
         //  추출 기준 & 에러 기준
         Optional<ExtractionCriteriaMapper> extraction = extractionCriteriaRepository.findByProcessCode("1PCM");  // 1PCM으로 고정
         Optional<ErrorCriteriaMapper> error = errorCriteriaRepository.findByProcessCode("1PCM");
@@ -43,35 +42,56 @@ public class ControlService {
         System.out.println("==== Error: "+ error);
 
 
-        extraction.ifPresent(criteriaMapper -> {
-            // processCode 값 사용
-            String processCode = criteriaMapper.getProcessCode();
-            System.out.println("Process Code: " + processCode);
+        if (extraction.isPresent()) {
+            ExtractionCriteriaMapper extractionCriteriaMapper = extraction.get();
 
-            // extractionGroup 값 사용
-            String extractionGroup = criteriaMapper.getExtractionGroup();
-            System.out.println("Extraction Group: " + extractionGroup);
+            // 초기화
+            String fCode = null;
+            String status = null;
+            String processCode = null;
+            String currProcessCode = null;
 
-            // extractionCriteria 리스트 사용
-            List<ExtractionCriteria> criteriaList = criteriaMapper.getExtractionCriteria();
+            List<ExtractionCriteria> criteriaList = extractionCriteriaMapper.getExtractionCriteria();
 
-            // 리스트 내 각 항목 접근
             for (ExtractionCriteria criteria : criteriaList) {
-                String columnName = criteria.getColumnName();
-                String columnValue = criteria.getColumnValue();
-                System.out.println("Column Name: " + columnName + ", Column Value: " + columnValue);
+                String columnsName = criteria.getColumnName();
+                String columnsValue = criteria.getColumnValue();
+
+                // debug
+                System.out.println("Column Name: " + columnsName + ", Column Value: " + columnsValue);
+
+                switch (columnsName) {
+                    case "factory_code":
+                        fCode = columnsValue;
+                        break;
+                    case "material_status":
+                        status = columnsValue;
+                        break;
+                    case "progress":
+                        processCode = columnsValue;
+                        break;
+                    case "curr_proc":
+                        currProcessCode = columnsValue;
+                        break;
+                    default:
+                        break;
+                }
             }
-        });
 
-        // 예시: 모든 기준을 AND 조건으로 적용하여 Orders를 필터링
-        // 실제로는 criteriaList를 기반으로 동적 쿼리를 작성해야 합니다.
-        // 여기서는 단순히 예시로 모든 Orders를 반환합니다.
-        // 동적 쿼리를 구현하려면 Specification이나 QueryDSL을 사용하는 것이 좋습니다.
+            // 모든 조건이 설정된 경우
+            if(fCode!=null && status!=null && processCode!=null && currProcessCode!=null) {
+                System.out.println("정상 추출되었습니다.");
+                return materialsRepository.findAllByfCodeAndStatusAndProgressAndCurrProc(fCode, status, processCode, currProcessCode);
+            } else {
+                System.out.println("추출 조건이 존재하지 않습니다.");
+                System.out.println("조건: " + "fCode: " + fCode + ", status: " + status + ", processCode: " + processCode + ", currProcessCode: " + currProcessCode);
+                return List.of();  // 빈 리스트 반환
+            }
 
+        }
 
-
-        // with 조건에 맞는 값 추출
-        return ordersRepository.findByWidthGreaterThanEqualAndWidthLessThanEqual(820.0, 1105.0);
+        System.out.println("전체 재료 목록이 반환되었습니다.");
+        return materialsRepository.findAll(); //ordersRepository.findByWidthGreaterThanEqualAndWidthLessThanEqual(820.0, 1105.0);
     }
 
 }

@@ -1,6 +1,6 @@
 package com.postco.control.presentation;
 
-import com.postco.control.domain.Order;
+import com.postco.control.domain.Materials;
 import com.postco.control.service.ControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +27,7 @@ public class ControlController {
      * @return 조건에 맞는 Orders 리스트
      */
     @GetMapping("/target")
-    public List<Order> getFilteredOrders() {
-        return controlService.getFilteredOrders();
+    public List<Materials> getFilteredMaterials() {
+        return controlService.getFilteredMaterials();
     }
 }
