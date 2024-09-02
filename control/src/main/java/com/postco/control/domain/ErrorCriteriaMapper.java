@@ -24,4 +24,14 @@ public class ErrorCriteriaMapper implements com.postco.core.entity.Entity, Seria
 
     @OneToMany(mappedBy = "mapper")
     private List<ErrorCriteria> errorCriteria;
+
+    @Override
+    public String toString() {
+        return "ErrorCriteriaMapper [" +
+                "id=" + id +
+                ", processCode=" + processCode + '\'' +
+                ", errorGroup=" + errorGroup + '\'' +
+                ", errorCriteria='" + errorCriteria + '\'' +
+                "]";
+    }
 }

@@ -23,4 +23,14 @@ public class ExtractionCriteria implements com.postco.core.entity.Entity, Serial
 
     private String columnName;
     private String columnValue;
+
+    @Override
+    public String toString() {
+        return "ExtractionCriteria{" +
+                "id=" + id +
+                ", columnName='" + columnName + '\'' +
+                ", columnValue='" + columnValue + '\'' +
+//                ", mapperId=" + (mapper != null ? mapper.getId() : null) +
+                '}';
+    }
 }
