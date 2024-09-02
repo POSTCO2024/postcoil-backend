@@ -7,14 +7,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
+@Table(name = "orders")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "materials")
 @Builder
-@Entity(name = "Order")
-@Table(name = "orders")
 public class Order implements com.postco.core.entity.Entity, Serializable {
     @Id @GeneratedValue
     @Column(name = "order_id")
@@ -45,6 +45,7 @@ public class Order implements com.postco.core.entity.Entity, Serializable {
     private String remarks;
 
     @OneToMany(mappedBy = "order")
+    @Builder.Default
     private List<Materials> materials = new ArrayList<>();
 
     public void addMaterial(Materials material) {

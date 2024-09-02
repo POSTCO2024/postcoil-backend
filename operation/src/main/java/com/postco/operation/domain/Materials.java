@@ -1,9 +1,15 @@
 package com.postco.operation.domain;
 
 import lombok.*;
+import org.springframework.data.util.Lazy;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
+import static javax.persistence.FetchType.LAZY;
 
 @Entity
 @Table(name = "materials")
@@ -11,7 +17,7 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = {"order"})
 @Builder
 public class Materials implements com.postco.core.entity.Entity, Serializable {
     @Id
@@ -22,7 +28,7 @@ public class Materials implements com.postco.core.entity.Entity, Serializable {
     @Column(nullable = false)
     private String no;
 
-    private String status;
+    private String status;     // 재료 진행 상태
 
     @Column(name = "f_code")
     private String fCode;
@@ -35,7 +41,8 @@ public class Materials implements com.postco.core.entity.Entity, Serializable {
 
     private String type;
 
-    private String progress;
+    @Enumerated(EnumType.STRING)
+    private MaterialProgress progress;   // 재료 진도
 
     @Column(name = "outer_dia")
     private double outerDia;
@@ -75,13 +82,20 @@ public class Materials implements com.postco.core.entity.Entity, Serializable {
     private String coilTypeCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    @JoinColumn(name = "order_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private Order order;
+
+    @OneToOne(mappedBy = "material", fetch = LAZY)
+    private WorkInstructionItem workInstructionItem;
 
     public void setOrder(Order order) {
         this.order = order;
-        if (order != null) {
+        if (order != null && !order.getMaterials().contains(this)) {
             order.getMaterials().add(this);
         }
+    }
+
+    public void updateProgress(MaterialProgress newProgress) {
+        this.progress = newProgress;
     }
 }
