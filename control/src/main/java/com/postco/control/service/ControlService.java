@@ -91,7 +91,7 @@ public class ControlService {
         }
 
         System.out.println("전체 재료 목록이 반환되었습니다.");
-        return materialsRepository.findAll(); //ordersRepository.findByWidthGreaterThanEqualAndWidthLessThanEqual(820.0, 1105.0);
+        return materialsRepository.findAll();
     }
 
 }
