@@ -37,6 +37,7 @@ public class MaterialServiceImpl implements MaterialService {
             }
         };
 
+
         // 엔티티 리스트 -> DTO 변환
         List<MaterialsDTO.View> viewDto = MapperUtils.mapListWithProperty(materialsList, MaterialsDTO.View.class, map);
 

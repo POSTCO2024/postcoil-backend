@@ -19,6 +19,46 @@ volumes:
     driver: local
 
 services:
+  #MYSQL
+  mysql:
+    image: mysql:8.0.33
+    container_name: mysql
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_USER: postco
+      MYSQL_PASSWORD: postcoil08
+      TZ: Asia/Seoul
+      MYSQL_DATABASE: test
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+    volumes:
+      - /var/lib/mysql
+    networks:
+      - postcoil-net
+
+  #Debezium
+  debezium:
+    image: debezium/connect:2.7
+    container_name: debezium_connect
+    ports:
+      - "8083:8083"
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+      - mysql
+    environment:
+      - BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+      - GROUP_ID=debezium
+      - CONFIG_STORAGE_TOPIC=DEBEZIUM_CONNECT_CONFIGS
+      - OFFSET_STORAGE_TOPIC=DEBEZIUM_CONNECT_OFFSETS
+      - STATUS_STORAGE_TOPIC=DEBEZIUM_CONNECT_STATUSES
+    networks:
+      - postcoil-net
+
   zookeeper-1:
     image: confluentinc/cp-zookeeper:7.4.4
     environment:
@@ -159,7 +199,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: materials-cache
+    container_name: redis-cache
     ports:
       - "6379:6379"
     networks:
