@@ -6,6 +6,7 @@ import com.postco.core.exception.KafkaSendException;
 import com.postco.operation.presentation.dto.MaterialsDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -15,11 +16,21 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class MaterialsProducer {
+
     private static final String TOPIC = "operation-material-data";
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;  // JSON 변환용
 
+    @Value("${feature-flags.kafka.enabled}")
+    private boolean kafkaEnabled;
+
     public void sendMaterials(MaterialsDTO.View materials) {
+        log.info("Kafka Enabled: {}", kafkaEnabled);
+        if (!kafkaEnabled) {
+            log.warn("Kafka is disabled. Skipping the sending of materials data.");
+            return;
+        }
+
         try {
             // Map을 JSON 문자열로 변환
             String jsonMaterials = objectMapper.writeValueAsString(materials);

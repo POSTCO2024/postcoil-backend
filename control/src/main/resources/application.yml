@@ -2,6 +2,11 @@ spring:
   application:
     name: control
 
+# feature flag 추가
+feature-flags:
+  kafka:
+    enabled: false  # 카프카 비활성화
+
 ---
 spring:
   profiles:
