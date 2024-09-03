@@ -20,7 +20,7 @@ public class PriorityService {
                         .id(priority.getId())
                         .name(priority.getName())
                         .priorityOrder(priority.getPriorityOrder())
-                        .applyMethod(priority.getApplyMethod())
+                        .applyMethod(String.valueOf(priority.getApplyMethod()))
                         .targetColumn(priority.getTargetColumn())
                         .build())
                 .collect(Collectors.toList());
@@ -32,7 +32,7 @@ public class PriorityService {
                         .id(priority.getId())
                         .name(priority.getName())
                         .priorityOrder(priority.getPriorityOrder())
-                        .applyMethod(priority.getApplyMethod())
+                        .applyMethod(String.valueOf(priority.getApplyMethod()))
                         .targetColumn(priority.getTargetColumn())
                         .build())
                 .collect(Collectors.toList());

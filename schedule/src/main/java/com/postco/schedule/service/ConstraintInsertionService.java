@@ -17,7 +17,7 @@ public class ConstraintInsertionService {
     return constraintInsertionRepository.findByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode).stream()
             .map(constraintInsertion -> ConstraintInsertionDTO.builder()
                     .id(constraintInsertion.getId())
-                    .type(constraintInsertion.getType())
+                    .type(String.valueOf(constraintInsertion.getType()))
                     .targetColumn(constraintInsertion.getTargetColumn())
                     .targetValue(String.valueOf(constraintInsertion.getTargetValue()))
                     .build())

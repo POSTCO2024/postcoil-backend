@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/management/schedule")
+@CrossOrigin(origins = "http://localhost:4000", allowCredentials = "true") // test용
 public class ManagementController {
 
     @Autowired

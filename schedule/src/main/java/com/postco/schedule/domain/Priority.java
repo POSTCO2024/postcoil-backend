@@ -42,4 +42,6 @@ public class Priority implements com.postco.core.entity.Entity, Serializable {
     private String processCode;
     private String materialUnitCode;
 
+    public Priority(Long id, String name, Integer priorityOrder, PriorityApplyMethod priorityApplyMethod, String targetColumn, String processCode) {
+    }
 }
