@@ -20,7 +20,19 @@ public class PriorityService {
                         .id(priority.getId())
                         .name(priority.getName())
                         .priorityOrder(priority.getPriorityOrder())
-                        .applyMethod(String.valueOf(priority.getApplyMethod()))
+                        .applyMethod(priority.getApplyMethod())
+                        .targetColumn(priority.getTargetColumn())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    public List<PriorityDTO> findAllByProcessCode(String processCode){
+        return priorityRepository.findByProcessCode(processCode).stream()
+                .map(priority -> PriorityDTO.builder()
+                        .id(priority.getId())
+                        .name(priority.getName())
+                        .priorityOrder(priority.getPriorityOrder())
+                        .applyMethod(priority.getApplyMethod())
                         .targetColumn(priority.getTargetColumn())
                         .build())
                 .collect(Collectors.toList());

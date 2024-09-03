@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface PriorityRepository extends JpaRepository<Priority, Long> {
     List<Priority> findByProcessCodeAndMaterialUnitCode(String processCode, String materialUnitCode);
+    List<Priority> findByProcessCode(String processCode);
 }
