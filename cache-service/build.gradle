@@ -6,13 +6,18 @@ jar {
 }
 
 dependencies {
+    // WebFlux
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-
     // Spring Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Reactor Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'io.projectreactor:reactor-test'
 
     implementation project(':core')
 }

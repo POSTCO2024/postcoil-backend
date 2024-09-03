@@ -35,7 +35,7 @@ public class KafkaTopicConfig {
 
     @Bean
     public NewTopic changeMaterialTopic() {
-        return TopicBuilder.name("change-material")
+        return TopicBuilder.name("change-data.material")
                 .partitions(3)
                 .replicas(3)
                 .build();
