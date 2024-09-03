@@ -5,7 +5,6 @@ buildscript {
         // kafka
         kafkaVersion = '3.5.0'
         springKafkaVersion = '2.9.13'
-
     }
 }
 
@@ -84,6 +83,9 @@ subprojects {
         // Spring kafka
         implementation "org.springframework.kafka:spring-kafka:${springKafkaVersion}"
         implementation "org.apache.kafka:kafka-clients:${kafkaVersion}"
+
+        // Redis
+        implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
         // websocket
         implementation 'org.springframework.boot:spring-boot-starter-websocket'

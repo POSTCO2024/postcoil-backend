@@ -1,4 +1,4 @@
-package com.postco.core.config;
+package com.postco.core.config.kafka;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

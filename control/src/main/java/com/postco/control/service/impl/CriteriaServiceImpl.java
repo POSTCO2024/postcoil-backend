@@ -38,8 +38,6 @@ public class CriteriaServiceImpl implements CriteriaService {
                 .criteriaGroup(mapper.getErrorGroup())
                 .criteriaDetails(mapperDetail)
                 .build();
-
-
     }
 
     @Override

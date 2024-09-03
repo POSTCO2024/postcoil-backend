@@ -1,36 +1,33 @@
 package com.postco.operation.service;
 
-import com.postco.core.utils.mapper.MapperUtils;
+import com.postco.operation.domain.MaterialProgress;
 import com.postco.operation.domain.Materials;
-import com.postco.operation.domain.repository.MaterialsRepository;
-import com.postco.operation.infra.kafka.MaterialsProducer;
-import com.postco.operation.presentation.dto.MaterialsDTO;
-import lombok.RequiredArgsConstructor;
-import org.modelmapper.PropertyMap;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.Duration;
 
-@Service
-@RequiredArgsConstructor
-public class MaterialService {
-    private final MaterialsRepository materialsRepository;
-    private final MaterialsProducer materialsProducer;
+public interface MaterialService {
+    /**
+     * 재료 진도 update 메서드
+     *
+     * @param materialId 재료 ID
+     * @param newProgress 새로운 재료 상태
+     */
+    void updateMaterialProgress(Long materialId, MaterialProgress newProgress);
 
-    public void sendAllMaterials() {
-        List<Materials> materialsList = materialsRepository.findAll();
-        // 특정 규칙 매핑 적용
-        PropertyMap<Materials, MaterialsDTO.View> map = new PropertyMap<>() {
-            @Override
-            protected void configure() {
-                map(source.getOrder().getNo(), destination.getOrderNo());
-            }
-        };
 
-        // 엔티티 리스트 -> DTO 변환
-        List<MaterialsDTO.View> viewDto = MapperUtils.mapListWithProperty(materialsList, MaterialsDTO.View.class, map);
+    /**
+     * 작업 시작, 종료 관련 메서드
+     */
+    void startWork(Long workItemId);
+    void finishWork(Long workItemId);
 
-        // Kakfa 전송
-        viewDto.forEach(materialsProducer::sendMaterials);
-    }
+
+    /**
+     * 재료 이송 관련 메서드
+     * 이송 요청 -> 재로 진도 J(이송 중)으로 변경
+     * 종료 상태 확인 -> 재료 진도 D(지시 대기)로 변경
+     *
+     */
+    void requestTransfer(Long materialId);
+    boolean checkTransferCompletion(Long materialId, Duration transferDuration);
 }

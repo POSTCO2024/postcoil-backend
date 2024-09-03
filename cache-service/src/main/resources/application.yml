@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: cache-service
+
+---
+spring:
+  profiles:
+    active: local

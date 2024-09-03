@@ -2,13 +2,18 @@ spring:
   application:
     name: control
 
+# feature flag 추가
+feature-flags:
+  kafka:
+    enabled: false  # 카프카 비활성화
+
 ---
 spring:
   profiles:
     active: local
 
 server:
-  port: 8083
+  port: 8086
   max-http-header-size: 32KB
   servlet:
     context-path: / 
