@@ -6,7 +6,7 @@ import com.postco.control.domain.repository.ErrorCriteriaRepository;
 import com.postco.control.domain.repository.MaterialsRepository;
 import com.postco.control.domain.repository.OrderRepository;
 import com.postco.control.presentation.dto.response.MaterialDTO;
-import com.postco.control.service.impl.TargetMaterialServiceImpl;
+import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.core.utils.mapper.MapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,14 +35,14 @@ public class ControlService  implements TargetMaterialService{
 
     // 재료(Materials) DTO 형태로 가져오기
     public List<MaterialDTO> findMaterial() {
-        List<MaterialDTO> material = MapperUtils.mapList(materialsRepository.findAll(), MaterialDTO.class);
-        return material;
+        List<MaterialDTO> materials = MapperUtils.mapList(materialsRepository.findAll(), MaterialDTO.class);
+        return materials;
     }
 
     /**
      * ExtractionCriteria 테이블의 모든 기준을 가져와 Materials 테이블에서 조건에 맞는 주문을 추출합
      *
-     * @return 조건에 맞는 Materials 리스트
+     * @return 추출 조건에 맞는 Materials 리스트
      */
     public List<MaterialDTO> getFilteredMaterials() {
         List<MaterialDTO> materials = findMaterial();   // 임의 데이터 호출
@@ -50,7 +50,7 @@ public class ControlService  implements TargetMaterialService{
 
 
         //  추출 기준 & 에러 기준
-        Optional<ExtractionCriteriaMapper> extraction = extractionCriteriaRepository.findByProcessCode("1PCM");  // 1PCM으로 고정
+        Optional<ExtractionCriteriaMapper> extraction = extractionCriteriaRepository.findByProcessCode("1PCM");  // 1PCM으로 고정 => 고정하지 않을 경우, input으로 받아야함
         Optional<ErrorCriteriaMapper> error = errorCriteriaRepository.findByProcessCode("1PCM");
         System.out.println("==== Extraction: "+ extraction);
         System.out.println("==== Error: "+ error);
@@ -99,11 +99,12 @@ public class ControlService  implements TargetMaterialService{
             return filteredMaterials;
         }
 
-        System.out.println("전체 재료 목록이 반환되었습니다.");
-        return findMaterial();
+        System.out.println("추출 기준이 존재하지 않습니다.");
+        return findMaterial();  // 전체 목록 반환
     }
 
-    // Filtering
+
+    // 추출(Extraction) 기준 필터링
     private List<MaterialDTO> filterMaterials(List<MaterialDTO> materials, String fCode, String status, String processCode, String currProcessCode) {
         return materials.stream()
                 .filter(material -> (fCode == null || material.getFCode().equals(fCode)))
@@ -111,6 +112,20 @@ public class ControlService  implements TargetMaterialService{
                 .filter(material -> (processCode == null || material.getProgress().equals(processCode)))
                 .filter(material -> (currProcessCode == null || material.getCurrProc().equals(currProcessCode)))
                 .collect(Collectors.toList());
+    }
+
+
+    // 롤 단위(A/B) 매핑
+    public List<TargetMaterialDTO.Create> createRollUnit(List<TargetMaterialDTO.Create> materials){
+        for (TargetMaterialDTO.Create material : materials) {
+            if(material.getGoalWidth() < 600){
+                material.setRollUnit("A");  // A단위(박물)
+            } else {
+                material.setRollUnit("B");  // B단위(후물)
+            }
+        }
+
+        return materials;
     }
 
 }
