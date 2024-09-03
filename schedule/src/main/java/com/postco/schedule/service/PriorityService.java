@@ -4,7 +4,6 @@ import com.postco.schedule.domain.repository.PriorityRepository;
 import com.postco.schedule.presentation.dto.PriorityDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.stream.Collectors;

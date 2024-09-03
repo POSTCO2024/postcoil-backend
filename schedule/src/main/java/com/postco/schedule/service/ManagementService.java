@@ -1,7 +1,5 @@
 package com.postco.schedule.service;
 
-import com.postco.schedule.domain.repository.ConstraintInsertionRepository;
-import com.postco.schedule.domain.repository.PriorityRepository;
 import com.postco.schedule.presentation.dto.ConstraintInsertionDTO;
 import com.postco.schedule.presentation.dto.ManagementDTO;
 import com.postco.schedule.presentation.dto.PriorityDTO;
@@ -9,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
