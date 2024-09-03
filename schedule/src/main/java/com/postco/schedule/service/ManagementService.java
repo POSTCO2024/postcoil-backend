@@ -15,29 +15,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ManagementService {
 
-    private final PriorityRepository priorityRepository;
-    private final ConstraintInsertionRepository constraintInsertionRepository;
+    private final PriorityService priorityService;
+    private final ConstraintInsertionService constraintInsertionService;
 
     public ManagementDTO findManagementDataByProcessCodeAndMaterialUnitCode(String processCode, String materialUnitCode) {
 
-        List<PriorityDTO> filteredPriority = priorityRepository.findByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode).stream()
-                .map(priority -> PriorityDTO.builder()
-                        .id(priority.getId())
-                        .name(priority.getName())
-                        .priorityOrder(priority.getPriorityOrder())
-                        .applyMethod(String.valueOf(priority.getApplyMethod()))
-                        .targetColumn(priority.getTargetColumn())
-                        .build())
-                .collect(Collectors.toList());
-
-        List<ConstraintInsertionDTO> filteredConstraintInsertion = constraintInsertionRepository.findByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode).stream()
-                .map(constraintInsertion -> ConstraintInsertionDTO.builder()
-                        .id(constraintInsertion.getId())
-                        .type(String.valueOf(constraintInsertion.getType()))
-                        .targetColumn(constraintInsertion.getTargetColumn())
-                        .targetValue(String.valueOf(constraintInsertion.getTargetValue()))
-                        .build())
-                .collect(Collectors.toList());
+        List<PriorityDTO> filteredPriority = priorityService.findAllByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode);
+        List<ConstraintInsertionDTO> filteredConstraintInsertion = constraintInsertionService.findAllByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode);
 
         return ManagementDTO.builder()
                 .priorities(filteredPriority)
