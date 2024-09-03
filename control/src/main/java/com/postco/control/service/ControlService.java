@@ -13,8 +13,10 @@ import org.springframework.stereotype.Service;
 
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 @Service
 public class ControlService  implements TargetMaterialService{
@@ -39,21 +41,19 @@ public class ControlService  implements TargetMaterialService{
         return materials;
     }
 
-    /**
+    /** step 1) by.leeyc
      * ExtractionCriteria 테이블의 모든 기준을 가져와 Materials 테이블에서 조건에 맞는 주문을 추출합
      *
      * @return 추출 조건에 맞는 Materials 리스트
      */
-    public List<MaterialDTO> getFilteredMaterials() {
+    public List<MaterialDTO> getFilteredExtractionMaterials() {
         List<MaterialDTO> materials = findMaterial();   // 임의 데이터 호출
         System.out.println("==== Dataset(input): " + materials);
 
 
-        //  추출 기준 & 에러 기준
+        //  추출 기준
         Optional<ExtractionCriteriaMapper> extraction = extractionCriteriaRepository.findByProcessCode("1PCM");  // 1PCM으로 고정 => 고정하지 않을 경우, input으로 받아야함
-        Optional<ErrorCriteriaMapper> error = errorCriteriaRepository.findByProcessCode("1PCM");
         System.out.println("==== Extraction: "+ extraction);
-        System.out.println("==== Error: "+ error);
 
 
         if (extraction.isPresent()) {
@@ -115,9 +115,107 @@ public class ControlService  implements TargetMaterialService{
     }
 
 
+    /** step 2) by.pinky
+     * 1. ErrorCriteria 테이블을 기준으로 에러 여부에 따라 error_flag를 추가
+     * 2. MaterialDTO -> TargetMaterialDTO
+     *
+     * @return 에러 여부를 포함한 TargetMaterials 리스트
+     */
+    public List<TargetMaterialDTO.Create> extractMaterialByErrorCriteria(List<MaterialDTO> materials) {
+        ErrorCriteriaMapper mapper = errorCriteriaRepository.findByProcessCode("1PCM")   // 임의로 설정 - MaterialDTO와 함께 input으로 받을 것
+                .orElseThrow(() -> new IllegalArgumentException("no such code"));
+        List<ErrorCriteria> criteria = mapper.getErrorCriteria();
+
+        // 정렬해서 에러재 타입이 1. 정보이생재 , 2. 설비이상에러재, 3. 관리재 순으로 입력되게 함
+        criteria.sort(Comparator.comparing(ErrorCriteria::getErrorType));
+
+        List<MaterialDTO> materialsList = materials.stream()
+                .peek(material -> {
+                    List<String> errorType = new ArrayList<>();
+                    boolean matchesCriteria = criteria.stream().allMatch(criterion -> {
+                        String columnName = criterion.getColumnName();
+                        String columnValue = criterion.getColumnValue();
+                        String currentErrorType = criterion.getErrorType();
+
+                        switch (columnName) {
+                            case "min_thickness":
+                                if (material.getThickness() < Double.parseDouble(columnValue)) {
+                                    errorType.add(currentErrorType);
+                                    return false;
+                                }
+                                return true;
+                            case "max_thickness":
+                                if (material.getThickness() > Double.parseDouble(columnValue)) {
+                                    errorType.add(currentErrorType);
+                                    return false;
+                                }
+                                return true;
+                            case "max_width":
+                                if (material.getWidth() > Double.parseDouble(columnValue)) {
+                                    errorType.add(currentErrorType);
+                                    return false;
+                                }
+                                return true;
+                            case "min_width":
+                                if (material.getWidth() < Double.parseDouble(columnValue)) {
+                                    errorType.add(currentErrorType);
+                                    return false;
+                                }
+                                return true;
+                            case "coil_type_code":
+                                if (material.getCoilTypeCode() == null ||
+                                        material.getCoilTypeCode().equals("ATOS") ||
+                                        material.getCoilTypeCode().equals("PAWS50")) {
+                                    errorType.add(currentErrorType);
+                                    return false;
+                                }
+                                return true;
+                            case "factory_code":
+                                if (material.getFCode() == null) {
+                                    errorType.add(currentErrorType);
+                                    return false;
+                                }
+                                return true;
+                            case "order_no":
+                                if (material.getOrderNo() == null) {
+                                    errorType.add(currentErrorType);
+                                    return false;
+                                }
+                                return true;
+                            case "rem_proc":
+                                if (material.getRemProc() == null) {
+                                    errorType.add(currentErrorType);
+                                    return false;
+                                }
+                                return true;
+                            default:
+                                return true;
+                        }
+                    });
+                    if (matchesCriteria) {
+                        material.setIsError("N");
+                    } else {
+                        material.setIsError("Y");
+                        material.setErrorType(errorType.get(errorType.size() - 1));
+                    }
+
+                }).collect(Collectors.toList());
+        System.out.println("\n\n\n"+materialsList+"\n\n\n");
+        List<TargetMaterialDTO.Create> targetMaterialList = MapperUtils.mapList(materialsList, TargetMaterialDTO.Create.class);
+        return targetMaterialList;
+    }
+
+
+
+    /** step 3) by.leeyc
+     * 추출 & 에러 기준에 만족한 TargetMaterial 리스트에서 롤 단위를 추가함
+     *
+     * @return 작업 대상재 테이블의 입력값인 TargetMaterials 리스트
+     */
     // 롤 단위(A/B) 매핑
     public List<TargetMaterialDTO.Create> createRollUnit(List<TargetMaterialDTO.Create> materials){
         for (TargetMaterialDTO.Create material : materials) {
+            System.out.println("[debug] 주문 두께: " + material.getGoalWidth());
             if(material.getGoalWidth() < 600){
                 material.setRollUnit("A");  // A단위(박물)
             } else {

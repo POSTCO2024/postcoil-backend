@@ -2,6 +2,7 @@ package com.postco.control.presentation;
 
 import com.postco.control.domain.Materials;
 import com.postco.control.presentation.dto.response.MaterialDTO;
+import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.control.service.ControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,7 +28,11 @@ public class ControlController {
      * @return 조건에 맞는 Materials 리스트
      */
     @GetMapping("/target")
-    public List<MaterialDTO> getFilteredMaterials() {
-        return controlService.getFilteredMaterials();
+    public List<TargetMaterialDTO.Create> getFilteredMaterials() {
+        List<MaterialDTO> filteredExtraction = controlService.getFilteredExtractionMaterials();
+        List<TargetMaterialDTO.Create> filteredError = controlService.extractMaterialByErrorCriteria(filteredExtraction);
+        List<TargetMaterialDTO.Create> TargetMaterial = controlService.createRollUnit(filteredError);
+
+        return TargetMaterial;
     }
 }

@@ -9,9 +9,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-
 public class TargetMaterialDTO {
     @Data
     @Builder
@@ -44,15 +41,9 @@ public class TargetMaterialDTO {
         private Long materialId;
         private String type;
         private String op_code;
-
-        @Enumerated(EnumType.ORDINAL)
         private StatusEnum status;
-
         private String cur_proc_code;
-
-        @Enumerated(EnumType.STRING)
         private MaterialProgress progress;
-
         private double thickness;
         private double width;
         private double weight;
