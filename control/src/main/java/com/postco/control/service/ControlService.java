@@ -3,8 +3,9 @@ package com.postco.control.service;
 import com.postco.control.domain.*;
 import com.postco.control.domain.repository.ExtractionCriteriaRepository;
 import com.postco.control.domain.repository.ErrorCriteriaRepository;
+import com.postco.control.domain.repository.JoinTablesRepository;
 import com.postco.control.domain.repository.MaterialsRepository;
-import com.postco.control.domain.repository.OrderRepository;
+import com.postco.control.domain.repository.TargetMaterialRepository;
 import com.postco.control.presentation.dto.response.MaterialDTO;
 import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.core.utils.mapper.MapperUtils;
@@ -24,15 +25,21 @@ public class ControlService  implements TargetMaterialService{
     private final ExtractionCriteriaRepository extractionCriteriaRepository;
     private final ErrorCriteriaRepository errorCriteriaRepository;
     private final MaterialsRepository materialsRepository;
+    private final JoinTablesRepository joinTablesRepository;
+    private final TargetMaterialRepository targetMaterialRepository;
 
     @Autowired
     public ControlService(ExtractionCriteriaRepository extractionCriteriaRepository,
                           ErrorCriteriaRepository errorCriteriaRepository,
                           MaterialsRepository materialsRepository,
-                          OrderRepository ordersRepository) {
+                          JoinTablesRepository joinTablesRepository,
+                          TargetMaterialRepository targetMaterialRepository
+                          ) {
         this.extractionCriteriaRepository = extractionCriteriaRepository;
         this.errorCriteriaRepository = errorCriteriaRepository;
         this.materialsRepository = materialsRepository;
+        this.joinTablesRepository = joinTablesRepository;
+        this.targetMaterialRepository = targetMaterialRepository;
     }
 
     // 재료(Materials) DTO 형태로 가져오기
@@ -41,13 +48,22 @@ public class ControlService  implements TargetMaterialService{
         return materials;
     }
 
+    public List<MaterialDTO> findJoinTables(){
+//        for (JoinTables joinTables : joinTablesRepository.findAll()) {
+//            System.out.println("\n"+joinTables.toString()+"\n");
+//        }
+        List<JoinTables> joinTablesList = joinTablesRepository.findAll();
+        joinTablesList.forEach(joinTable -> System.out.println("JoinTable ID: " + joinTable.getMaterialId()));
+        return MapperUtils.mapList(joinTablesRepository.findAll(), MaterialDTO.class);
+    }
+
     /** step 1) by.leeyc
      * ExtractionCriteria 테이블의 모든 기준을 가져와 Materials 테이블에서 조건에 맞는 주문을 추출합
      *
      * @return 추출 조건에 맞는 Materials 리스트
      */
     public List<MaterialDTO> getFilteredExtractionMaterials() {
-        List<MaterialDTO> materials = findMaterial();   // 임의 데이터 호출
+        List<MaterialDTO> materials = findJoinTables();   // 임의 데이터 호출
         System.out.println("==== Dataset(input): " + materials);
 
 
@@ -105,12 +121,12 @@ public class ControlService  implements TargetMaterialService{
 
 
     // 추출(Extraction) 기준 필터링
-    private List<MaterialDTO> filterMaterials(List<MaterialDTO> materials, String fCode, String status, String processCode, String currProcessCode) {
+    private List<MaterialDTO> filterMaterials(List<MaterialDTO> materials, String fCode, String status, String processCode, String curProcCode) {
         return materials.stream()
                 .filter(material -> (fCode == null || material.getFCode().equals(fCode)))
                 .filter(material -> (status == null || String.valueOf(material.getStatus()).equals(status)))
                 .filter(material -> (processCode == null || material.getProgress().equals(processCode)))
-                .filter(material -> (currProcessCode == null || material.getCurrProc().equals(currProcessCode)))
+                .filter(material -> (curProcCode == null || material.getCurProcCode().equals(curProcCode)))
                 .collect(Collectors.toList());
     }
 
@@ -163,12 +179,14 @@ public class ControlService  implements TargetMaterialService{
                                 }
                                 return true;
                             case "coil_type_code":
-                                if (material.getCoilTypeCode() == null ||
-                                        material.getCoilTypeCode().equals("ATOS") ||
-                                        material.getCoilTypeCode().equals("PAWS50")) {
-                                    errorType.add(currentErrorType);
-                                    return false;
-                                }
+                                    if (material.getCoilTypeCode() == null) {
+                                        errorType.add("정보이상재");
+                                        return false;
+                                        }
+                                    else if ((!currentErrorType.equals("정보이상재")) && (material.getCoilTypeCode().equals(columnValue))) {
+                                            errorType.add("관리재");
+                                            return false;
+                                    }
                                 return true;
                             case "factory_code":
                                 if (material.getFCode() == null) {
@@ -222,6 +240,15 @@ public class ControlService  implements TargetMaterialService{
                 material.setRollUnit("B");  // B단위(후물)
             }
         }
+
+
+        /** step4) 작업 대상재 DB에 insert
+         * 작업 대상재 DB를 초기화하고, 현재 재료 기준으로 작업 대상재를 추출함
+         *
+         * */
+        List<TargetMaterial> targetMaterials = MapperUtils.mapList(materials, TargetMaterial.class);
+        targetMaterialRepository.deleteAll();  // 테이블 초기화
+        targetMaterialRepository.saveAll(targetMaterials);
 
         return materials;
     }

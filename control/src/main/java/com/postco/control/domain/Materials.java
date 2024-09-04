@@ -12,18 +12,17 @@ import java.io.Serializable;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = {"order"})
 @Builder
 public class Materials implements com.postco.core.entity.Entity, Serializable {
     @Id
-    @GeneratedValue
-    @Column(name = "id")
-    private Long id;
+    @Column(name = "material_id")
+    private Long materialId;
 
-    @Column(nullable = false)
-    private String no;
+    @Column(name = "material_no", nullable = false)
+    private String materialNo;
 
-    private String status;
+    private String status;     // 재료 진행 상태
 
     @Column(name = "f_code")
     private String fCode;
@@ -31,12 +30,13 @@ public class Materials implements com.postco.core.entity.Entity, Serializable {
     @Column(name = "op_code")
     private String opCode;
 
-    @Column(name = "curr_proc")
-    private String currProc;
+    @Column(name = "cur_proc_code")
+    private String curProcCode;
 
     private String type;
 
-    private String progress;
+    @Enumerated(EnumType.STRING)
+    private MaterialProgress progress;   // 재료 진도
 
     @Column(name = "outer_dia")
     private double outerDia;
@@ -76,14 +76,10 @@ public class Materials implements com.postco.core.entity.Entity, Serializable {
     private String coilTypeCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", insertable = false, updatable = false)
-    @JsonBackReference // 순환 참조 방지
+    @JoinColumn(name = "order_no", referencedColumnName = "no", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private Order order;
 
-    public void setOrder(Order order) {
-        this.order = order;
-        if (order != null) {
-            order.getMaterials().add(this);
-        }
-    }
+    @Column(name = "order_id")
+    private String orderId;
 }
+

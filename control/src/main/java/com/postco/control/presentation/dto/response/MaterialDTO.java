@@ -37,7 +37,7 @@ public class MaterialDTO implements DTO {
     private String remarks;
     private String type;
     private String status;
-    private String cur_proc_code;
+    private String curProcCode;
     private String progress;
 
     private double thickness;
