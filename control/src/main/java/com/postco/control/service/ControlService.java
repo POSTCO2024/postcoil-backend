@@ -142,8 +142,8 @@ public class ControlService  implements TargetMaterialService{
                 .orElseThrow(() -> new IllegalArgumentException("no such code"));
         List<ErrorCriteria> criteria = mapper.getErrorCriteria();
 
-        // 정렬해서 에러재 타입이 1. 정보이생재 , 2. 설비이상에러재, 3. 관리재 순으로 입력되게 함
-        criteria.sort(Comparator.comparing(ErrorCriteria::getErrorType));
+        // 정렬해서 에러재 타입이 1. 정보이상재 , 2. 설비이상에러재, 3. 관리재 순으로 입력되게 함
+        criteria.sort(Comparator.comparing(ErrorCriteria::getErrorType).reversed());
 
         List<MaterialDTO> materialsList = materials.stream()
                 .peek(material -> {
