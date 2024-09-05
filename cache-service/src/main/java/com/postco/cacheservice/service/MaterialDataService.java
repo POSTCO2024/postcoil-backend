@@ -3,12 +3,11 @@ package com.postco.cacheservice.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.cacheservice.entity.Materials;
+import com.postco.core.dto.MaterialDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveHashOperations;
-import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -22,7 +21,7 @@ public class MaterialDataService {
     private final ObjectMapper objectMapper;
     private static final String MATERIAL_KEY_PREFIX = "material:";
 
-    public Mono<Boolean> saveMaterials(Materials material) {
+    public Mono<Boolean> saveMaterials(MaterialDTO.View material) {
         ReactiveHashOperations<String, String, String> hashOperations = reactiveRedisTemplate.opsForHash();
 
         Map<String, Object> map = objectMapper.convertValue(material, new TypeReference<>() {});

@@ -1,5 +1,6 @@
 package com.postco.operation.service.impl;
 
+import com.postco.core.dto.MaterialDTO;
 import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.operation.domain.MaterialProgress;
 import com.postco.operation.domain.Materials;
@@ -7,7 +8,6 @@ import com.postco.operation.domain.WorkInstructionItem;
 import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
 import com.postco.operation.infra.kafka.MaterialsProducer;
-import com.postco.operation.presentation.dto.MaterialsDTO;
 import com.postco.operation.service.MaterialService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.PropertyMap;
@@ -30,7 +30,7 @@ public class MaterialServiceImpl implements MaterialService {
     public void sendAllMaterials() {
         List<Materials> materialsList = materialRepository.findAll();
         // 특정 규칙 매핑 적용
-        PropertyMap<Materials, MaterialsDTO.View> map = new PropertyMap<>() {
+        PropertyMap<Materials, MaterialDTO.View> map = new PropertyMap<>() {
             @Override
             protected void configure() {
                 map(source.getOrder().getNo(), destination.getOrderNo());
@@ -39,7 +39,7 @@ public class MaterialServiceImpl implements MaterialService {
 
 
         // 엔티티 리스트 -> DTO 변환
-        List<MaterialsDTO.View> viewDto = MapperUtils.mapListWithProperty(materialsList, MaterialsDTO.View.class, map);
+        List<MaterialDTO.View> viewDto = MapperUtils.mapListWithProperty(materialsList, MaterialDTO.View.class, map);
 
         // Kakfa 전송
         viewDto.forEach(materialsProducer::sendMaterials);

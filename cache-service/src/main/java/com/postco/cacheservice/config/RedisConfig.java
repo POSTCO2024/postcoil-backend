@@ -1,4 +1,4 @@
-package com.postco.core.config;
+package com.postco.cacheservice.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,6 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-@ComponentScan({"com.postco.core", "com.postco.cacheservice"})
 public class RedisConfig {
     @Value("${spring.redis.host}")
     private String host;

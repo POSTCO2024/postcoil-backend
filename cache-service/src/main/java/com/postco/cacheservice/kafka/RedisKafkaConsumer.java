@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.cacheservice.entity.Materials;
 import com.postco.cacheservice.service.MaterialDataService;
+import com.postco.core.dto.MaterialDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -22,7 +23,7 @@ public class RedisKafkaConsumer {
     public void consumeMaterials(String message) {
         try {
             // Kafka에서 수신한 메시지를 Materials 객체로 변환
-            Materials material = objectMapper.readValue(message, Materials.class);
+            MaterialDTO.View material = objectMapper.readValue(message, MaterialDTO.View.class);
             log.info("Received materials data: {}", material);
 
             // Redis에 데이터를 저장

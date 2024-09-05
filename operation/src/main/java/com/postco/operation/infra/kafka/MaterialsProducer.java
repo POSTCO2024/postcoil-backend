@@ -3,14 +3,12 @@ package com.postco.operation.infra.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.exception.KafkaSendException;
-import com.postco.operation.presentation.dto.MaterialsDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.Map;
+import com.postco.core.dto.MaterialDTO;
 
 @Slf4j
 @Service
@@ -24,7 +22,7 @@ public class MaterialsProducer {
     @Value("${feature-flags.kafka.enabled}")
     private boolean kafkaEnabled;
 
-    public void sendMaterials(MaterialsDTO.View materials) {
+    public void sendMaterials(MaterialDTO.View materials) {
         log.info("Kafka Enabled: {}", kafkaEnabled);
         if (!kafkaEnabled) {
             log.warn("Kafka is disabled. Skipping the sending of materials data.");

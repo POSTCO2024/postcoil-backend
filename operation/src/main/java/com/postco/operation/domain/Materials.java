@@ -30,7 +30,7 @@ public class Materials implements com.postco.core.entity.Entity, Serializable {
 
     private String status;     // 재료 진행 상태
 
-    @Column(name = "f_code")
+    @Column(name = "factory_code")
     private String fCode;
 
     @Column(name = "op_code")

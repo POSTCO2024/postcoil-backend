@@ -11,7 +11,7 @@ public class MaterialDTO {
         private Long id;
         private String no;
         private String status;
-        private String fCode;
+        private String factoryCode;
         private String opCode;
         private String currProc;
         private String type;
