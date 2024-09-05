@@ -243,10 +243,9 @@ public class ControlService implements TargetMaterialService {
          *
          * */
         List<TargetMaterial> targetMaterials = MapperUtils.mapList(materials, TargetMaterial.class);
-        System.out.println("\n\n\n" + targetMaterials + "\n\n\n");
-        targetMaterialRepository.deleteAll();  // 테이블 초기화
+//        targetMaterialRepository.deleteAll();  // 테이블 초기화
+        // To do: 작업대상대 ID 부여하기
         targetMaterialRepository.saveAll(targetMaterials);
-
         return materials;
     }
 
@@ -267,7 +266,6 @@ public class ControlService implements TargetMaterialService {
      */
     public List<Fc001aDTO> getNormalMaterials() {
         List<TargetMaterial> targetMaterials = targetMaterialRepository.findByIsError("N");
-
         return MapperUtils.mapList(targetMaterials, Fc001aDTO.class);
     }
 }
