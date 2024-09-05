@@ -35,7 +35,6 @@ public class MaterialDataService {
         String key = MATERIAL_KEY_PREFIX + material.getId();
         return hashOperations.putAll(key, materialMap);
     }
-
     public Mono<Materials> getMaterials(String id) {
         ReactiveHashOperations<String, String, String> hashOperations = reactiveRedisTemplate.opsForHash();
         String key = MATERIAL_KEY_PREFIX + id;
