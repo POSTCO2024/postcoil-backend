@@ -35,10 +35,8 @@ public class MaterialsDTO {
         private String orderNo;
     }
 
-    @Getter
-    @Setter
+    @Data
     @Builder
-    @ToString
     @AllArgsConstructor
     @NoArgsConstructor
     public static class View {
@@ -67,10 +65,8 @@ public class MaterialsDTO {
         private String orderNo;
     }
 
-    @Getter
-    @Setter
+    @Data
     @Builder
-    @ToString
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Update {
