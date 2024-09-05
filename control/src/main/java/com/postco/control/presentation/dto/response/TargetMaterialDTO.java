@@ -20,7 +20,6 @@ public class TargetMaterialDTO {
         private double goalWidth;
         private double goalThickness;
         private double goalLength;
-        private double weight;
         private String processPlan;
         private String orderNo;
         private String dueDate;

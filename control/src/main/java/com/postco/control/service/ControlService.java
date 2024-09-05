@@ -2,6 +2,7 @@ package com.postco.control.service;
 
 import com.postco.control.domain.*;
 import com.postco.control.domain.repository.*;
+import com.postco.control.presentation.dto.response.Fc001aDTO;
 import com.postco.control.presentation.dto.response.Fc002DTO;
 import com.postco.control.presentation.dto.response.MaterialDTO;
 import com.postco.control.presentation.dto.response.TargetMaterialDTO;
@@ -44,10 +45,8 @@ public class ControlService implements TargetMaterialService {
         return materials;
     }
 
+
     public List<MaterialDTO> findJoinTables() {
-//        for (JoinTables joinTables : joinTablesRepository.findAll()) {
-//            System.out.println("\n"+joinTables.toString()+"\n");
-//        }
         List<JoinTables> joinTablesList = joinTablesRepository.findAll();
         joinTablesList.forEach(joinTable -> System.out.println("JoinTable ID: " + joinTable.getMaterialId()));
         return MapperUtils.mapList(joinTablesRepository.findAll(), MaterialDTO.class);
@@ -244,8 +243,8 @@ public class ControlService implements TargetMaterialService {
          *
          * */
         List<TargetMaterial> targetMaterials = MapperUtils.mapList(materials, TargetMaterial.class);
-        System.out.println("\n\n\n" + targetMaterials + "\n\n\n");
-        targetMaterialRepository.deleteAll();  // 테이블 초기화
+//        targetMaterialRepository.deleteAll();  // 테이블 초기화
+        // To do: 작업대상대 ID 부여하기
         targetMaterialRepository.saveAll(targetMaterials);
 
         return materials;
@@ -256,4 +255,14 @@ public class ControlService implements TargetMaterialService {
         return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
     }
 
+    /**
+     * fc001a: 작업대상재 관리 화면
+     *
+     * @return 작업 대상재 목록
+     */
+    public List<Fc001aDTO> getMaterials() {
+        List<TargetMaterial> targetMaterials = targetMaterialRepository.findByIsError("N");
+
+        return MapperUtils.mapList(targetMaterials, Fc001aDTO.class);
+    }
 }
