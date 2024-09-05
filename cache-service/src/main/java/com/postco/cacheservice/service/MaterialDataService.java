@@ -1,37 +1,46 @@
 package com.postco.cacheservice.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.cacheservice.entity.Materials;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.ReactiveHashOperations;
 import org.springframework.data.redis.core.ReactiveRedisOperations;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class MaterialDataService {
-    private final ReactiveRedisOperations<String, Materials> materialsOps;
-    private final ReactiveRedisTemplate<String, String> stringRedisTemplate;
+
+    private final ReactiveRedisTemplate<String, Object> reactiveRedisTemplate;
+    private final ObjectMapper objectMapper;
     private static final String MATERIAL_KEY_PREFIX = "material:";
 
-    public Flux<Materials> getAllMaterials() {
-        return materialsOps.keys(MATERIAL_KEY_PREFIX + "*")
-                .flatMap(materialsOps.opsForValue()::get);
-    }
-
-    public Mono<Materials> getMaterialById(String id) {
-        return materialsOps.opsForValue().get(MATERIAL_KEY_PREFIX + id);
-    }
-
     public Mono<Boolean> saveMaterials(Materials material) {
-        return materialsOps.opsForValue().set(MATERIAL_KEY_PREFIX + material.getId(), material)
-                .flatMap(result -> stringRedisTemplate.convertAndSend("material-updates", "Material updated: " + material.getId())
-                        .thenReturn(result));
+        ReactiveHashOperations<String, String, String> hashOperations = reactiveRedisTemplate.opsForHash();
+
+        Map<String, Object> map = objectMapper.convertValue(material, new TypeReference<>() {});
+        Map<String, String> materialMap = map.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> String.valueOf(entry.getValue())
+                ));
+
+        String key = MATERIAL_KEY_PREFIX + material.getId();
+        return hashOperations.putAll(key, materialMap);
     }
-    public Mono<Boolean> deleteMaterial(String id) {
-        return materialsOps.opsForValue().delete(MATERIAL_KEY_PREFIX + id)
-                .flatMap(result -> stringRedisTemplate.convertAndSend("material-updates", "Material deleted: " + id)
-                        .thenReturn(result));
+    public Mono<Materials> getMaterials(String id) {
+        ReactiveHashOperations<String, String, String> hashOperations = reactiveRedisTemplate.opsForHash();
+        String key = MATERIAL_KEY_PREFIX + id;
+
+        return hashOperations.entries(key)
+                .collectMap(Map.Entry::getKey, Map.Entry::getValue)
+                .map(map -> objectMapper.convertValue(map, Materials.class));
     }
 }

@@ -27,7 +27,6 @@ public class RedisKafkaConsumerTest {
 
     @Test
     public void testRedisConnection() {
-        // Redis 연결 테스트: Redis에 임의의 키를 설정한 후 가져와서 확인하는 방식으로 연결을 확인
         String key = "pingTestKey";
         String value = "pong";
 
