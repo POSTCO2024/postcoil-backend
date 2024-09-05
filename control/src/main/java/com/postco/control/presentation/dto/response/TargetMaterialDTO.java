@@ -1,8 +1,6 @@
 package com.postco.control.presentation.dto.response;
 
 
-import com.postco.control.domain.MaterialProgress;
-import com.postco.control.domain.StatusEnum;
 import com.postco.core.dto.DTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +20,6 @@ public class TargetMaterialDTO {
         private double goalWidth;
         private double goalThickness;
         private double goalLength;
-        private double weight;
         private String processPlan;
         private String orderNo;
         private String dueDate;
@@ -41,9 +38,9 @@ public class TargetMaterialDTO {
         private Long materialId;
         private String type;
         private String op_code;
-        private StatusEnum status;
+        private String status;
         private String cur_proc_code;
-        private MaterialProgress progress;
+        private String progress;
         private double thickness;
         private double width;
         private double weight;
