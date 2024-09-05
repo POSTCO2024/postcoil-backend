@@ -23,4 +23,14 @@ public class ExtractionCriteriaMapper implements com.postco.core.entity.Entity, 
 
     @OneToMany(mappedBy = "mapper")
     private List<ExtractionCriteria> extractionCriteria;
+
+    @Override
+    public String toString() {
+        return "ExtractionCriteria{" +
+                "id=" + id +
+                ", processCode='" + processCode + '\'' +
+                ", extractionGroup='" + extractionGroup + '\'' +
+                ", extractionCriteria='" + extractionCriteria + '\'' +
+                '}';
+    }
 }

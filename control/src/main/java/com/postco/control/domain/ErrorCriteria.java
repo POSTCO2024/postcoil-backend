@@ -24,4 +24,13 @@ public class ErrorCriteria implements com.postco.core.entity.Entity {
     private String errorType;
     private String columnName;
     private String columnValue;
+
+    @Override
+    public String toString() {
+        return "ErrorCriteria{" +
+                "id=" + id +
+                ", columnName='" + columnName + '\'' +
+                ", columnValue='" + columnValue + '\'' +
+                '}';
+    }
 }

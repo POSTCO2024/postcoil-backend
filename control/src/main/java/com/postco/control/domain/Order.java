@@ -1,9 +1,12 @@
 package com.postco.control.domain;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -21,28 +24,28 @@ public class Order implements com.postco.core.entity.Entity, Serializable {
     @Column(nullable = false, unique = true)
     private String no;
 
-    @Column(nullable = false)
+    @Column(name = "customer_name", nullable = false)
     private String customerName;
 
-    @Column(nullable = false)
-    private double thickness;
+    @Column(name="goal_thickness",nullable = false)
+    private double goalThickness;
 
-    @Column(nullable = false)
-    private double width;
+    @Column(name = "goal_width", nullable = false)
+    private double goalWidth;
 
-    @Column(nullable = false)
-    private double length;
+    @Column(name = "goal_length", nullable = false)
+    private double goalLength;
 
-    @Column(nullable = false)
+    @Column(name = "coil_type", nullable = false)
     private String coilType;
 
     @Column(nullable = false)
     private int quantity;
 
-    @Column(nullable = false)
+    @Column(name = "due_date", nullable = false)
     private LocalDateTime dueDate;
 
-    @Column(nullable = false)
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
     @Column
