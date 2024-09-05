@@ -8,7 +8,6 @@ import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.core.utils.mapper.MapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -229,7 +228,6 @@ public class ControlService implements TargetMaterialService {
      * @return 작업 대상재 테이블의 입력값인 TargetMaterials 리스트
      */
     // 롤 단위(A/B) 매핑
-    @Transactional
     public List<TargetMaterialDTO.Create> createRollUnit(List<TargetMaterialDTO.Create> materials) {
         for (TargetMaterialDTO.Create material : materials) {
             System.out.println("[debug] 주문 두께: " + material.getGoalWidth());
