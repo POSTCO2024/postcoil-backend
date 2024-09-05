@@ -243,8 +243,8 @@ public class ControlService implements TargetMaterialService {
          *
          * */
         List<TargetMaterial> targetMaterials = MapperUtils.mapList(materials, TargetMaterial.class);
-//        targetMaterialRepository.deleteAll();  // 테이블 초기화
-        // To do: 작업대상대 ID 부여하기
+        System.out.println("\n\n\n" + targetMaterials + "\n\n\n");
+        targetMaterialRepository.deleteAll();  // 테이블 초기화
         targetMaterialRepository.saveAll(targetMaterials);
 
         return materials;
