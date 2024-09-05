@@ -56,6 +56,5 @@ public class ControlController {
     @GetMapping("/fc001a")
     public List<Fc001aDTO> getTargetMaterials() {
         return controlService.getNormalMaterials();
-
     }
 }
