@@ -17,40 +17,38 @@ import java.util.List;
 @Entity(name = "Order")
 @Table(name = "orders")
 public class Order implements com.postco.core.entity.Entity, Serializable {
-    @Id @GeneratedValue
-    @Column(name = "id")
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column(nullable = false, unique = true)
     private String no;
 
-    private String customer;
+    @Column(name = "customer_name", nullable = false)
+    private String customerName;
 
-    private double thickness;
+    @Column(name="goal_thickness",nullable = false)
+    private double goalThickness;
 
-    private double width;
+    @Column(name = "goal_width", nullable = false)
+    private double goalWidth;
 
-    private double length;
+    @Column(name = "goal_length", nullable = false)
+    private double goalLength;
 
-    @Column(name = "coil_type")
+    @Column(name = "coil_type", nullable = false)
     private String coilType;
 
+    @Column(nullable = false)
     private int quantity;
 
-    @Column(name = "due_date")
+    @Column(name = "due_date", nullable = false)
     private LocalDateTime dueDate;
 
-    @Column(name = "order_date")
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
+    @Column
     private String remarks;
 
-    @OneToMany(mappedBy = "order")
-    @JsonManagedReference // 순환 참조 방지
-    private List<Materials> materials = new ArrayList<>();
-
-    public void addMaterial(Materials material) {
-        this.materials.add(material);
-        material.setOrder(this);
-    }
 }

@@ -6,13 +6,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
-public interface OrderRepository extends JpaRepository<Order, Long> {
-    // ==
-    List<Order> findByWidth(Double width);
-    // between
-    List<Order> findByWidthGreaterThanEqualAndWidthLessThanEqual(Double width, Double width2);
-
-    // count
-    Long countByCoilType(String coilType);
-}
+//@Repository
+//public interface OrderRepository extends JpaRepository<Order, Long> {
+//    // ==
+//    List<Order> findByWidth(Double width);
+//    // between
+//    List<Order> findByWidthGreaterThanEqualAndWidthLessThanEqual(Double width, Double width2);
+//
+//    // count
+//    Long countByCoilType(String coilType);
+//}
