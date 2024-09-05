@@ -1,15 +1,8 @@
 package com.postco.control.presentation.dto.response;
 
 
-import lombok.*;
-
-import javax.persistence.*;
-
 import com.postco.core.dto.DTO;
-import com.postco.control.domain.StatusEnum;
-import com.postco.control.domain.MaterialProgress;
-
-import javax.persistence.Enumerated;
+import lombok.*;
 
 @Data
 @NoArgsConstructor
@@ -26,7 +19,6 @@ public class MaterialDTO implements DTO {
     private double goalWidth;
     private double goalThickness;
     private double goalLength;
-    private double weight;
     private String processPlan;
     private String orderNo;
     private String dueDate;

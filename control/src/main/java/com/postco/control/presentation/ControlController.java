@@ -1,14 +1,13 @@
 package com.postco.control.presentation;
 
-import com.postco.control.domain.Materials;
+import com.postco.control.presentation.dto.response.Fc002DTO;
 import com.postco.control.presentation.dto.response.MaterialDTO;
 import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.control.service.ControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -25,6 +24,7 @@ public class ControlController {
 
     /**
      * 추출 및 에러 조건에 맞는 작업 대상재 목록을 조회
+     *
      * @return 조건에 맞는 Materials 리스트
      */
     @GetMapping("/target")
@@ -34,5 +34,11 @@ public class ControlController {
         List<TargetMaterialDTO.Create> TargetMaterial = controlService.createRollUnit(filteredError);
 
         return TargetMaterial;
+    }
+
+    @GetMapping("/error")
+    public List<Fc002DTO> getErrorMaterials() {
+        List<Fc002DTO> erorrMaterialList = controlService.findErrorMaterial();
+        return erorrMaterialList;
     }
 }

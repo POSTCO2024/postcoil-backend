@@ -1,26 +1,23 @@
 package com.postco.control.service;
 
 import com.postco.control.domain.*;
-import com.postco.control.domain.repository.ExtractionCriteriaRepository;
-import com.postco.control.domain.repository.ErrorCriteriaRepository;
-import com.postco.control.domain.repository.JoinTablesRepository;
-import com.postco.control.domain.repository.MaterialsRepository;
-import com.postco.control.domain.repository.TargetMaterialRepository;
+import com.postco.control.domain.repository.*;
+import com.postco.control.presentation.dto.response.Fc002DTO;
 import com.postco.control.presentation.dto.response.MaterialDTO;
 import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.core.utils.mapper.MapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.Comparator;
 
 @Service
-public class ControlService  implements TargetMaterialService{
+public class ControlService implements TargetMaterialService {
 
     private final ExtractionCriteriaRepository extractionCriteriaRepository;
     private final ErrorCriteriaRepository errorCriteriaRepository;
@@ -34,7 +31,7 @@ public class ControlService  implements TargetMaterialService{
                           MaterialsRepository materialsRepository,
                           JoinTablesRepository joinTablesRepository,
                           TargetMaterialRepository targetMaterialRepository
-                          ) {
+    ) {
         this.extractionCriteriaRepository = extractionCriteriaRepository;
         this.errorCriteriaRepository = errorCriteriaRepository;
         this.materialsRepository = materialsRepository;
@@ -48,7 +45,7 @@ public class ControlService  implements TargetMaterialService{
         return materials;
     }
 
-    public List<MaterialDTO> findJoinTables(){
+    public List<MaterialDTO> findJoinTables() {
 //        for (JoinTables joinTables : joinTablesRepository.findAll()) {
 //            System.out.println("\n"+joinTables.toString()+"\n");
 //        }
@@ -57,7 +54,8 @@ public class ControlService  implements TargetMaterialService{
         return MapperUtils.mapList(joinTablesRepository.findAll(), MaterialDTO.class);
     }
 
-    /** step 1) by.leeyc
+    /**
+     * step 1) by.leeyc
      * ExtractionCriteria 테이블의 모든 기준을 가져와 Materials 테이블에서 조건에 맞는 주문을 추출합
      *
      * @return 추출 조건에 맞는 Materials 리스트
@@ -69,7 +67,7 @@ public class ControlService  implements TargetMaterialService{
 
         //  추출 기준
         Optional<ExtractionCriteriaMapper> extraction = extractionCriteriaRepository.findByProcessCode("1PCM");  // 1PCM으로 고정 => 고정하지 않을 경우, input으로 받아야함
-        System.out.println("==== Extraction: "+ extraction);
+        System.out.println("==== Extraction: " + extraction);
 
 
         if (extraction.isPresent()) {
@@ -131,7 +129,8 @@ public class ControlService  implements TargetMaterialService{
     }
 
 
-    /** step 2) by.pinky
+    /**
+     * step 2) by.pinky
      * 1. ErrorCriteria 테이블을 기준으로 에러 여부에 따라 error_flag를 추가
      * 2. MaterialDTO -> TargetMaterialDTO
      *
@@ -179,14 +178,13 @@ public class ControlService  implements TargetMaterialService{
                                 }
                                 return true;
                             case "coil_type_code":
-                                    if (material.getCoilTypeCode() == null) {
-                                        errorType.add("정보이상재");
-                                        return false;
-                                        }
-                                    else if ((!currentErrorType.equals("정보이상재")) && (material.getCoilTypeCode().equals(columnValue))) {
-                                            errorType.add("관리재");
-                                            return false;
-                                    }
+                                if (material.getCoilTypeCode() == null) {
+                                    errorType.add("정보이상재");
+                                    return false;
+                                } else if ((!currentErrorType.equals("정보이상재")) && (material.getCoilTypeCode().equals(columnValue))) {
+                                    errorType.add("관리재");
+                                    return false;
+                                }
                                 return true;
                             case "factory_code":
                                 if (material.getFCode() == null) {
@@ -218,23 +216,24 @@ public class ControlService  implements TargetMaterialService{
                     }
 
                 }).collect(Collectors.toList());
-        System.out.println("\n\n\n"+materialsList+"\n\n\n");
+        System.out.println("\n\n\n" + materialsList + "\n\n\n");
         List<TargetMaterialDTO.Create> targetMaterialList = MapperUtils.mapList(materialsList, TargetMaterialDTO.Create.class);
         return targetMaterialList;
     }
 
 
-
-    /** step 3) by.leeyc
+    /**
+     * step 3) by.leeyc
      * 추출 & 에러 기준에 만족한 TargetMaterial 리스트에서 롤 단위를 추가함
      *
      * @return 작업 대상재 테이블의 입력값인 TargetMaterials 리스트
      */
     // 롤 단위(A/B) 매핑
-    public List<TargetMaterialDTO.Create> createRollUnit(List<TargetMaterialDTO.Create> materials){
+    @Transactional
+    public List<TargetMaterialDTO.Create> createRollUnit(List<TargetMaterialDTO.Create> materials) {
         for (TargetMaterialDTO.Create material : materials) {
             System.out.println("[debug] 주문 두께: " + material.getGoalWidth());
-            if(material.getGoalWidth() < 600){
+            if (material.getGoalWidth() < 600) {
                 material.setRollUnit("A");  // A단위(박물)
             } else {
                 material.setRollUnit("B");  // B단위(후물)
@@ -247,10 +246,16 @@ public class ControlService  implements TargetMaterialService{
          *
          * */
         List<TargetMaterial> targetMaterials = MapperUtils.mapList(materials, TargetMaterial.class);
+        System.out.println("\n\n\n" + targetMaterials + "\n\n\n");
         targetMaterialRepository.deleteAll();  // 테이블 초기화
         targetMaterialRepository.saveAll(targetMaterials);
 
         return materials;
+    }
+
+    public List<Fc002DTO> findErrorMaterial() {
+        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorIs("Y");
+        return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
     }
 
 }

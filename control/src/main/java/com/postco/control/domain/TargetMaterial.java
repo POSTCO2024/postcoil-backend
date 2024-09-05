@@ -1,4 +1,5 @@
 package com.postco.control.domain;
+
 import lombok.*;
 
 import javax.persistence.*;
@@ -11,6 +12,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString
 public class TargetMaterial implements com.postco.core.entity.Entity, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
