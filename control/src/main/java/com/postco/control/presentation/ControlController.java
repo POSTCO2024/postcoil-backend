@@ -37,9 +37,14 @@ public class ControlController {
         return TargetMaterial;
     }
 
+    /**
+     * 에러재를 보여주기 위한 에러재 호출
+     *
+     * @return
+     */
     @GetMapping("/error")
     public List<Fc002DTO> getErrorMaterials() {
-        List<Fc002DTO> erorrMaterialList = controlService.findErrorMaterial();
+        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials();
         return erorrMaterialList;
     }
 
@@ -50,6 +55,6 @@ public class ControlController {
      */
     @GetMapping("/fc001a")
     public List<Fc001aDTO> getTargetMaterials() {
-        return controlService.getMaterials();
+        return controlService.getNormalMaterials();
     }
 }

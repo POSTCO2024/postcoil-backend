@@ -250,8 +250,13 @@ public class ControlService implements TargetMaterialService {
         return materials;
     }
 
-    public List<Fc002DTO> findErrorMaterial() {
-        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorIs("Y");
+    /**
+     * Repo 에서 에러재 추출
+     *
+     * @return 에러재
+     */
+    public List<Fc002DTO> getErrorMaterials() {
+        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsError("Y");
         return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
     }
 
@@ -260,7 +265,7 @@ public class ControlService implements TargetMaterialService {
      *
      * @return 작업 대상재 목록
      */
-    public List<Fc001aDTO> getMaterials() {
+    public List<Fc001aDTO> getNormalMaterials() {
         List<TargetMaterial> targetMaterials = targetMaterialRepository.findByIsError("N");
 
         return MapperUtils.mapList(targetMaterials, Fc001aDTO.class);
