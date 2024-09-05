@@ -10,3 +10,4 @@ import java.util.List;
 public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, Long> {
     List<TargetMaterial> findByIsError(String isError);
 }
+

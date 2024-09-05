@@ -214,7 +214,6 @@ public class ControlService implements TargetMaterialService {
                     }
 
                 }).collect(Collectors.toList());
-        System.out.println("\n\n\n" + materialsList + "\n\n\n");
         List<TargetMaterialDTO.Create> targetMaterialList = MapperUtils.mapList(materialsList, TargetMaterialDTO.Create.class);
         return targetMaterialList;
     }
@@ -231,9 +230,9 @@ public class ControlService implements TargetMaterialService {
         for (TargetMaterialDTO.Create material : materials) {
             System.out.println("[debug] 주문 두께: " + material.getGoalWidth());
             if (material.getGoalWidth() < 600) {
-                material.setRollUnit("A");  // A단위(박물)
+                material.setRollUnitName("A");  // A단위(박물)
             } else {
-                material.setRollUnit("B");  // B단위(후물)
+                material.setRollUnitName("B");  // B단위(후물)
             }
         }
 
@@ -245,8 +244,8 @@ public class ControlService implements TargetMaterialService {
         List<TargetMaterial> targetMaterials = MapperUtils.mapList(materials, TargetMaterial.class);
 //        targetMaterialRepository.deleteAll();  // 테이블 초기화
         // To do: 작업대상대 ID 부여하기
+        System.out.println(targetMaterials.toString());
         targetMaterialRepository.saveAll(targetMaterials);
-
         return materials;
     }
 
@@ -267,7 +266,6 @@ public class ControlService implements TargetMaterialService {
      */
     public List<Fc001aDTO> getNormalMaterials() {
         List<TargetMaterial> targetMaterials = targetMaterialRepository.findByIsError("N");
-
         return MapperUtils.mapList(targetMaterials, Fc001aDTO.class);
     }
 }

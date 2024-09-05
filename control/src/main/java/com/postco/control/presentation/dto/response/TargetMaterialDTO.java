@@ -23,11 +23,12 @@ public class TargetMaterialDTO {
         private String processPlan;
         private String orderNo;
         private String dueDate;
-        private String rollUnit;
+        private String rollUnitName;
         private String customerName;
         private String isError;
         private String errorType;
         private String remarks;
+        private String coilTypeCode;
     }
 
     @Data
@@ -37,9 +38,9 @@ public class TargetMaterialDTO {
     public static class Send implements DTO {
         private Long materialId;
         private String type;
-        private String op_code;
+        private String opCode;
         private String status;
-        private String cur_proc_code;
+        private String curProcCode;
         private String progress;
         private double thickness;
         private double width;

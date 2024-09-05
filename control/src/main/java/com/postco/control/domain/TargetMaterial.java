@@ -50,7 +50,7 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     private String dueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "roll_unit_name", referencedColumnName = "roll_name")
+    @JoinColumn(name = "roll_unit_name", referencedColumnName = "roll_unit_name")
     private RollUnit rollUnitName;
 
     @Column(name = "customer_name")
@@ -64,4 +64,7 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
 
     @Column(name = "remarks")
     private String remarks;
+
+    @Column(name = "coil_type_code")
+    private String coilTypeCode;
 }
