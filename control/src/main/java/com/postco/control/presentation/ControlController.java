@@ -7,6 +7,7 @@ import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.control.service.ControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,9 +29,9 @@ public class ControlController {
      *
      * @return 조건에 맞는 Materials 리스트
      */
-    @GetMapping("/target")
-    public List<TargetMaterialDTO.Create> getFilteredMaterials() {
-        List<MaterialDTO> filteredExtraction = controlService.getFilteredExtractionMaterials();
+    @GetMapping("/target/{curProcCode}")
+    public List<TargetMaterialDTO.Create> getFilteredMaterials(@PathVariable("curProcCode") String curProcCode) {
+        List<MaterialDTO> filteredExtraction = controlService.getFilteredExtractionMaterials(curProcCode);
         List<TargetMaterialDTO.Create> filteredError = controlService.extractMaterialByErrorCriteria(filteredExtraction);
         List<TargetMaterialDTO.Create> TargetMaterial = controlService.createRollUnit(filteredError);
 

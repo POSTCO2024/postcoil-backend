@@ -58,13 +58,22 @@ public class ControlService implements TargetMaterialService {
      *
      * @return 추출 조건에 맞는 Materials 리스트
      */
-    public List<MaterialDTO> getFilteredExtractionMaterials() {
+    public List<MaterialDTO> getFilteredExtractionMaterials(String curProcCode) {
         List<MaterialDTO> materials = findJoinTables();   // 임의 데이터 호출
         System.out.println("==== Dataset(input): " + materials);
 
 
         //  추출 기준
-        Optional<ExtractionCriteriaMapper> extraction = extractionCriteriaRepository.findByProcessCode("1PCM");  // 1PCM으로 고정 => 고정하지 않을 경우, input으로 받아야함
+        Optional<ExtractionCriteriaMapper> extraction;  // for Test
+
+        if(curProcCode.isEmpty()){
+            extraction = extractionCriteriaRepository.findByProcessCode("1PCM");
+            System.out.println("[info] 공정이 선택되지 않았습니다. ");
+        } else {
+            extraction = extractionCriteriaRepository.findByProcessCode(curProcCode);
+            System.out.println("[info] " + curProcCode + " 공정이 선택되었습니다. ");
+        }
+
         System.out.println("==== Extraction: " + extraction);
 
 
@@ -105,13 +114,13 @@ public class ControlService implements TargetMaterialService {
             }
 
             List<MaterialDTO> filteredMaterials = filterMaterials(materials, fCode, status, processCode, currProcessCode);
-            System.out.println("필터링이 완료되었습니다.");
+            System.out.println("[info] 필터링이 완료되었습니다.");
             System.out.println("Filtered Materials: " + filteredMaterials);
 
             return filteredMaterials;
         }
 
-        System.out.println("추출 기준이 존재하지 않습니다.");
+        System.out.println("[info] 추출 기준이 존재하지 않습니다.");
         return findMaterial();  // 전체 목록 반환
     }
 
