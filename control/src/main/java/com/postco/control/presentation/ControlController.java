@@ -52,10 +52,10 @@ public class ControlController {
     /**
      * 작업 대상재 리스트 조회
      *
-     * @return 생성된 작업 대상재를 기준으로 정상재를 추출한 리스
+     * @return 생성된 작업 대상재를 기준으로 정상재를 추출한 리스트
      */
-    @GetMapping("/fc001a")
-    public List<Fc001aDTO> getTargetMaterials() {
-        return controlService.getNormalMaterials();
+    @GetMapping("/fc001a/list/{curProcCode}")
+    public List<Fc001aDTO> getTargetMaterials(@PathVariable("curProcCode") String curProcCode) {
+        return controlService.getNormalMaterials(curProcCode);
     }
 }
