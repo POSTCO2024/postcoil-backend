@@ -57,4 +57,14 @@ public class ControlController {
     public List<Fc001aDTO> getTargetMaterials() {
         return controlService.getNormalMaterials();
     }
+
+
+    /**
+     * 품종(coilTypeCode) 별 차공정(nextProc) 개수를 계산하여 표를 반환
+     * @return 차공정 테이블 - ArrayList<TargetMaterialDTO.Table>
+     */
+    @GetMapping("fc001a/table")
+    public List<TargetMaterialDTO.Table> getFilteredTargetMaterials() {
+        return controlService.getMaterialTable();
+    }
 }

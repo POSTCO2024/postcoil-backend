@@ -10,6 +10,8 @@ import com.postco.core.utils.mapper.MapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -246,6 +248,7 @@ public class ControlService implements TargetMaterialService {
         // To do: 작업대상대 ID 부여하기
         System.out.println(targetMaterials.toString());
         targetMaterialRepository.saveAll(targetMaterials);
+
         return materials;
     }
 
@@ -259,6 +262,7 @@ public class ControlService implements TargetMaterialService {
         return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
     }
 
+
     /**
      * fc001a: 작업대상재 관리 화면
      *
@@ -267,5 +271,67 @@ public class ControlService implements TargetMaterialService {
     public List<Fc001aDTO> getNormalMaterials() {
         List<TargetMaterial> targetMaterials = targetMaterialRepository.findByIsError("N");
         return MapperUtils.mapList(targetMaterials, Fc001aDTO.class);
+    }
+
+    public List<TargetMaterialDTO.Table> getMaterialTable() {
+        // 임의 데이터
+        List<TargetMaterialDTO.View> materials = Arrays.asList(
+                new TargetMaterialDTO.View(3, "CM240196", 2, null, "C", "1EGL", "C", "D", 449.0, 27.0, 690.0, 0.31, 508951.76, 0.001679, 854.53, "1PCM1CAL", "1EGL101", "1CAL", "101", "731732", "1EGLA", "HPKL", null),
+                new TargetMaterialDTO.View(6, "CI958029", 2, null, "C", "EGL", "C", "D", 479.0, 24.0, 1521.0, 0.95, 189208.32, 0.011343, 2146.19, null, "2PCM2CAL1CGL201", null, "2EGL", "711512", "EGLA", "HTS500", null),
+                new TargetMaterialDTO.View(7, "CO755025", 2, null, "C", "1CAL", "C", "D", 246.0, 28.0, 540.0, 0.19, 247043.48, 8.05E-4, 198.87, "1PCM", "1CAL1EGL101", "1PCM", "1EGL", "610233", "1CALA", "HPKL", null),
+                new TargetMaterialDTO.View(2, "HJ762097", 2, null, "C", "2PCM", "H", "D", 581.0, 28.0, 975.0, 4.73, 55920.94, 0.036202, 2024.45, null, "2PCM1CAL1CGL201", null, "1CAL", "231112", "2PCMA", "HTS400", null),
+                new TargetMaterialDTO.View(11, "HP555021", 2, null, "C", "1PCM", "H", "D", 548.0, 22.0, 1284.0, 3.51, 67087.26, 0.035379, 2373.48, null, "1PCM2CAL2EGL201", null, "2CAL", "211721", "1PCMA", "HCKP", null),
+                new TargetMaterialDTO.View(8, "CW031869", 2, null, "C", "2EGL", "C", "D", 472.0, 20.0, 933.0, 0.58, 301134.65, 0.004248, 1279.22, "1PCM2CAL", "2EGL201", "2CAL", "201", "411313", "2EGLA", "HCKP", null),
+                new TargetMaterialDTO.View(5, "CR008811", 2, null, "C", "EGL", "C", "D", 518.0, 28.0, 799.0, 1.17, 179604.8, 0.007338, 1317.94, null, "1PCM2CAL101", null, "201", "310933", "EGLA", "HTS600", null),
+                new TargetMaterialDTO.View(10, "HU338413", 2, null, "C", "2PCM", "H", "D", 747.0, 29.0, 681.0, 3.3, 132608.13, 0.017641, 2339.34, null, "2PCM1CAL101", null, "1CAL", "311433", "2PCMA", "HTS300", null),
+                new TargetMaterialDTO.View(9, "CJ682375", 2, null, "C", "1CAL", "C", "D", 472.0, 29.0, 1210.0, 0.65, 268176.22, 0.006174, 1655.72, "1PCM", "1CAL1EGL101", "1PCM", "1EGL", "320132", "1CALA", "HPKL", null),
+                new TargetMaterialDTO.View(12, "HS922154", 2, null, "C", "1PCM", "H", "D", 627.0, 21.0, 857.0, 3.7, 83354.49, 0.024892, 2074.86, null, "1PCM2CAL1EGL201", null, "2CAL", "611021", "1PCMA", "HTS800", null),
+                new TargetMaterialDTO.View(4, "CE312072", 2, null, "C", "2CAL", "C", "D", 338.0, 28.0, 849.0, 1.38, 64575.41, 0.009197, 593.9, "1PCM", "2CAL1EGL201", "1PCM", "1EGL", "730913", "2CALA", "HTS800", null),
+                new TargetMaterialDTO.View(1, "CM692259", 2, null, "C", "1CAL", "C", "D", 432.0, 29.0, 677.0, 1.6, 91197.22, 0.008503, 775.45, "1PCM", "1CAL1EGL101", "1PCM", "1EGL", "731333", "1CALA", "HPKL", null)
+        );
+
+        System.out.println("Dataset: " + materials);
+
+
+        // 품종(coilTypeCode) 별 차공정(nextProc) 카운트하기
+        Map<String, TargetMaterialDTO.Table> resultMap = new HashMap<>();
+
+        for (TargetMaterialDTO.View view : materials) {
+            String coilTypeCode = view.getCoilTypeCode();
+            String nextProc = view.getNextProc();
+            //System.out.println("[debug] " + coilTypeCode + " " + nextProc);
+
+            // 초기화 | 가져오기
+            TargetMaterialDTO.Table table = resultMap.getOrDefault(coilTypeCode, new TargetMaterialDTO.Table(coilTypeCode, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L));
+
+            // 각 공정에 맞게 Count
+            if ("1CAL".equals(nextProc)) {
+                table.setProc1CAL(table.getProc1CAL() + 1);
+            } else if ("2CAL".equals(nextProc)) {
+                table.setProc2CAL(table.getProc2CAL() + 1);
+            } else if ("1EGL".equals(nextProc)) {
+                table.setProc1EGL(table.getProc1EGL() + 1);
+            } else if ("2EGL".equals(nextProc)) {
+                table.setProc2EGL(table.getProc2EGL() + 1);
+            } else if ("1CGL".equals(nextProc)) {
+                table.setProc1CGL(table.getProc1CGL() + 1);
+            } else if ("2CGL".equals(nextProc)) {
+                table.setProc2CGL(table.getProc2CGL() + 1);
+            } else if ("101".equals(nextProc)) {
+                table.setProc1Packing(table.getProc1Packing() + 1);
+            } else if ("201".equals(nextProc)) {
+                table.setProc2Packing(table.getProc2Packing() + 1);
+            }
+
+            // 총 합계 (Total Cnt) 계산하기
+            table.setTotalCnt(table.getTotalCnt() + 1);
+
+            resultMap.put(coilTypeCode, table); // save Result HashMap
+        }
+
+        // System.out.println("result1 [Map]: " + resultMap);
+        System.out.println("result2 [List]: " + new ArrayList<>(resultMap.values()));
+
+        return new ArrayList<>(resultMap.values());
     }
 }

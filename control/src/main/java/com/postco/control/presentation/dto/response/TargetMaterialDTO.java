@@ -53,4 +53,52 @@ public class TargetMaterialDTO {
         private String storageLoc;
         private String yard;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Table implements DTO {
+        private String coilTypeCode;
+        private Long totalCnt;
+        private Long proc1CAL;
+        private Long proc2CAL;
+        private Long proc1EGL;
+        private Long proc2EGL;
+        private Long proc1CGL;
+        private Long proc2CGL;
+        private Long proc1Packing;
+        private Long proc2Packing;
+    }
+
+    // 임의 데이터
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class View implements DTO {
+        private int id;
+        private String no;
+        private int status;
+        private String factoryCode;
+        private String opCode;
+        private String currProc;
+        private String type;
+        private String progress;
+        private double outerDia;
+        private double innerDia;
+        private double width;
+        private double thickness;
+        private double length;
+        private double weight;
+        private double totalWeight;
+        private String passProc;
+        private String remProc;
+        private String preProc;
+        private String nextProc;
+        private String storageLoc;
+        private String yard;
+        private String coilTypeCode;
+        private String orderNo;
+    }
 }
