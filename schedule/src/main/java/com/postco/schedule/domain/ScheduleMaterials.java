@@ -99,9 +99,4 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
 
     private Long scheduleId;
 
-
-
-//    public <T> ScheduleMaterials(long id, String name, String status, String fCode, String opCode, String currProc, String type, String progress, double width, double thickness, double length, double weight, double totalWeight, String passProc, String remProc, String preProc, String nextProc, String storageLoc, String yard, String coilTypeCode, double targetWidth, double targetThickness, double temperature, double time, List<T> list) {
-//    }
-
 }
