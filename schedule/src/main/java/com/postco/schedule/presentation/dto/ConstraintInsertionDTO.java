@@ -1,11 +1,16 @@
 package com.postco.schedule.presentation.dto;
 
+import com.postco.core.dto.DTO;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-public class ConstraintInsertionDTO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class ConstraintInsertionDTO implements DTO {
     private Long id;
     private String type;
     private String targetColumn;
