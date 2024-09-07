@@ -9,5 +9,7 @@ import java.util.List;
 @Repository
 public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, Long> {
     List<TargetMaterial> findByIsError(String isError);
+
+    List<TargetMaterial> findByIsErrorAndCriteria(String isError, String criteria);
 }
 

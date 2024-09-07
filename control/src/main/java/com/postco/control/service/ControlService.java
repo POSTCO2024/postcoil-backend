@@ -275,7 +275,7 @@ public class ControlService implements TargetMaterialService {
      */
     public List<Fc001aDTO> getNormalMaterials(String curProcCode) {
         System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
-        List<TargetMaterial> targetMaterials = targetMaterialRepository.findByIsError("N");
+        List<TargetMaterial> targetMaterials = targetMaterialRepository.findByIsErrorAndCriteria("N", curProcCode);  // To do: 작업 대상재 추출 시 공정 기준을 추가
         return MapperUtils.mapList(targetMaterials, Fc001aDTO.class);
     }
 }
