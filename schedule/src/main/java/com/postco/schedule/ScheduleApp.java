@@ -9,10 +9,10 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 @OpenAPIDefinition(info = @Info(title = "Schedule API", version = "1.0", description = "Schedule Service API"))
-public class ScheduleApplication {
+public class ScheduleApp {
 
     public static void main(String[] args) {
-        SpringApplication.run(ScheduleApplication.class, args);
+        SpringApplication.run(ScheduleApp.class, args);
     }
 
     @Bean
