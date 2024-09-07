@@ -8,6 +8,7 @@ import com.postco.control.service.ControlService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -27,13 +28,20 @@ public class ControlController {
      *
      * @return 조건에 맞는 Materials 리스트
      */
-    @GetMapping("/target/{curProcCode}")
-    public List<TargetMaterialDTO.Create> getFilteredMaterials(@PathVariable("curProcCode") String curProcCode) {
-        List<MaterialDTO> filteredExtraction = controlService.getFilteredExtractionMaterials(curProcCode);
-        List<TargetMaterialDTO.Create> filteredError = controlService.extractMaterialByErrorCriteria(filteredExtraction);
-        List<TargetMaterialDTO.Create> TargetMaterial = controlService.createRollUnit(filteredError);
+    @GetMapping("/target")
+    public List<TargetMaterialDTO.Create> getFilteredMaterials() {
+        String[] processCodes = {"1PCM", "2PCM", "1CAL", "2CAL"}; // , "1EGL", "2EGL", "1CGL", "2CGL"};
+        List<TargetMaterialDTO.Create> allTargetMaterials = new ArrayList<>();
 
-        return TargetMaterial;
+        for (String procCode : processCodes) {
+            List<MaterialDTO> filteredExtraction = controlService.getFilteredExtractionMaterials(procCode);
+            List<TargetMaterialDTO.Create> filteredError = controlService.extractMaterialByErrorCriteria(filteredExtraction, procCode);
+            List<TargetMaterialDTO.Create> TargetMaterial = controlService.createRollUnit(filteredError, procCode);
+
+            allTargetMaterials.addAll(TargetMaterial);
+        }
+
+        return allTargetMaterials;
     }
 
     /**

@@ -37,6 +37,7 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     @Column(name = "goal_length")
     private double goalLength;
 
+    @Column
     private double weight;
 
     // processPlan 확인필요
@@ -62,9 +63,15 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     @Column(name = "error_type")
     private String errorType;
 
-    @Column(name = "remarks")
-    private String remarks;
-
     @Column(name = "coil_type_code")
     private String coilTypeCode;
+
+    @Column(name = "target_material_group_id", nullable = false)      // 작업 대상재 추출 ID
+    private String targetMaterialGroupId;
+
+    @Column(name = "criteria", nullable = false)      // 공정 기준
+    private String criteria;
+
+    @Column(name = "remarks")
+    private String remarks;
 }

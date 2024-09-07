@@ -114,7 +114,7 @@ public class ControlService implements TargetMaterialService {
             }
 
             List<MaterialDTO> filteredMaterials = filterMaterials(materials, fCode, status, processCode, currProcessCode);
-            System.out.println("[info] 필터링이 완료되었습니다.");
+            System.out.println("[info] 추출 기준 필터링이 완료되었습니다.");
             System.out.println("Filtered Materials: " + filteredMaterials);
 
             return filteredMaterials;
@@ -143,8 +143,8 @@ public class ControlService implements TargetMaterialService {
      *
      * @return 에러 여부를 포함한 TargetMaterials 리스트
      */
-    public List<TargetMaterialDTO.Create> extractMaterialByErrorCriteria(List<MaterialDTO> materials) {
-        ErrorCriteriaMapper mapper = errorCriteriaRepository.findByProcessCode("1PCM")   // 임의로 설정 - MaterialDTO와 함께 input으로 받을 것
+    public List<TargetMaterialDTO.Create> extractMaterialByErrorCriteria(List<MaterialDTO> materials, String procCode) {
+        ErrorCriteriaMapper mapper = errorCriteriaRepository.findByProcessCode(procCode)   // 임의로 설정 - MaterialDTO와 함께 input으로 받을 것
                 .orElseThrow(() -> new IllegalArgumentException("no such code"));
         List<ErrorCriteria> criteria = mapper.getErrorCriteria();
 
@@ -224,6 +224,7 @@ public class ControlService implements TargetMaterialService {
 
                 }).collect(Collectors.toList());
         List<TargetMaterialDTO.Create> targetMaterialList = MapperUtils.mapList(materialsList, TargetMaterialDTO.Create.class);
+        System.out.println("[info] 에러 기준 필터링이 완료되었습니다. ");
         return targetMaterialList;
     }
 
@@ -235,7 +236,7 @@ public class ControlService implements TargetMaterialService {
      * @return 작업 대상재 테이블의 입력값인 TargetMaterials 리스트
      */
     // 롤 단위(A/B) 매핑
-    public List<TargetMaterialDTO.Create> createRollUnit(List<TargetMaterialDTO.Create> materials) {
+    public List<TargetMaterialDTO.Create> createRollUnit(List<TargetMaterialDTO.Create> materials, String procCode) {
         for (TargetMaterialDTO.Create material : materials) {
             System.out.println("[debug] 주문 두께: " + material.getGoalWidth());
             if (material.getGoalWidth() < 600) {
@@ -243,6 +244,7 @@ public class ControlService implements TargetMaterialService {
             } else {
                 material.setRollUnitName("B");  // B단위(후물)
             }
+            material.setCriteria(procCode);
         }
 
 
@@ -251,9 +253,11 @@ public class ControlService implements TargetMaterialService {
          *
          * */
         List<TargetMaterial> targetMaterials = MapperUtils.mapList(materials, TargetMaterial.class);
-//        targetMaterialRepository.deleteAll();  // 테이블 초기화
+        // targetMaterialRepository.deleteAll();  // 테이블 초기화
         // To do: 작업대상대 ID 부여하기
-        System.out.println(targetMaterials.toString());
+
+
+        System.out.println("[info] 작업대상재: " + targetMaterials.toString());
         targetMaterialRepository.saveAll(targetMaterials);
         return materials;
     }
