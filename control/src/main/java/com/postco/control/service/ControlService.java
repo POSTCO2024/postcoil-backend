@@ -231,7 +231,8 @@ public class ControlService implements TargetMaterialService {
 
     /**
      * step 3) by.leeyc
-     * 추출 & 에러 기준에 만족한 TargetMaterial 리스트에서 롤 단위를 추가함
+     * 1. 추출 & 에러 기준에 만족한 TargetMaterial 리스트에서 롤 단위를 추가함
+     * 2. 필터링 기준(공정)을 추가함
      *
      * @return 작업 대상재 테이블의 입력값인 TargetMaterials 리스트
      */
@@ -244,6 +245,8 @@ public class ControlService implements TargetMaterialService {
             } else {
                 material.setRollUnitName("B");  // B단위(후물)
             }
+
+            // 필터링 기준 컬럼 추가
             material.setCriteria(procCode);
         }
 

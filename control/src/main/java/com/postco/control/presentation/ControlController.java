@@ -30,7 +30,7 @@ public class ControlController {
      */
     @GetMapping("/target")
     public List<TargetMaterialDTO.Create> getFilteredMaterials() {
-        String[] processCodes = {"1PCM", "2PCM", "1CAL", "2CAL"}; // , "1EGL", "2EGL", "1CGL", "2CGL"};
+        String[] processCodes = {"1PCM", "2PCM", "1CAL", "2CAL"};   // 필터링 기준 - To do: 공정 추가하기 {"1EGL", "2EGL", "1CGL", "2CGL"};
         List<TargetMaterialDTO.Create> allTargetMaterials = new ArrayList<>();
 
         for (String procCode : processCodes) {
@@ -41,7 +41,7 @@ public class ControlController {
             allTargetMaterials.addAll(TargetMaterial);
         }
 
-        return allTargetMaterials;
+        return allTargetMaterials;  // To do: Result 수정
     }
 
     /**
