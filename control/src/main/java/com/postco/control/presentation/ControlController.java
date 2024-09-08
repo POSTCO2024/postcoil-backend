@@ -24,7 +24,7 @@ public class ControlController {
     }
 
     /**
-     * 추출 및 에러 조건에 맞는 작업 대상재 목록을 조회
+     * 추출 및 에러 조건에 맞는 작업 대상재 추출
      *
      * @return 조건에 맞는 Materials 리스트
      */
