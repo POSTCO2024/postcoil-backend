@@ -40,4 +40,12 @@ public class KafkaTopicConfig {
                 .replicas(3)
                 .build();
     }
+
+    @Bean
+    public NewTopic getOrderTopic() {
+        return TopicBuilder.name("operation-order-data")
+                .partitions(3)
+                .replicas(3)
+                .build();
+    }
 }

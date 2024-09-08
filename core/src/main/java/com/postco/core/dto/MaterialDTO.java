@@ -2,6 +2,8 @@ package com.postco.core.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 public class MaterialDTO {
     @Data
     @Builder
@@ -14,7 +16,7 @@ public class MaterialDTO {
         private String factoryCode;
         private String opCode;
         private String currProc;
-        private String type;
+        private String materialType;
         private String progress;
         private double outerDia;
         private double innerDia;
@@ -30,6 +32,12 @@ public class MaterialDTO {
         private String storageLoc;
         private String yard;
         private String coilTypeCode;
+        private LocalDateTime createTime;
+
+        // 주문 데이터 (자주 조회되는 핵심 데이터만 저장)
+        private Long orderId;
         private String orderNo;
+        private double goalThickness;
+        private double goalWidth;
     }
 }

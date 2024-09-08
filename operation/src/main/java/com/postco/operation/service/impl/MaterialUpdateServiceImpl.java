@@ -1,13 +1,17 @@
 package com.postco.operation.service.impl;
 
 import com.postco.core.dto.MaterialDTO;
+import com.postco.core.dto.OrderDTO;
 import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.operation.domain.entity.MaterialProgress;
 import com.postco.operation.domain.entity.Materials;
+import com.postco.operation.domain.entity.Order;
 import com.postco.operation.domain.entity.WorkInstructionItem;
 import com.postco.operation.domain.repository.MaterialRepository;
+import com.postco.operation.domain.repository.OrderRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
 import com.postco.operation.infra.kafka.MaterialsProducer;
+import com.postco.operation.infra.kafka.OrderProducer;
 import com.postco.operation.service.MaterialUpdateService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.PropertyMap;
@@ -24,26 +28,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MaterialUpdateServiceImpl implements MaterialUpdateService {
     private final MaterialRepository materialRepository;
+    private final OrderRepository orderRepository;
     private final WorkItemRepository workItemRepository;
     private final MaterialsProducer materialsProducer;
-
-    public void sendAllMaterials() {
-        List<Materials> materialsList = materialRepository.findAll();
-        // 특정 규칙 매핑 적용
-        PropertyMap<Materials, MaterialDTO.View> map = new PropertyMap<>() {
-            @Override
-            protected void configure() {
-                map(source.getOrder().getNo(), destination.getOrderNo());
-            }
-        };
-
-
-        // 엔티티 리스트 -> DTO 변환
-        List<MaterialDTO.View> viewDto = MapperUtils.mapListWithProperty(materialsList, MaterialDTO.View.class, map);
-
-        // Kakfa 전송
-        viewDto.forEach(materialsProducer::sendMaterials);
-    }
+    private final OrderProducer orderProducer;
 
     @Override
     public void updateMaterialProgress(Long materialId, MaterialProgress newProgress) {
