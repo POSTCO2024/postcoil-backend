@@ -2,6 +2,7 @@ package com.postco.control.service;
 
 import com.postco.control.domain.*;
 import com.postco.control.domain.repository.*;
+import com.postco.control.presentation.ControlController;
 import com.postco.control.presentation.dto.response.Fc001aDTO;
 import com.postco.control.presentation.dto.response.Fc002DTO;
 import com.postco.control.presentation.dto.response.MaterialDTO;
@@ -32,8 +33,7 @@ public class ControlService implements TargetMaterialService {
                           ErrorCriteriaRepository errorCriteriaRepository,
                           MaterialsRepository materialsRepository,
                           JoinTablesRepository joinTablesRepository,
-                          TargetMaterialRepository targetMaterialRepository
-    ) {
+                          TargetMaterialRepository targetMaterialRepository) {
         this.extractionCriteriaRepository = extractionCriteriaRepository;
         this.errorCriteriaRepository = errorCriteriaRepository;
         this.materialsRepository = materialsRepository;
@@ -257,11 +257,11 @@ public class ControlService implements TargetMaterialService {
      *
      * @return 에러재
      */
-    public List<Fc002DTO> getErrorMaterials(String curProcCode) {
-        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
-        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorAndCriteria("Y", curProcCode);
-        return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
-    }
+//    public List<Fc002DTO> getErrorMaterials(String curProcCode) {
+//        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
+//        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorAndCriteria("Y", curProcCode);
+//        return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
+//    }
 
 
     /**
@@ -334,5 +334,13 @@ public class ControlService implements TargetMaterialService {
         System.out.println("result2 [List]: " + new ArrayList<>(resultMap.values()));
 
         return new ArrayList<>(resultMap.values());
+    }
+
+    /**
+     * 에러 패스
+     * @param errorMaterialIds
+     */
+    public void errorPass(List<Long> errorMaterialIds) {
+        targetMaterialRepository.updateisError(errorMaterialIds);
     }
 }
