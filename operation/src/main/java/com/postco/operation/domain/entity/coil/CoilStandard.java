@@ -1,4 +1,4 @@
-package com.postco.control.domain;
+package com.postco.operation.domain.entity.coil;
 
 import lombok.*;
 
@@ -16,13 +16,13 @@ import java.util.List;
 @Table(name = "coil_standard")
 public class CoilStandard {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "coil_standard_id")
     private Long id;
 
     @NotNull
-    @Column(length = 15, unique = true, nullable = false)
-    private String code;      // 코일 타입 코드
+    @Column(name = "coil_type_code", length = 15, unique = true, nullable = false)
+    private String coilTypeCode;
 
     @Column(length = 50)
     private String description;

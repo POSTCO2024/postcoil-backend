@@ -10,6 +10,7 @@ import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.hash.Jackson2HashMapper;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
@@ -17,7 +18,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
-@ComponentScan({"com.postco.core", "com.postco.cacheservice"})
+@ComponentScan({"com.postco.core"})
 public class RedisConfig {
     @Value("${spring.redis.host}")
     private String host;
@@ -27,7 +28,6 @@ public class RedisConfig {
 
 //    @Value("${spring.redis.password}")
 //    private String password;
-
 
     /**
      * 비동기식 reactive 레디스 설정
@@ -39,14 +39,19 @@ public class RedisConfig {
         return new LettuceConnectionFactory(config);
     }
 
+    // 동기식 RedisConnectionFactory 빈 설정
+    @Bean
+    public LettuceConnectionFactory redisConnectionFactory() {
+        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
+        return new LettuceConnectionFactory(config);
+    }
+
     @Bean
     public Jackson2HashMapper jackson2HashMapper() {
         return new Jackson2HashMapper(true);
     }
 
-    /**
-     * ReactiveRedisTemplate 설정
-     */
+
     @Bean
     public ReactiveRedisTemplate<String, Object> reactiveRedisTemplate(ReactiveRedisConnectionFactory connectionFactory, ObjectMapper objectMapper) {
         RedisSerializer<String> keySerializer = new StringRedisSerializer();
@@ -63,6 +68,25 @@ public class RedisConfig {
                 .build();
 
         return new ReactiveRedisTemplate<>(connectionFactory, serializationContext);
+    }
+
+    @Bean
+    public RedisTemplate<String, Object> redisTemplate() {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory());
+
+        // 일반적인 key:value의 경우 시리얼라이저
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+
+        // Hash를 사용할 경우 시리얼라이저
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
+
+        // 모든 경우
+        redisTemplate.setDefaultSerializer(new StringRedisSerializer());
+
+        return redisTemplate;
     }
 
 

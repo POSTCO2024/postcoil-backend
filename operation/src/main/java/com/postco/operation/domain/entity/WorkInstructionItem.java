@@ -1,10 +1,9 @@
-package com.postco.operation.domain;
+package com.postco.operation.domain.entity;
 
 import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 import static javax.persistence.FetchType.LAZY;

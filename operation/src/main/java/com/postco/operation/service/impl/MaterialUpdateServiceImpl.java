@@ -2,13 +2,13 @@ package com.postco.operation.service.impl;
 
 import com.postco.core.dto.MaterialDTO;
 import com.postco.core.utils.mapper.MapperUtils;
-import com.postco.operation.domain.MaterialProgress;
-import com.postco.operation.domain.Materials;
-import com.postco.operation.domain.WorkInstructionItem;
+import com.postco.operation.domain.entity.MaterialProgress;
+import com.postco.operation.domain.entity.Materials;
+import com.postco.operation.domain.entity.WorkInstructionItem;
 import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
 import com.postco.operation.infra.kafka.MaterialsProducer;
-import com.postco.operation.service.MaterialService;
+import com.postco.operation.service.MaterialUpdateService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.PropertyMap;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ import java.util.List;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class MaterialServiceImpl implements MaterialService {
+public class MaterialUpdateServiceImpl implements MaterialUpdateService {
     private final MaterialRepository materialRepository;
     private final WorkItemRepository workItemRepository;
     private final MaterialsProducer materialsProducer;

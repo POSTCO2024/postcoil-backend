@@ -1,6 +1,6 @@
 package com.postco.operation.domain.repository;
 
-import com.postco.operation.domain.WorkInstructionItem;
+import com.postco.operation.domain.entity.WorkInstructionItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

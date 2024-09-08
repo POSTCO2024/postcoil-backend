@@ -15,8 +15,8 @@ import java.io.Serializable;
 @ToString
 public class TargetMaterial implements com.postco.core.entity.Entity, Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @GeneratedValue
+    @Column(name = "target_material_id")
     private Long id;
 
     @Column(name = "material_id", nullable = false)
@@ -24,9 +24,6 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
 
     @Column(name = "material_no", nullable = false)
     private String materialNo;
-
-    @Column(name = "f_code", nullable = false)
-    private String fCode;
 
     @Column(name = "goal_width")
     private double goalWidth;

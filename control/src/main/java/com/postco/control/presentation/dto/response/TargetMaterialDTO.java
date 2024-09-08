@@ -13,6 +13,7 @@ public class TargetMaterialDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Create implements DTO {
+        private MaterialDTO materialDTO;
         private Long id;
         private Long materialId;
         private String materialNo;

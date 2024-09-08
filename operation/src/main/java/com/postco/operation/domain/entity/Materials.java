@@ -1,10 +1,13 @@
-package com.postco.control.domain;
+package com.postco.operation.domain.entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.postco.core.entity.BaseEntity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.io.Serializable;
+
+import static javax.persistence.FetchType.LAZY;
 
 @Entity
 @Table(name = "materials")
@@ -13,27 +16,29 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = {"order"})
-@Builder
-public class Materials implements com.postco.core.entity.Entity, Serializable {
+@SuperBuilder
+public class Materials extends BaseEntity implements com.postco.core.entity.Entity, Serializable  {
     @Id
+    @GeneratedValue
     @Column(name = "material_id")
-    private Long materialId;
+    private Long id;
 
     @Column(name = "material_no", nullable = false)
-    private String materialNo;
+    private String no;
 
     private String status;     // 재료 진행 상태
 
-    @Column(name = "f_code")
+    @Column(name = "factory_code")
     private String fCode;
 
     @Column(name = "op_code")
     private String opCode;
 
-    @Column(name = "cur_proc_code")
-    private String curProcCode;
+    @Column(name = "curr_proc")
+    private String currProc;
 
-    private String type;
+    @Column(name = "material_type")
+    private String materialType;
 
     @Enumerated(EnumType.STRING)
     private MaterialProgress progress;   // 재료 진도
@@ -76,10 +81,20 @@ public class Materials implements com.postco.core.entity.Entity, Serializable {
     private String coilTypeCode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_no", referencedColumnName = "no", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "order_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private Order order;
 
-    @Column(name = "order_id")
-    private String orderId;
-}
+    @OneToOne(mappedBy = "material", fetch = LAZY)
+    private WorkInstructionItem workInstructionItem;
 
+    public void setOrder(Order order) {
+        this.order = order;
+        if (order != null && !order.getMaterials().contains(this)) {
+            order.getMaterials().add(this);
+        }
+    }
+
+    public void updateProgress(MaterialProgress newProgress) {
+        this.progress = newProgress;
+    }
+}

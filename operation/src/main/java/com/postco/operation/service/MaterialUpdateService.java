@@ -1,11 +1,10 @@
 package com.postco.operation.service;
 
-import com.postco.operation.domain.MaterialProgress;
-import com.postco.operation.domain.Materials;
+import com.postco.operation.domain.entity.MaterialProgress;
 
 import java.time.Duration;
 
-public interface MaterialService {
+public interface MaterialUpdateService {
     /**
      * 재료 진도 update 메서드
      *

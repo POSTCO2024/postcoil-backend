@@ -1,4 +1,4 @@
-package com.postco.core.common.redis;
+package com.postco.core.redis.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;

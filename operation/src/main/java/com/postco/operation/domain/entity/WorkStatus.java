@@ -1,4 +1,4 @@
-package com.postco.operation.domain;
+package com.postco.operation.domain.entity;
 
 public enum WorkStatus {
     PENDING,    // 대기중

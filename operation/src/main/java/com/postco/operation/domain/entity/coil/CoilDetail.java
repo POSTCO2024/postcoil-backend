@@ -1,4 +1,4 @@
-package com.postco.control.domain;
+package com.postco.operation.domain.entity.coil;
 
 import lombok.*;
 
@@ -15,8 +15,8 @@ import javax.validation.constraints.NotNull;
 @Table(name = "coil_detail")
 public class CoilDetail {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "coil_detail_id", nullable = false)
     private Long id;
 
     @NotNull

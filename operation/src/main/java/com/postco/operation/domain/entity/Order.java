@@ -1,5 +1,7 @@
-package com.postco.operation.domain;
+package com.postco.operation.domain.entity;
+import com.postco.core.entity.BaseEntity;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -14,13 +16,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = "materials")
-@Builder
-public class Order implements com.postco.core.entity.Entity, Serializable {
+@SuperBuilder
+public class Order extends BaseEntity implements com.postco.core.entity.Entity, Serializable {
     @Id @GeneratedValue
     @Column(name = "order_id")
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(name = "order_no", nullable = false, unique = true)
     private String no;
 
     private String customer;

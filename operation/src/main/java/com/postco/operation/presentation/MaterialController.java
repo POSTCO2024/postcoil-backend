@@ -1,6 +1,6 @@
 package com.postco.operation.presentation;
 
-import com.postco.operation.service.impl.MaterialServiceImpl;
+import com.postco.operation.service.impl.MaterialUpdateServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/materials")
 @RequiredArgsConstructor
 public class MaterialController {
-    private final MaterialServiceImpl materialServiceImpl;
+    private final MaterialUpdateServiceImpl materialServiceImpl;
 
     @GetMapping("/send")
     public ResponseEntity<String> getMaterials() {
