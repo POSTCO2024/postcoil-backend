@@ -47,13 +47,24 @@ public class ControlController {
     /**
      * 에러재를 보여주기 위한 에러재 호출
      *
+     * @return 에러재 목록
+     */
+//    @GetMapping("/error/{curProcCode}")
+//    public List<Fc002DTO> getErrorMaterials(@PathVariable String curProcCode) {
+//        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials(curProcCode);
+//        return erorrMaterialList;
+//    }
+
+    /**
+     * 에러 패스
+     *
      * @return
      */
-    @GetMapping("/error/{curProcCode}")
-    public List<Fc002DTO> getErrorMaterials(@PathVariable String curProcCode) {
-        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials(curProcCode);
-        return erorrMaterialList;
+    @PutMapping("/errorpass")
+    public void ErrorPass(@RequestBody List<Long> error_material_ids) {
+        controlService.errorPass(error_material_ids);
     }
+
 
     /**
      * 작업 대상재 리스트 조회
