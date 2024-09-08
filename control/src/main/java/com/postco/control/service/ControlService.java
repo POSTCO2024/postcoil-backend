@@ -268,11 +268,11 @@ public class ControlService implements TargetMaterialService {
      *
      * @return 에러재
      */
-    public List<Fc002DTO> getErrorMaterials(String curProcCode) {
-        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
-        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorAndCriteria("Y", curProcCode);
-        return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
-    }
+//    public List<Fc002DTO> getErrorMaterials(String curProcCode) {
+//        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
+//        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorAndCriteria("Y", curProcCode);
+//        return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
+//    }
 
 
     /**
@@ -373,5 +373,13 @@ public class ControlService implements TargetMaterialService {
             }
             extractionCriteriaDetailRepository.save(criteria);
         }
+    }
+
+    /**
+     * 에러 패스
+     * @param errorMaterialIds
+     */
+    public void errorPass(List<Long> errorMaterialIds) {
+        targetMaterialRepository.updateisError(errorMaterialIds);
     }
 }
