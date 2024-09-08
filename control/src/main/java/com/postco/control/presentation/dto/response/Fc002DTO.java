@@ -16,6 +16,9 @@ public class Fc002DTO {
     private String fCode;
     private double weight;
     private String orderNo;
+    private double goalWidth;
+    private double goalThickness;
+    private double goalLength;
     private String dueDate;
     private String customerName;
     private String remarks;
