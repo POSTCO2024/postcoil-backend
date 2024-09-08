@@ -8,6 +8,7 @@ jar {
 dependencies {
     // spring
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
 
     // model mapper
     implementation group: 'org.modelmapper', name: 'modelmapper', version: '3.1.1'
@@ -15,6 +16,9 @@ dependencies {
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
+
+    // jackson
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // Kafka
     implementation "org.springframework.kafka:spring-kafka:${springKafkaVersion}"

@@ -1,7 +1,6 @@
 package com.postco.control.service.impl;
 
 import com.postco.control.service.RedisService;
-import com.postco.core.redis.service.RedisDataService;
 import com.postco.core.dto.DTO;
 import com.postco.core.dto.MaterialDTO;
 import lombok.RequiredArgsConstructor;

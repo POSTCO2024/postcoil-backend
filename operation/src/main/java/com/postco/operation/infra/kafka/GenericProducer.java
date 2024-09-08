@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -19,12 +21,22 @@ public class GenericProducer<T> {
     @Value("${feature-flags.kafka.enabled}")
     private boolean kafkaEnabled;
 
+    private final AtomicInteger messageCount = new AtomicInteger(0);
+    private static final int MESSAGE_LIMIT = 10;
+
     public void sendData(String topic, T data) {
         log.info("Kafka 활성화 여부 : {}", kafkaEnabled);
         if (!kafkaEnabled) {
             log.warn("[Kafka OFF] 카프카가 비활성화 되었습니다. 데이터를 보내지 않습니다.");
             return;
         }
+
+        if (messageCount.get() >= MESSAGE_LIMIT) {
+            log.info("[Kafka 테스트 제한] 이미 {} 개의 메시지를 전송했습니다. 더 이상 전송하지 않습니다.", MESSAGE_LIMIT);
+            return;
+        }
+
+
 
         try {
             String jsonData = objectMapper.writeValueAsString(data);
@@ -41,5 +53,10 @@ public class GenericProducer<T> {
             log.error("[Kafka 실패] TOPIC  : {} 에 대해 데이터 직렬화를 실패했습니다.", topic, e);
             throw new RuntimeException("Failed to serialize data for topic " + topic, e);
         }
+    }
+
+    public void resetMessageCount() {
+        messageCount.set(0);
+        log.info("메시지 카운터가 리셋되었습니다.");
     }
 }

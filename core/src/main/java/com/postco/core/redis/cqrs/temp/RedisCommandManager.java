@@ -1,10 +1,9 @@
-package com.postco.core.redis.service;
+package com.postco.core.redis.cqrs.temp;
 
 import reactor.core.publisher.Mono;
 
-public interface RedisDataManager<T, ID> {
+public interface RedisCommandManager<T, ID> {
     Mono<Void> save(T entity);
-    Mono<T> findById(ID id);
     Mono<Void> update(T entity);
     Mono<Void> deleteById(ID id);
 }

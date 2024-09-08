@@ -1,6 +1,6 @@
 package com.postco.cacheservice;
 
-import com.postco.core.config.RedisConfig;
+import com.postco.core.config.redis.RedisConfig;
 import com.postco.core.config.kafka.KafkaConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

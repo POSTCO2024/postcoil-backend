@@ -1,6 +1,7 @@
-package com.postco.core.config;
+package com.postco.core.config.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -29,8 +30,9 @@ public class RedisConfig {
 //    @Value("${spring.redis.password}")
 //    private String password;
 
+
     /**
-     * 비동기식 reactive 레디스 설정
+     * @return 비동기식 reactive 레디스 설정
      */
     @Primary
     @Bean
@@ -39,7 +41,10 @@ public class RedisConfig {
         return new LettuceConnectionFactory(config);
     }
 
-    // 동기식 RedisConnectionFactory 빈 설정
+
+    /**
+     * @return 동기식 Redic 연결 빈 설정
+     */
     @Bean
     public LettuceConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
@@ -93,6 +98,8 @@ public class RedisConfig {
     // ObjectMapper 설정
     @Bean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
     }
 }

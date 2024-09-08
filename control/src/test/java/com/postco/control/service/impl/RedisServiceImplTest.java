@@ -1,6 +1,5 @@
 package com.postco.control.service.impl;
 
-import com.postco.core.redis.service.RedisDataService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

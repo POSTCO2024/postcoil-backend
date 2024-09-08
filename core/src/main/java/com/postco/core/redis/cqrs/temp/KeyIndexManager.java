@@ -1,4 +1,4 @@
-package com.postco.core.redis.service;
+package com.postco.core.redis.cqrs.temp;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
