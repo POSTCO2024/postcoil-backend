@@ -1,7 +1,5 @@
 package com.postco.control.service;
 
-import com.postco.control.domain.repository.ErrorCriteriaRepository;
-import com.postco.control.domain.repository.ExtractionCriteriaRepository;
 import com.postco.control.presentation.dto.response.CriteriaDTO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @Transactional
 class CriteriaServiceTest {
-    @Autowired CriteriaService criteriaService;
+    @Autowired
+    CriteriaService criteriaService;
 
     @Test
     void 공정별_에러기준_조회() throws Exception {

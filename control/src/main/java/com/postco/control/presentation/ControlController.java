@@ -1,26 +1,25 @@
 package com.postco.control.presentation;
 
-import com.postco.control.presentation.dto.response.Fc001aDTO;
-import com.postco.control.presentation.dto.response.Fc002DTO;
-import com.postco.control.presentation.dto.response.MaterialDTO;
-import com.postco.control.presentation.dto.response.TargetMaterialDTO;
+import com.postco.control.presentation.dto.response.*;
 import com.postco.control.service.ControlService;
+import com.postco.control.service.impl.CriteriaServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:4000")
 @RestController
 @RequestMapping("/control")
 public class ControlController {
 
     private final ControlService controlService;
+    private final CriteriaServiceImpl criteriaService;
 
     @Autowired
-    public ControlController(ControlService controlService) {
+    public ControlController(ControlService controlService, CriteriaServiceImpl criteriaService) {
         this.controlService = controlService;
+        this.criteriaService = criteriaService;
     }
 
     /**
@@ -61,10 +60,26 @@ public class ControlController {
 
     /**
      * 품종(coilTypeCode) 별 차공정(nextProc) 개수를 계산하여 표를 반환
+     *
      * @return 차공정 테이블 - ArrayList<TargetMaterialDTO.Table>
      */
     @GetMapping("fc001a/table")
     public List<TargetMaterialDTO.Table> getFilteredTargetMaterials() {
         return controlService.getMaterialTable();
+    }
+
+    @GetMapping("/management/extraction/{processcode}")
+    public CriteriaDTO getExtractionStandard(@PathVariable String processcode) {
+        return criteriaService.findExtractionCriteriaByProcessCode(processcode);
+    }
+
+    @GetMapping("/management/error/{processcode}")
+    public CriteriaDTO getErrorStandard(@PathVariable String processcode) {
+        return criteriaService.findErrorCriteriaByProcessCode(processcode);
+    }
+
+    @PostMapping("/management/extraction/{processcode}")
+    public void postExtractionStandard(@RequestBody ExtractionStandardDTO extractionStandardDTO, @PathVariable String processcode) {
+        controlService.updateExtractStandard(extractionStandardDTO, processcode);
     }
 }
