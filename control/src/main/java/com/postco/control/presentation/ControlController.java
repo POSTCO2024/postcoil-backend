@@ -6,10 +6,7 @@ import com.postco.control.presentation.dto.response.MaterialDTO;
 import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.control.service.ControlService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -44,9 +41,9 @@ public class ControlController {
      *
      * @return
      */
-    @GetMapping("/error")
-    public List<Fc002DTO> getErrorMaterials() {
-        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials();
+    @GetMapping("/error/{curProcCode}")
+    public List<Fc002DTO> getErrorMaterials(@PathVariable String curProcCode) {
+        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials(curProcCode);
         return erorrMaterialList;
     }
 
