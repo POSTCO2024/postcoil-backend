@@ -268,8 +268,9 @@ public class ControlService implements TargetMaterialService {
      *
      * @return 에러재
      */
-    public List<Fc002DTO> getErrorMaterials() {
-        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsError("Y");
+    public List<Fc002DTO> getErrorMaterials(String curProcCode) {
+        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
+        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorAndCriteria("Y", curProcCode);
         return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
     }
 

@@ -52,9 +52,9 @@ public class ControlController {
      *
      * @return
      */
-    @GetMapping("/error")
-    public List<Fc002DTO> getErrorMaterials() {
-        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials();
+    @GetMapping("/error/{curProcCode}")
+    public List<Fc002DTO> getErrorMaterials(@PathVariable String curProcCode) {
+        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials(curProcCode);
         return erorrMaterialList;
     }
 
