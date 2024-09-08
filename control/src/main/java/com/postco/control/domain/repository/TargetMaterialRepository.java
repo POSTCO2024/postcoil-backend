@@ -8,6 +8,8 @@ import java.util.List;
 
 @Repository
 public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, Long> {
-    List<TargetMaterial> findByIsError(String isError);
+    List<TargetMaterial> findByIsError(String isError);  // To do: 제거
+
+    List<TargetMaterial> findByIsErrorAndCriteria(String y, String curProcCode);
 }
 
