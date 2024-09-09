@@ -1,8 +1,6 @@
 package com.postco.control.service.impl;
 
-import com.postco.control.domain.ErrorCriteria;
 import com.postco.control.domain.ErrorCriteriaMapper;
-import com.postco.control.domain.ExtractionCriteria;
 import com.postco.control.domain.ExtractionCriteriaMapper;
 import com.postco.control.domain.repository.ErrorCriteriaRepository;
 import com.postco.control.domain.repository.ExtractionCriteriaRepository;
@@ -18,8 +16,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CriteriaServiceImpl implements CriteriaService {
+
     private final ErrorCriteriaRepository errorCriteriaRepository;
     private final ExtractionCriteriaRepository extractionCriteriaRepository;
+
     @Override
     public CriteriaDTO findErrorCriteriaByProcessCode(String processCode) {
         ErrorCriteriaMapper mapper = errorCriteriaRepository.findByProcessCode(processCode)
@@ -49,6 +49,7 @@ public class CriteriaServiceImpl implements CriteriaService {
                 .map(extractionCriteria -> CriteriaDetailDTO.builder()
                         .columnName(extractionCriteria.getColumnName())
                         .columnValue(extractionCriteria.getColumnValue())
+                        .id(extractionCriteria.getMapper().getId())
                         .build())
                 .collect(Collectors.toList());
 

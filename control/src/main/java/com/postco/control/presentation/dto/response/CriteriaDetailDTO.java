@@ -8,4 +8,5 @@ import lombok.Data;
 public class CriteriaDetailDTO {
     private String columnName;
     private String columnValue;
+    private Long id;
 }

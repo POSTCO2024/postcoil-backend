@@ -2,20 +2,13 @@ package com.postco.control.service;
 
 import com.postco.control.domain.*;
 import com.postco.control.domain.repository.*;
-import com.postco.control.presentation.dto.response.Fc001aDTO;
-import com.postco.control.presentation.dto.response.Fc002DTO;
-import com.postco.control.presentation.dto.response.MaterialDTO;
-import com.postco.control.presentation.dto.response.TargetMaterialDTO;
+import com.postco.control.presentation.dto.response.*;
 import com.postco.core.utils.mapper.MapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,19 +19,21 @@ public class ControlService implements TargetMaterialService {
     private final MaterialsRepository materialsRepository;
     private final JoinTablesRepository joinTablesRepository;
     private final TargetMaterialRepository targetMaterialRepository;
+    private final ExtractionCriteriaDetailRepository extractionCriteriaDetailRepository;
 
     @Autowired
     public ControlService(ExtractionCriteriaRepository extractionCriteriaRepository,
                           ErrorCriteriaRepository errorCriteriaRepository,
                           MaterialsRepository materialsRepository,
                           JoinTablesRepository joinTablesRepository,
-                          TargetMaterialRepository targetMaterialRepository
-    ) {
+                          TargetMaterialRepository targetMaterialRepository,
+                          ExtractionCriteriaDetailRepository extractionCriteriaDetailRepository) {
         this.extractionCriteriaRepository = extractionCriteriaRepository;
         this.errorCriteriaRepository = errorCriteriaRepository;
         this.materialsRepository = materialsRepository;
         this.joinTablesRepository = joinTablesRepository;
         this.targetMaterialRepository = targetMaterialRepository;
+        this.extractionCriteriaDetailRepository = extractionCriteriaDetailRepository;
     }
 
     // 재료(Materials) DTO 형태로 가져오기
@@ -350,5 +345,32 @@ public class ControlService implements TargetMaterialService {
         System.out.println("result2 [List]: " + new ArrayList<>(resultMap.values()));
 
         return new ArrayList<>(resultMap.values());
+    }
+
+    @Transactional
+    public void updateExtractStandard(ExtractionStandardDTO extractionStandardDTO, String processCode) {
+        ExtractionCriteriaMapper mapper = extractionCriteriaRepository.findByProcessCode(processCode)
+                .orElseThrow(() -> new IllegalStateException("no such code"));
+
+        List<ExtractionCriteria> extractionCriteriaList = mapper.getExtractionCriteria();
+        System.out.println(extractionStandardDTO);
+        for (ExtractionCriteria criteria : extractionCriteriaList) {
+            String columnName = criteria.getColumnName();
+            switch (columnName) {
+                case "factory_code":
+                    criteria.setColumnValue(extractionStandardDTO.getFactoryCode());
+                    break;
+                case "material_status":
+                    criteria.setColumnValue(extractionStandardDTO.getMaterialStatus());
+                    break;
+                case "progress":
+                    criteria.setColumnValue(extractionStandardDTO.getProgress());
+                    break;
+                case "curr_proc":
+                    criteria.setColumnValue(extractionStandardDTO.getCurrProc());
+                    break;
+            }
+            extractionCriteriaDetailRepository.save(criteria);
+        }
     }
 }
