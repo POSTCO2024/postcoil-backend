@@ -16,6 +16,7 @@ public class MaterialDTO implements DTO {
     private String fCode;
     private String opCode;
     private String currProc;
+    private double weight;
     private double goalWidth;
     private double goalThickness;
     private double goalLength;
