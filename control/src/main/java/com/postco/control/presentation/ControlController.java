@@ -6,11 +6,13 @@ import com.postco.control.service.impl.CriteriaServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4000")
 @RestController
 @RequestMapping("/control")
+@CrossOrigin(origins = "http://localhost:4000")
 public class ControlController {
 
     private final ControlService controlService;
@@ -23,17 +25,24 @@ public class ControlController {
     }
 
     /**
-     * 추출 및 에러 조건에 맞는 작업 대상재 목록을 조회
+     * 추출 및 에러 조건에 맞는 작업 대상재 추출
      *
      * @return 조건에 맞는 Materials 리스트
      */
     @GetMapping("/target")
     public List<TargetMaterialDTO.Create> getFilteredMaterials() {
-        List<MaterialDTO> filteredExtraction = controlService.getFilteredExtractionMaterials();
-        List<TargetMaterialDTO.Create> filteredError = controlService.extractMaterialByErrorCriteria(filteredExtraction);
-        List<TargetMaterialDTO.Create> TargetMaterial = controlService.createRollUnit(filteredError);
+        String[] processCodes = {"1PCM", "2PCM", "1CAL", "2CAL"};   // 필터링 기준 - To do: 공정 추가하기 {"1EGL", "2EGL", "1CGL", "2CGL"};
+        List<TargetMaterialDTO.Create> allTargetMaterials = new ArrayList<>();
 
-        return TargetMaterial;
+        for (String procCode : processCodes) {
+            List<MaterialDTO> filteredExtraction = controlService.getFilteredExtractionMaterials(procCode);
+            List<TargetMaterialDTO.Create> filteredError = controlService.extractMaterialByErrorCriteria(filteredExtraction, procCode);
+            List<TargetMaterialDTO.Create> TargetMaterial = controlService.createRollUnit(filteredError, procCode);
+
+            allTargetMaterials.addAll(TargetMaterial);
+        }
+
+        return allTargetMaterials;  // To do: Result 수정
     }
 
     /**
@@ -50,11 +59,11 @@ public class ControlController {
     /**
      * 작업 대상재 리스트 조회
      *
-     * @return 생성된 작업 대상재를 기준으로 정상재를 추출한 리스
+     * @return 생성된 작업 대상재를 기준으로 정상재를 추출한 리스트
      */
-    @GetMapping("/fc001a")
-    public List<Fc001aDTO> getTargetMaterials() {
-        return controlService.getNormalMaterials();
+    @GetMapping("/fc001a/list/{curProcCode}")
+    public List<Fc001aDTO> getTargetMaterials(@PathVariable("curProcCode") String curProcCode) {
+        return controlService.getNormalMaterials(curProcCode);
     }
 
 

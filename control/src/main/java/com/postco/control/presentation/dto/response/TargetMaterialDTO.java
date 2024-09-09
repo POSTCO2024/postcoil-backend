@@ -17,6 +17,7 @@ public class TargetMaterialDTO {
         private Long materialId;
         private String materialNo;
         private String fCode;
+        private double weight;
         private double goalWidth;
         private double goalThickness;
         private double goalLength;
@@ -29,6 +30,7 @@ public class TargetMaterialDTO {
         private String errorType;
         private String remarks;
         private String coilTypeCode;
+        private String criteria;
     }
 
     @Data
@@ -44,7 +46,7 @@ public class TargetMaterialDTO {
         private String progress;
         private double thickness;
         private double width;
-        private double weight;
+//        private double weight;
         private double totalWeight;
         private String passProc;
         private String remProc;
