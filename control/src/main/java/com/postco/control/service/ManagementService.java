@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ErrorManagementService {
+public class ManagementService {
     private final ErrorCriteriaDetailRepository errorCriteriaDetailRepository;
     private final ErrorCriteriaRepository errorCriteriaRepository;
 

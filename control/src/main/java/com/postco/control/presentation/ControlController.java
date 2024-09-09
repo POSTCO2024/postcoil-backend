@@ -2,7 +2,7 @@ package com.postco.control.presentation;
 
 import com.postco.control.presentation.dto.response.*;
 import com.postco.control.service.ControlService;
-import com.postco.control.service.ErrorManagementService;
+import com.postco.control.service.ManagementService;
 import com.postco.control.service.impl.CriteriaServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +17,13 @@ public class ControlController {
 
     private final ControlService controlService;
     private final CriteriaServiceImpl criteriaService;
-    private final ErrorManagementService errorManagementService;
+    private final ManagementService managementService;
 
     @Autowired
-    public ControlController(ControlService controlService, CriteriaServiceImpl criteriaService, ErrorManagementService errorManagementService) {
+    public ControlController(ControlService controlService, CriteriaServiceImpl criteriaService, ManagementService managementService) {
         this.controlService = controlService;
         this.criteriaService = criteriaService;
-        this.errorManagementService = errorManagementService;
+        this.managementService = managementService;
     }
 
     /**
@@ -93,11 +93,11 @@ public class ControlController {
     public void postExtractionStandard(@RequestBody ExtractionStandardDTO extractionStandardDTO, @PathVariable String processcode) {
         controlService.updateExtractStandard(extractionStandardDTO, processcode);
     }
-    
+
     @PostMapping("/management/error/{processcode}")
     public CriteriaDTO postErrorStandard(@RequestBody ErrorStandardDTO errorStandardDTO, @PathVariable String processcode) {
         System.out.println(errorStandardDTO.toString());
-        errorManagementService.updateErrorStandard(errorStandardDTO, processcode);
+        managementService.updateErrorStandard(errorStandardDTO, processcode);
         return criteriaService.findErrorCriteriaByProcessCode(processcode);
     }
 }
