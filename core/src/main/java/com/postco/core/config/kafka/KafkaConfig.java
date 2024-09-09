@@ -1,5 +1,6 @@
 package com.postco.core.config.kafka;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -15,7 +16,9 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableConfigurationProperties(KafkaProperties.class)
@@ -23,6 +26,8 @@ import java.util.Map;
 public class KafkaConfig {
 
     private final KafkaProperties kafkaProperties;
+    private final ObjectMapper objectMapper;
+    private final List<KafkaMessageStrategy<?>> messageStrategies;
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
@@ -52,4 +57,17 @@ public class KafkaConfig {
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
+
+//    @Bean
+//    public KafkaConsumerFactory kafkaConsumerFactory() {
+//        return new KafkaConsumerFactory(messageStrategies, objectMapper, kafkaListenerContainerFactory());
+//    }
+//
+//    // 동적 컨슈머 생성을 위한 메서드
+//    @Bean
+//    public List<GenericKafkaConsumer<?>> kafkaConsumers() {
+//        return messageStrategies.stream()
+//                .map(strategy -> kafkaConsumerFactory().createConsumer(strategy.getDataType()))
+//                .collect(Collectors.toList());
+//    }
 }

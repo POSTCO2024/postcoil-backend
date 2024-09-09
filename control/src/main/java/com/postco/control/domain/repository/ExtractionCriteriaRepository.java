@@ -2,11 +2,14 @@ package com.postco.control.domain.repository;
 
 import com.postco.control.domain.ExtractionCriteriaMapper;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
 public interface ExtractionCriteriaRepository extends JpaRepository<ExtractionCriteriaMapper, Long> {
-    Optional<ExtractionCriteriaMapper> findByProcessCode(String processCode);
+    @Query("SELECT m FROM ExtractionCriteriaMapper m LEFT JOIN FETCH m.extractionCriteria WHERE m.processCode = :processCode")
+    Optional<ExtractionCriteriaMapper> findByProcessCode(@Param("processCode") String processCode);
 }

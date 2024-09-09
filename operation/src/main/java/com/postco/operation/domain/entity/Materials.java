@@ -29,7 +29,7 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
     private String status;     // 재료 진행 상태
 
     @Column(name = "factory_code")
-    private String fCode;
+    private String factoryCode;
 
     @Column(name = "op_code")
     private String opCode;

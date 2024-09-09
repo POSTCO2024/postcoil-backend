@@ -32,12 +32,12 @@ public class MaterialDTO {
         private String storageLoc;
         private String yard;
         private String coilTypeCode;
-        private LocalDateTime createTime;
 
         // 주문 데이터 (자주 조회되는 핵심 데이터만 저장)
         private Long orderId;
         private String orderNo;
         private double goalThickness;
         private double goalWidth;
+        private String planProcess;
     }
 }

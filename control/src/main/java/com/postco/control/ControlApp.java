@@ -1,11 +1,18 @@
 package com.postco.control;
 
+import com.postco.control.service.ExtractionFilter;
 import com.postco.control.service.RedisService;
+import com.postco.control.service.impl.ExtractionFilterService;
+import com.postco.control.service.impl.TargetMaterialServiceImpl;
 import com.postco.core.config.redis.RedisConfig;
+import com.postco.core.dto.MaterialDTO;
+import com.postco.core.dto.OrderDTO;
+import com.postco.core.dto.TargetMaterialDTO;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.GroupedOpenApi;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,6 +21,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @SpringBootApplication
 @OpenAPIDefinition(info = @Info(title = "Control API", version = "1.0", description = "Control Service API"))
@@ -36,23 +45,22 @@ public class ControlApp {
     }
 
     @Bean
-    public CommandLineRunner redisDataLoader(RedisService redisService) {
+    public ApplicationRunner targetMaterialProcessor(TargetMaterialServiceImpl targetMaterialService) {
         return args -> {
-            log.info("Loading all material data from Redis...");
+            log.info("Starting to process target materials...");
 
-            Mono<Void> loadData = redisService.getAllMaterialsFromRedis()
-                    .doOnNext(materials -> {
-                        log.info("Loaded {} materials from Redis", materials.size());
-                        materials.forEach(material ->
-                                log.info("Material: {}", material.toString())
-                        );
-                    })
-                    .then();
+            String processCode = "1PCM"; // 예시 프로세스 코드, 실제 사용할 코드로 변경해야 합니다.
 
-            // Block until data is loaded
-            loadData.block();
+            Mono<List<TargetMaterialDTO.View>> resultMono = targetMaterialService.processTargetMaterials(processCode);
 
-            log.info("Finished loading all material data from Redis");
+            resultMono.subscribe(
+                    targetMaterials -> {
+                        log.info("Processed {} target materials", targetMaterials.size());
+                        targetMaterials.forEach(material -> log.info("Processed Target Material: {}", material));
+                    },
+                    error -> log.error("Error processing target materials", error),
+                    () -> log.info("Finished processing target materials")
+            );
         };
     }
 }
