@@ -253,8 +253,7 @@ public class ScheduleService {
 
         // 우선순위 적용
         List<ScheduleMaterialsDTO.View> sortedMaterials = applyPriorities(materials, priorities);
-
-        // priorityOrder 설정
+// priorityOrder 설정
         for (int i = 0; i < sortedMaterials.size(); i++) {
             sortedMaterials.get(i).setProcessOrder(Collections.singletonList(i + 1));
         }
