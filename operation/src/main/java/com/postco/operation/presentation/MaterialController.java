@@ -26,5 +26,4 @@ public class MaterialController {
         return ResponseEntity.ok("All orders sent successfully");
     }
 
-
 }

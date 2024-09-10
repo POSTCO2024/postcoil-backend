@@ -19,6 +19,7 @@ import java.util.List;
 public class CacheProcessController {
     private final RedisService redisService;
 
+
     @GetMapping("/all")
     public Mono<ResponseEntity<List<MaterialDTO.View>>> getAllMaterials() {
         return redisService.getAllMaterialsFromRedis()

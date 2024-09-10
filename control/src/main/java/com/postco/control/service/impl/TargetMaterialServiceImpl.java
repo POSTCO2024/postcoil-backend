@@ -2,6 +2,7 @@ package com.postco.control.service.impl;
 
 import com.postco.control.domain.TargetMaterial;
 import com.postco.control.domain.repository.TargetMaterialRepository;
+import com.postco.control.infra.kafka.TargetMaterialProducer;
 import com.postco.control.service.RedisService;
 import com.postco.control.service.TargetMaterialService;
 import com.postco.core.dto.MaterialDTO;
@@ -31,6 +32,7 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
     private final ErrorFilterService errorFilterService;
     private final RedisService redisService;
     private final RollUnitService rollUnitService;
+    private final TargetMaterialProducer targetMaterialProducer;
 
     @Transactional
     public Mono<List<TargetMaterialDTO.View>> processTargetMaterials(String processCode) {
@@ -54,10 +56,16 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
                 // 에러 기준 적용
                 errorFilterService.applyErrorCriteria(savedEntities, filteredMaterials, processCode);
 
-                // 최종 결과 반환
-                return savedEntities.stream()
+                // 저장된 작업대상재 -> DTO 변환
+
+                List<TargetMaterialDTO.View> savedDTOs = savedEntities.stream()
                         .map(entity -> modelMapper.map(entity, TargetMaterialDTO.View.class))
                         .collect(Collectors.toList());
+
+                // Kafka로 저장된 작업대상재 발행
+                savedDTOs.forEach(targetMaterialProducer::sendMaterials);
+
+                return savedDTOs;
             }).subscribeOn(Schedulers.boundedElastic());
         });
     }

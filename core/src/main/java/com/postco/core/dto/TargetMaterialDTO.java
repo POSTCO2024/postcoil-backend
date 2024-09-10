@@ -12,18 +12,22 @@ public class TargetMaterialDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Create implements DTO {
-        private Long id;
         private Long materialId;
-        private Long materialNo;
-        private String processPlan;
+        private String materialNo;
         private String orderNo;
+        private double goalWidth;
+        private double goalThickness;
+        private double goalLength;
+        private double weight;
+        private String processPlan;
         private String dueDate;
         private String rollUnitName;
         private String customerName;
-        private String isError;
-        private String errorType;
         private String remarks;
         private String coilTypeCode;
+        private String isError;
+        private String errorType;
+        private String isErrorPassed;
     }
 
     @Data

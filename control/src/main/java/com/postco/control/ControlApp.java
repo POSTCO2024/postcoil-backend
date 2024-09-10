@@ -1,23 +1,18 @@
 package com.postco.control;
 
-import com.postco.control.service.ExtractionFilter;
-import com.postco.control.service.RedisService;
-import com.postco.control.service.impl.ExtractionFilterService;
 import com.postco.control.service.impl.TargetMaterialServiceImpl;
-import com.postco.core.config.redis.RedisConfig;
-import com.postco.core.dto.MaterialDTO;
-import com.postco.core.dto.OrderDTO;
+import com.postco.core.config.RedisConfig;
 import com.postco.core.dto.TargetMaterialDTO;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import reactor.core.publisher.Mono;
@@ -28,6 +23,7 @@ import java.util.stream.Collectors;
 @SpringBootApplication
 @OpenAPIDefinition(info = @Info(title = "Control API", version = "1.0", description = "Control Service API"))
 @EntityScan(basePackages = "com.postco.control.domain")
+@ComponentScan(basePackages = {"com.postco.control", "com.postco.core"})
 @Import(RedisConfig.class)
 @EnableJpaAuditing
 @Slf4j

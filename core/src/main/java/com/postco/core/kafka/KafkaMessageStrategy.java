@@ -1,4 +1,4 @@
-package com.postco.core.config.kafka;
+package com.postco.core.kafka;
 
 import reactor.core.publisher.Mono;
 

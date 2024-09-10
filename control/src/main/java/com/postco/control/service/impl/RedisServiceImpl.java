@@ -4,6 +4,7 @@ import com.postco.control.service.RedisService;
 import com.postco.core.dto.DTO;
 import com.postco.core.dto.MaterialDTO;
 import com.postco.core.dto.OrderDTO;
+import com.postco.core.dto.TargetMaterialDTO;
 import com.postco.core.redis.CentralRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

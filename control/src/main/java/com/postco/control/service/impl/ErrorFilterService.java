@@ -38,13 +38,9 @@ public class ErrorFilterService {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Material not found: " + targetMaterial.getMaterialId()));
 
-            ErrorCriteria highestPriorityError = findHighestPriorityError(material, criteria);
+            String isError = determineErrorStatus(material, criteria);
 
-            if (highestPriorityError != null) {
-                targetMaterial.setIsError("Y");
-            }
-
-            targetMaterialRepository.save(targetMaterial);
+            updateTargetMaterial(targetMaterial, isError);
         });
     }
 
@@ -57,6 +53,17 @@ public class ErrorFilterService {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private String determineErrorStatus(MaterialDTO.View material, List<ErrorCriteria> criteria) {
+        return Optional.ofNullable(findHighestPriorityError(material, criteria))
+                .map(error -> "Y")
+                .orElse("N");
+    }
+
+    private void updateTargetMaterial(TargetMaterial targetMaterial, String isError) {
+        targetMaterial.setIsError(isError);
+        targetMaterialRepository.save(targetMaterial);
     }
 
     private boolean applyFilter(MaterialDTO.View material, ErrorCriteria criterion) {

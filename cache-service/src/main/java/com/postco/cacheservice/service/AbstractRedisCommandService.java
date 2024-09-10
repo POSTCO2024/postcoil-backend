@@ -21,7 +21,6 @@ public abstract class AbstractRedisCommandService<T> implements CommandService<T
     protected abstract Class<T> getEntityClass();
     public abstract int getRedisDatabase();
 
-    @SelectRedisDatabase(database = "#this.getRedisDatabase()")
     @Override
     public Mono<Boolean> saveData(T data) {
         ReactiveHashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();

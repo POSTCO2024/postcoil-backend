@@ -1,9 +1,9 @@
-package com.postco.core.config.kafka;
+package com.postco.core.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.postco.core.kafka.KafkaMessageStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 @RequiredArgsConstructor

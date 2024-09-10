@@ -1,14 +1,11 @@
-package com.postco.core.config.kafka;
+package com.postco.core.kafka.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.Getter;
+import com.postco.core.kafka.KafkaMessageStrategy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.MessageListener;
 
 import javax.annotation.PostConstruct;

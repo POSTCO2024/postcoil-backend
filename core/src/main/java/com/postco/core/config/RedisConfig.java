@@ -1,4 +1,4 @@
-package com.postco.core.config.redis;
+package com.postco.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

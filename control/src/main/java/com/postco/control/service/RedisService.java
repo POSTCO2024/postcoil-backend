@@ -2,6 +2,7 @@ package com.postco.control.service;
 
 import com.postco.core.dto.MaterialDTO;
 import com.postco.core.dto.OrderDTO;
+import com.postco.core.dto.TargetMaterialDTO;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -13,5 +14,4 @@ public interface RedisService {
 
     Mono<List<OrderDTO.View>> getAllOrders();
     Mono<MaterialDTO.View> getMaterialById(Long materialId);
-
 }

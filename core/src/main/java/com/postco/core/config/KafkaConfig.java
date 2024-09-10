@@ -1,6 +1,8 @@
-package com.postco.core.config.kafka;
+package com.postco.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.postco.core.kafka.KafkaMessageStrategy;
+import com.postco.core.kafka.producer.KafkaProducer;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -10,7 +12,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.*;
@@ -18,7 +19,6 @@ import org.springframework.kafka.core.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Configuration
 @EnableConfigurationProperties(KafkaProperties.class)
@@ -46,9 +46,14 @@ public class KafkaConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(name = "feature-flags.kafka.enabled", havingValue = "true")
     public KafkaTemplate<String, String> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "feature-flags.kafka.enabled", havingValue = "true")
+    public KafkaProducer genericProducer(KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
+        return new KafkaProducer(kafkaTemplate, objectMapper);
     }
 
     @Bean

@@ -2,20 +2,17 @@ package com.postco.cacheservice.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.postco.cacheservice.service.CommandService;
 import com.postco.cacheservice.service.impl.OrderCommandService;
-import com.postco.core.config.kafka.KafkaMessageStrategy;
 import com.postco.core.dto.OrderDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class OrderKafkaConsumer extends GenericKafkaConsumer<OrderDTO.View> {
+public class OrderConsumer extends GenericKafkaConsumer<OrderDTO.View> {
     private final OrderCommandService orderCommandService; // Redis 저장 서비스
     private final ObjectMapper objectMapper;
 
@@ -50,11 +47,11 @@ public class OrderKafkaConsumer extends GenericKafkaConsumer<OrderDTO.View> {
 
     @Override
     public String getTopic() {
-        return "operation-order-data"; // 토픽 이름 설정
+        return "operation-order-data";
     }
 
     @Override
     protected Mono<Boolean> saveData(OrderDTO.View order) {
-        return orderCommandService.saveData(order); // Redis에 데이터 저장
+        return orderCommandService.saveData(order);
     }
 }

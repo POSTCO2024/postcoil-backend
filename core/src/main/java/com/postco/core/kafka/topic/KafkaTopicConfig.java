@@ -1,4 +1,4 @@
-package com.postco.core.config.kafka;
+package com.postco.core.kafka.topic;
 
 import lombok.Data;
 import org.apache.kafka.clients.admin.AdminClientConfig;
@@ -44,6 +44,14 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic getOrderTopic() {
         return TopicBuilder.name("operation-order-data")
+                .partitions(3)
+                .replicas(3)
+                .build();
+    }
+
+    @Bean
+    public NewTopic getTargetMaterialTopic() {
+        return TopicBuilder.name("control-targetMaterial-data")
                 .partitions(3)
                 .replicas(3)
                 .build();
