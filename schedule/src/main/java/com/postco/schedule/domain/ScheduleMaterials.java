@@ -28,8 +28,8 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
 
     private String type;
 
-    @Column(name = "cur_proc_code")
-    private String curProcCode;
+    @Column(name = "cur_proc")
+    private String curProc;
 
     @Column(name = "f_code")
     private String fCode;
@@ -37,10 +37,10 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "op_code")
     private String opCode;
 
-    @Column(name = "outer_dia")
+    @Column(name = "outer_dia", nullable = true)
     private double outerDia;
 
-    @Column(name = "inner_dia")
+    @Column(name = "inner_dia", nullable = true)
     private double innerDia;
 
     private Double weight;
@@ -55,7 +55,7 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
 
     private String status;
 
-    @Column(name = "total_weight")
+    @Column(name = "total_weight", nullable = true)
     private double totalWeight;
 
     @Column(name = "pass_proc")
@@ -75,6 +75,9 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
 
     private Double yard;
 
+    // 추가한 필드1
+    private Long targetId;
+
     @Column(name = "goal_thickness")
     private double goalThickness;
 
@@ -84,19 +87,27 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "goal_length")
     private double goalLength;
 
-    // 추가한 필드
     @Column(name = "temperature", nullable = true)
     private double temperature;
 
     @Column(name = "roll_unit")
     private String rollUnit;
 
+    // 추가한 필드2 - 111111
+    @Column(name = "schedule_id")
+    private Long scheduleId; // 확정 전 null, 확정 후 존재
+
+    @Column(name = "schedule_no")
+    private String scheduleNo;
+
     @Column(name = "work_time", nullable = true)
     private Long workTime;
 
-    // 추가한 필드2 - 111111
-    private Long targetId;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "material_id"))
+    @Column(name = "sequence", nullable = true)
+    @OrderColumn(name = "sequence_order") // Optional: 사용 순서 보존
+    private List<Integer> sequence;
 
-    private Long scheduleId;
 
 }
