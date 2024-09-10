@@ -2,10 +2,7 @@ package com.postco.control.service;
 
 import com.postco.control.domain.*;
 import com.postco.control.domain.repository.*;
-import com.postco.control.presentation.dto.response.Fc001aDTO;
-import com.postco.control.presentation.dto.response.Fc002DTO;
-import com.postco.control.presentation.dto.response.MaterialDTO;
-import com.postco.control.presentation.dto.response.TargetMaterialDTO;
+import com.postco.control.presentation.dto.response.*;
 import com.postco.core.utils.mapper.MapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,6 +14,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 
 @Service
 public class ControlService implements TargetMaterialService {
@@ -26,6 +24,7 @@ public class ControlService implements TargetMaterialService {
     private final MaterialsRepository materialsRepository;
     private final JoinTablesRepository joinTablesRepository;
     private final TargetMaterialRepository targetMaterialRepository;
+    private final ExtractionCriteriaDetailRepository extractionCriteriaDetailRepository;
 
     @Autowired
     public ControlService(ExtractionCriteriaRepository extractionCriteriaRepository,
