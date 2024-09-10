@@ -64,7 +64,6 @@ public class ControlController {
         return controlService.getNormalMaterials(curProcCode);
     }
 
-
     /**
      * 품종(coilTypeCode) 별 차공정(nextProc) 개수를 계산하여 표를 반환
      *
