@@ -12,14 +12,13 @@ import java.util.List;
 
 @Repository
 public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, Long> {
-    List<TargetMaterial> findByIsError(String isError);  // To do: 제거
+    // 공정 별 추출
+    List<TargetMaterial> findByIsErrorAndCriteria(String y, String curProcCode);
 
-//    List<TargetMaterial> findByIsErrorAndCriteria(String y, String curProcCode);
-
+    // 에러패스
     @Modifying
     @Transactional
     @Query("UPDATE TargetMaterial tm SET tm.isError = 'N' WHERE tm.materialId IN :errorMaterialIds")
     int updateisError(@Param("errorMaterialIds") List<Long> errorMaterialIds);
-    List<TargetMaterial> findByIsErrorAndCriteria(String isError, String criteria);
 }
 
