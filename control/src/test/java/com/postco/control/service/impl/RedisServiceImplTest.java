@@ -14,7 +14,7 @@ import static reactor.core.publisher.Mono.when;
 
 class RedisServiceImplTest {
     @Mock private RedisDataService redisDataService;
-    @InjectMocks private RedisServiceImpl redisService;
+    @InjectMocks private ControlRedisServiceImpl redisService;
 
     @BeforeEach
     void setUp() {

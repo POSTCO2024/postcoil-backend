@@ -2,13 +2,11 @@ package com.postco.control.service;
 
 import com.postco.core.dto.MaterialDTO;
 import com.postco.core.dto.OrderDTO;
-import com.postco.core.dto.TargetMaterialDTO;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
 
-public interface RedisService {
+public interface ControlRedisService {
     Mono<List<MaterialDTO.View>> getAllMaterialsFromRedis();
     Mono<List<MaterialDTO.View>> getNewMaterialsFromRedis();
 

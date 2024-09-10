@@ -1,10 +1,8 @@
 package com.postco.control.service.impl;
 
-import com.postco.control.service.RedisService;
-import com.postco.core.dto.DTO;
+import com.postco.control.service.ControlRedisService;
 import com.postco.core.dto.MaterialDTO;
 import com.postco.core.dto.OrderDTO;
-import com.postco.core.dto.TargetMaterialDTO;
 import com.postco.core.redis.CentralRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,13 +10,11 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RedisServiceImpl implements RedisService {
+public class ControlRedisServiceImpl implements ControlRedisService {
     private final CentralRedisService centralRedisService;
 
     @Override

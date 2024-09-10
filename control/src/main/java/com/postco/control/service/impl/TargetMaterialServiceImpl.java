@@ -3,7 +3,7 @@ package com.postco.control.service.impl;
 import com.postco.control.domain.TargetMaterial;
 import com.postco.control.domain.repository.TargetMaterialRepository;
 import com.postco.control.infra.kafka.TargetMaterialProducer;
-import com.postco.control.service.RedisService;
+import com.postco.control.service.ControlRedisService;
 import com.postco.control.service.TargetMaterialService;
 import com.postco.core.dto.MaterialDTO;
 import com.postco.core.dto.OrderDTO;
@@ -30,15 +30,15 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
     private final TargetMaterialRepository targetMaterialRepository;
     private final ExtractionFilterService extractionFilterService;
     private final ErrorFilterService errorFilterService;
-    private final RedisService redisService;
+    private final ControlRedisService controlRedisService;
     private final RollUnitService rollUnitService;
     private final TargetMaterialProducer targetMaterialProducer;
 
     @Transactional
     public Mono<List<TargetMaterialDTO.View>> processTargetMaterials(String processCode) {
         return Mono.zip(
-                redisService.getAllMaterialsFromRedis(),
-                redisService.getAllOrders()
+                controlRedisService.getAllMaterialsFromRedis(),
+                controlRedisService.getAllOrders()
         ).flatMap(tuple -> {
             List<MaterialDTO.View> materials = tuple.getT1();
             List<OrderDTO.View> orders = tuple.getT2();

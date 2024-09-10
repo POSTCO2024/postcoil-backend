@@ -41,5 +41,4 @@ public class OperationApp {
     public CommandLineRunner sendDataOnStartup(DataSendService dataSender) {
         return args -> dataSender.sendAllData();
     }
-
 }
