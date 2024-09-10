@@ -1,16 +1,24 @@
 package com.postco.operation;
 
+import com.postco.core.config.AuditorAwareImpl;
+import com.postco.operation.service.DataSendService;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.springdoc.core.GroupedOpenApi;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @OpenAPIDefinition(info = @Info(title = "Operation API", version = "1.0", description = "Operation Service API"))
-@EntityScan(basePackages = "com.postco.operation.domain")
+@EntityScan(basePackages = "com.postco.operation.domain.entity")
+@ComponentScan(basePackages = {"com.postco.core", "com.postco.operation"})
+@EnableJpaAuditing
 public class OperationApp {
 
     public static void main(String[] args) {
@@ -23,6 +31,15 @@ public class OperationApp {
                 .group("operation")
                 .pathsToMatch("/api/**")
                 .build();
+    }
+    @Bean
+    public AuditorAware<String> auditorProvider() {
+        return new AuditorAwareImpl();
+    }
+
+    @Bean
+    public CommandLineRunner sendDataOnStartup(DataSendService dataSender) {
+        return args -> dataSender.sendAllData();
     }
 
 }

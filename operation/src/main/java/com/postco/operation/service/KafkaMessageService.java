@@ -1,8 +1,11 @@
 package com.postco.operation.service;
 
-import com.postco.operation.presentation.dto.MaterialsDTO;
+import com.postco.core.dto.MaterialDTO;
+import com.postco.core.dto.OrderDTO;
 
 public interface KafkaMessageService {
-    // 재료 데이터 전송
-    void sendMaterials(MaterialsDTO.View materials);
+    // 모든 재료 전송 메서드
+    void sendAllMaterials();
+    // 모든 주문 데이터 전송
+    void sendOrders();
 }

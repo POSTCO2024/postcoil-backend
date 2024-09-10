@@ -16,7 +16,7 @@ import java.io.Serializable;
 public class TargetMaterial implements com.postco.core.entity.Entity, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "target_material_id")
     private Long id;
 
     @Column(name = "material_id", nullable = false)
@@ -24,9 +24,6 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
 
     @Column(name = "material_no", nullable = false)
     private String materialNo;
-
-    @Column(name = "f_code", nullable = false)
-    private String fCode;
 
     @Column(name = "goal_width")
     private double goalWidth;
@@ -37,7 +34,6 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     @Column(name = "goal_length")
     private double goalLength;
 
-    @Column
     private double weight;
 
     // processPlan 확인필요
@@ -50,28 +46,29 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     @Column(name = "due_date")
     private String dueDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "roll_unit_name", referencedColumnName = "roll_unit_name")
-    private RollUnit rollUnitName;
+    @Column(name = "roll_unit_name")
+    private String rollUnitName;
 
     @Column(name = "customer_name")
     private String customerName;
 
-    @Column(name = "is_error", nullable = false)
-    private String isError;
-
-    @Column(name = "error_type")
-    private String errorType;
+    @Column(name = "remarks")
+    private String remarks;
 
     @Column(name = "coil_type_code")
     private String coilTypeCode;
 
-    @Column(name = "target_material_group_id", nullable = false)      // 작업 대상재 추출 ID
-    private String targetMaterialGroupId;
+    @Column(name = "is_error", nullable = false)
+    private String isError = "N";
 
-    @Column(name = "criteria", nullable = false)      // 공정 기준
-    private String criteria;
+    @Column(name = "is_error_passed")
+    private String isErrorPassed;    // 수동 에러패스 여부 (데이터 분석을 위한 컬럼)
 
-    @Column(name = "remarks")
-    private String remarks;
+    @PrePersist
+    public void prePersist() {
+        if (this.isError == null) {
+            this.isError = "N";
+        }
+    }
+
 }

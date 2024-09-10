@@ -21,7 +21,9 @@ public class ErrorCriteria implements com.postco.core.entity.Entity {
     @JoinColumn(name = "mapper_id")
     private ErrorCriteriaMapper mapper;
 
-    private String errorType;
+    @Enumerated(EnumType.STRING)
+    private ErrorType errorType;
+
     private String columnName;
     private String columnValue;
 
