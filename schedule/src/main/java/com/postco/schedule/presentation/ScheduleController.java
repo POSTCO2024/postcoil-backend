@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/schedule")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:4000", allowCredentials = "true") // test용
 public class ScheduleController {
 
     private final ScheduleService scheduleService;
