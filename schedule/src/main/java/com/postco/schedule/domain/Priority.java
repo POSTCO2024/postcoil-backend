@@ -40,6 +40,6 @@ public class Priority implements com.postco.core.entity.Entity, Serializable {
 
     // 새로 추가된 필드
     private String processCode;
-    private String materialUnitCode;
+    private String rollUnit;
 
 }

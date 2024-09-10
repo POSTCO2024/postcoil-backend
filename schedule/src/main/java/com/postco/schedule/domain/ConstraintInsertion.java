@@ -34,6 +34,6 @@ public class ConstraintInsertion implements com.postco.core.entity.Entity, Seria
 
     // 새로 추가된 필드
     private String processCode;
-    private String materialUnitCode;
+    private String rollUnit;
 
 }

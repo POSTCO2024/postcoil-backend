@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ConstraintInsertionRepository extends JpaRepository<ConstraintInsertion, Long> {
-    List<ConstraintInsertion> findByProcessCodeAndMaterialUnitCode(String processCode, String materialUnitCode);
+    List<ConstraintInsertion> findByProcessCodeAndRollUnit(String processCode, String rollUnit);
 }

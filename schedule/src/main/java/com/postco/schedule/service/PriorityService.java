@@ -15,8 +15,9 @@ public class PriorityService {
 
     private final PriorityRepository priorityRepository;
 
-    public List<PriorityDTO> findAllByProcessCodeAndMaterialUnitCode(String processCode, String materialUnitCode){
-        return MapperUtils.mapList(priorityRepository.findByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode), PriorityDTO.class);
+    public List<PriorityDTO> findAllByProcessCodeAndRollUnit(String processCode, String rollUnit){
+        return MapperUtils.mapList(priorityRepository.
+                findByProcessCodeAndRollUnit(processCode, rollUnit), PriorityDTO.class);
     }
 
     public List<PriorityDTO> findAllByProcessCode(String processCode){
