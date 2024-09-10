@@ -5,6 +5,7 @@ import com.postco.control.presentation.dto.response.Fc002DTO;
 import com.postco.control.presentation.dto.response.MaterialDTO;
 import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.control.service.ControlService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/control")
 @CrossOrigin(origins = "http://localhost:4000")
+@Slf4j
 public class ControlController {
 
     private final ControlService controlService;
@@ -45,28 +47,6 @@ public class ControlController {
     }
 
     /**
-     * 에러재를 보여주기 위한 에러재 호출
-     *
-     * @return 에러재 목록
-     */
-//    @GetMapping("/error/{curProcCode}")
-//    public List<Fc002DTO> getErrorMaterials(@PathVariable String curProcCode) {
-//        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials(curProcCode);
-//        return erorrMaterialList;
-//    }
-
-    /**
-     * 에러 패스
-     *
-     * @return
-     */
-    @PutMapping("/errorpass")
-    public void ErrorPass(@RequestBody List<Long> error_material_ids) {
-        controlService.errorPass(error_material_ids);
-    }
-
-
-    /**
      * 작업 대상재 리스트 조회
      *
      * @return 생성된 작업 대상재를 기준으로 정상재를 추출한 리스트
@@ -76,7 +56,6 @@ public class ControlController {
         return controlService.getNormalMaterials(curProcCode);
     }
 
-
     /**
      * 품종(coilTypeCode) 별 차공정(nextProc) 개수를 계산하여 표를 반환
      * @return 차공정 테이블 - ArrayList<TargetMaterialDTO.Table>
@@ -85,4 +64,33 @@ public class ControlController {
     public List<TargetMaterialDTO.Table> getFilteredTargetMaterials() {
         return controlService.getMaterialTable();
     }
+
+
+    /**
+     * 에러재를 보여주기 위한 에러재 호출
+     *
+     * @return 에러재 목록
+     */
+    @GetMapping("/error/{curProcCode}")
+    public List<Fc002DTO> getErrorMaterials(@PathVariable String curProcCode) {
+        List<Fc002DTO> erorrMaterialList = controlService.getErrorMaterials(curProcCode);
+        return erorrMaterialList;
+    }
+
+    /**
+     * 에러 패스를 통해 에러재를 정상재로 변환한다.
+     * 에러 여부(isError)는 업데이트 되며 에러이유(errorType)은 그대로 둔다.
+     * 다시 에러재로 추출될 경우, 에러이유는 업데이트 된다.
+     *
+     * @return
+     */
+    @PutMapping("/errorpass")
+    public List<Long> ErrorPass(@RequestBody List<Long> error_material_ids) {
+        log.info("에러패스를 진행합니다. " + error_material_ids);
+
+        controlService.errorPass(error_material_ids);
+
+        return error_material_ids;  // return 수정
+    }
+
 }

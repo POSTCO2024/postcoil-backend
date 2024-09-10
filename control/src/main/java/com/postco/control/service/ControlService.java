@@ -269,18 +269,6 @@ public class ControlService implements TargetMaterialService {
     }
 
     /**
-     * Repo 에서 에러재 추출
-     *
-     * @return 에러재
-     */
-//    public List<Fc002DTO> getErrorMaterials(String curProcCode) {
-//        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
-//        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorAndCriteria("Y", curProcCode);
-//        return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
-//    }
-
-
-    /**
      * fc001a: 작업대상재 관리 화면
      *
      * @return 작업 대상재 목록
@@ -351,6 +339,19 @@ public class ControlService implements TargetMaterialService {
         System.out.println("result2 [List]: " + new ArrayList<>(resultMap.values()));
 
         return new ArrayList<>(resultMap.values());
+    }
+
+
+
+    /**
+     * fc002a: 에러재 관리 화면
+     *
+     * @return 에러재 목록
+     */
+    public List<Fc002DTO> getErrorMaterials(String curProcCode) {
+        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
+        List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorAndCriteria("Y", curProcCode);
+        return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
     }
 
     /**
