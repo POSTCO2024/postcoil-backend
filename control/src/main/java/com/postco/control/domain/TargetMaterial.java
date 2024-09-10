@@ -46,9 +46,8 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     @Column(name = "due_date")
     private String dueDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "roll_unit_name", referencedColumnName = "roll_unit_name")
-    private RollUnit rollUnitName;
+    @Column(name = "roll_unit_name")
+    private String rollUnitName;
 
     @Column(name = "customer_name")
     private String customerName;

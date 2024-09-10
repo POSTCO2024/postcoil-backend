@@ -45,7 +45,7 @@ public class TargetMaterialMapper {
 
                     return Stream.of(source.getPassProc(), source.getRemProc())
                             .filter(s -> s != null && !s.isEmpty() && !s.equals("null"))
-                            .collect(Collectors.joining(" + "));
+                            .collect(Collectors.joining());
                 }).map(source, destination.getProcessPlan());
             }
         });

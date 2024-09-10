@@ -49,7 +49,7 @@ public class ControlApp {
         return args -> {
             log.info("Starting to process target materials...");
 
-            String processCode = "1PCM"; // 예시 프로세스 코드, 실제 사용할 코드로 변경해야 합니다.
+            String processCode = "1CAL"; // 예시 프로세스 코드, 실제 사용할 코드로 변경해야 합니다.
 
             Mono<List<TargetMaterialDTO.View>> resultMono = targetMaterialService.processTargetMaterials(processCode);
 

@@ -27,6 +27,7 @@ public class ExtractionFilterService {
                 .collect(Collectors.toList());
     }
 
+    // 추출 기준 필터
     private boolean applyFilter(MaterialDTO.View material, ExtractionCriteria criterion) {
         ExtractionFilter filter = ExtractionFilter.fromColumnName(criterion.getColumnName());
         String value = criterion.getColumnValue();

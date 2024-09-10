@@ -30,6 +30,7 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
     private final ExtractionFilterService extractionFilterService;
     private final ErrorFilterService errorFilterService;
     private final RedisService redisService;
+    private final RollUnitService rollUnitService;
 
     @Transactional
     public Mono<List<TargetMaterialDTO.View>> processTargetMaterials(String processCode) {
@@ -61,19 +62,26 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
         });
     }
 
-    private List<TargetMaterialDTO.View> mapToTargetMaterials(List<MaterialDTO.View> materials, List<OrderDTO.View> orders) {
+    @Transactional
+    public List<TargetMaterialDTO.View> mapToTargetMaterials(List<MaterialDTO.View> materials, List<OrderDTO.View> orders) {
         Map<Long, OrderDTO.View> orderMap = orders.stream()
                 .collect(Collectors.toMap(OrderDTO.View::getId, Function.identity()));
 
         return materials.stream()
                 .map(material -> {
                     OrderDTO.View order = orderMap.get(material.getOrderId());
-                    return TargetMaterialMapper.mapToTargetMaterial(material, order);
+                    TargetMaterialDTO.View targetMaterial = TargetMaterialMapper.mapToTargetMaterial(material, order);
+
+                    // 롤 단위 설정
+                    String rollUnitName = setRollUnit(material);
+                    targetMaterial.setRollUnitName(rollUnitName);
+
+                    return targetMaterial;
                 })
                 .collect(Collectors.toList());
     }
 
-    private List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.View> targetMaterials) {
+    public List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.View> targetMaterials) {
         List<TargetMaterial> entities = targetMaterials.stream()
                 .map(targetMaterial -> modelMapper.map(targetMaterial, TargetMaterial.class))
                 .collect(Collectors.toList());
@@ -83,7 +91,8 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
         return savedEntities;
     }
 
-    public Mono<MaterialDTO.View> getMaterialById(Long materialId) {
-        return redisService.getMaterialById(materialId);
+    @Override
+    public String setRollUnit(MaterialDTO.View material) {
+        return rollUnitService.determineRollUnit(material.getThickness());
     }
 }
