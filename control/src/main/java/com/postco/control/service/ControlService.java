@@ -2,12 +2,12 @@ package com.postco.control.service;
 
 import com.postco.control.domain.*;
 import com.postco.control.domain.repository.*;
-import com.postco.control.presentation.ControlController;
 import com.postco.control.presentation.dto.response.Fc001aDTO;
 import com.postco.control.presentation.dto.response.Fc002DTO;
 import com.postco.control.presentation.dto.response.MaterialDTO;
 import com.postco.control.presentation.dto.response.TargetMaterialDTO;
 import com.postco.core.utils.mapper.MapperUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ControlService implements TargetMaterialService {
 
     private final ExtractionCriteriaRepository extractionCriteriaRepository;
@@ -62,7 +63,7 @@ public class ControlService implements TargetMaterialService {
      */
     public List<MaterialDTO> getFilteredExtractionMaterials(String curProcCode) {
         List<MaterialDTO> materials = findJoinTables();   // 임의 데이터 호출
-        System.out.println("==== Dataset(input): " + materials);
+        log.debug("==== Dataset(input): " + materials);
 
 
         //  추출 기준
@@ -70,13 +71,12 @@ public class ControlService implements TargetMaterialService {
 
         if(curProcCode.isEmpty()){
             extraction = extractionCriteriaRepository.findByProcessCode("1PCM");
-            System.out.println("[info] 공정이 선택되지 않았습니다. ");
+            log.info("공정이 선택되지 않았습니다. ");
         } else {
             extraction = extractionCriteriaRepository.findByProcessCode(curProcCode);
-            System.out.println("[info] " + curProcCode + " 공정이 선택되었습니다. ");
+            log.info(curProcCode + " 공정이 선택되었습니다. ");
         }
-
-        System.out.println("==== Extraction: " + extraction);
+        log.debug("==== Extraction: " + extraction);
 
 
         if (extraction.isPresent()) {
@@ -95,7 +95,7 @@ public class ControlService implements TargetMaterialService {
                 String columnsValue = criteria.getColumnValue();
 
                 // debug
-                System.out.println("Column Name: " + columnsName + ", Column Value: " + columnsValue);
+                log.debug("Column Name: " + columnsName + ", Column Value: " + columnsValue);
 
                 switch (columnsName) {
                     case "factory_code":
@@ -116,13 +116,13 @@ public class ControlService implements TargetMaterialService {
             }
 
             List<MaterialDTO> filteredMaterials = filterMaterials(materials, fCode, status, processCode, currProcessCode);
-            System.out.println("[info] 추출 기준 필터링이 완료되었습니다.");
-            System.out.println("Filtered Materials: " + filteredMaterials);
+            log.info("추출 기준 필터링이 완료되었습니다.");
+            log.debug("Filtered Materials: " + filteredMaterials);
 
             return filteredMaterials;
         }
 
-        System.out.println("[info] 추출 기준이 존재하지 않습니다.");
+        log.info("추출 기준이 존재하지 않습니다.");
         return findMaterial();  // 전체 목록 반환
     }
 
@@ -226,7 +226,7 @@ public class ControlService implements TargetMaterialService {
 
                 }).collect(Collectors.toList());
         List<TargetMaterialDTO.Create> targetMaterialList = MapperUtils.mapList(materialsList, TargetMaterialDTO.Create.class);
-        System.out.println("[info] 에러 기준 필터링이 완료되었습니다. ");
+        log.info("에러 기준 필터링이 완료되었습니다. ");
         return targetMaterialList;
     }
 
@@ -262,7 +262,7 @@ public class ControlService implements TargetMaterialService {
         // To do: 작업대상대 ID 부여하기
 
 
-        System.out.println("[info] 작업대상재: " + targetMaterials.toString());
+        log.debug("작업대상재: " + targetMaterials.toString());
         targetMaterialRepository.saveAll(targetMaterials);
 
         return materials;
@@ -274,7 +274,7 @@ public class ControlService implements TargetMaterialService {
      * @return 작업 대상재 목록
      */
     public List<Fc001aDTO> getNormalMaterials(String curProcCode) {
-        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
+        log.info(curProcCode + " 공정을 조회합니다. ");
         List<TargetMaterial> targetMaterials = targetMaterialRepository.findByIsErrorAndCriteria("N", curProcCode);  // To do: 작업 대상재 추출 시 공정 기준을 추가
         return MapperUtils.mapList(targetMaterials, Fc001aDTO.class);
     }
@@ -296,7 +296,7 @@ public class ControlService implements TargetMaterialService {
                 new TargetMaterialDTO.View(1, "CM692259", 2, null, "C", "1CAL", "C", "D", 432.0, 29.0, 677.0, 1.6, 91197.22, 0.008503, 775.45, "1PCM", "1CAL1EGL101", "1PCM", "1EGL", "731333", "1CALA", "HPKL", null)
         );
 
-        System.out.println("Dataset: " + materials);
+        log.debug("Dataset: " + materials);
 
 
         // 품종(coilTypeCode) 별 차공정(nextProc) 카운트하기
@@ -305,7 +305,7 @@ public class ControlService implements TargetMaterialService {
         for (TargetMaterialDTO.View view : materials) {
             String coilTypeCode = view.getCoilTypeCode();
             String nextProc = view.getNextProc();
-            //System.out.println("[debug] " + coilTypeCode + " " + nextProc);
+            //log.debug(coilTypeCode + " " + nextProc);
 
             // 초기화 | 가져오기
             TargetMaterialDTO.Table table = resultMap.getOrDefault(coilTypeCode, new TargetMaterialDTO.Table(coilTypeCode, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L));
@@ -335,8 +335,8 @@ public class ControlService implements TargetMaterialService {
             resultMap.put(coilTypeCode, table); // save Result HashMap
         }
 
-        // System.out.println("result1 [Map]: " + resultMap);
-        System.out.println("result2 [List]: " + new ArrayList<>(resultMap.values()));
+        // log.debug("result1 [Map]: " + resultMap);
+       log.debug("result2 [List]: " + new ArrayList<>(resultMap.values()));
 
         return new ArrayList<>(resultMap.values());
     }
@@ -349,7 +349,7 @@ public class ControlService implements TargetMaterialService {
      * @return 에러재 목록
      */
     public List<Fc002DTO> getErrorMaterials(String curProcCode) {
-        System.out.println("[info] " + curProcCode + " 공정을 조회합니다. ");
+        log.info(curProcCode + " 공정을 조회합니다. ");
         List<TargetMaterial> errorMaterials = targetMaterialRepository.findByIsErrorAndCriteria("Y", curProcCode);
         return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
     }
