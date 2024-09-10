@@ -6,10 +6,7 @@ spring:
 feature-flags:
   kafka:
     enabled: false  # 카프카 비활성화
----
-spring:
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
 ---
 spring:
   profiles:

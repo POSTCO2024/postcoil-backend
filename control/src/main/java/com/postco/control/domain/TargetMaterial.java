@@ -15,7 +15,7 @@ import java.io.Serializable;
 @ToString
 public class TargetMaterial implements com.postco.core.entity.Entity, Serializable {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "target_material_id")
     private Long id;
 
@@ -59,7 +59,7 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     private String coilTypeCode;
 
     @Column(name = "is_error", nullable = false)
-    private String isError;
+    private String isError = "N";
 
     @Column(name = "is_error_passed")
     private String isErrorPassed;    // 수동 에러패스 여부 (데이터 분석을 위한 컬럼)

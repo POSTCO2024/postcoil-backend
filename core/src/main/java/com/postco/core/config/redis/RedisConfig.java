@@ -44,9 +44,7 @@ public class RedisConfig {
     @Bean
     public ReactiveRedisConnectionFactory reactiveRedisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
-        LettuceConnectionFactory factory = new LettuceConnectionFactory(config);
-        factory.setShareNativeConnection(false);
-        return factory;
+        return new LettuceConnectionFactory(config);
     }
 
 

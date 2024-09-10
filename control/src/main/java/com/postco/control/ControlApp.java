@@ -23,6 +23,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @SpringBootApplication
 @OpenAPIDefinition(info = @Info(title = "Control API", version = "1.0", description = "Control Service API"))
@@ -47,19 +48,23 @@ public class ControlApp {
     @Bean
     public ApplicationRunner targetMaterialProcessor(TargetMaterialServiceImpl targetMaterialService) {
         return args -> {
-            log.info("Starting to process target materials...");
+            log.info("[작업대상재 Start] 작업대상재 추출 프로세스를 시작합니다. 진행중 ...");
 
-            String processCode = "1CAL"; // 예시 프로세스 코드, 실제 사용할 코드로 변경해야 합니다.
+            List<String> processCodes = List.of("1PCM", "2PCM", "1CAL", "2CAL", "1EGL", "2EGL", "1CGL");
 
-            Mono<List<TargetMaterialDTO.View>> resultMono = targetMaterialService.processTargetMaterials(processCode);
+            Mono<List<TargetMaterialDTO.View>> resultMono = Mono.just(processCodes)
+                    .flatMapIterable(codes -> codes)
+                    .flatMap(targetMaterialService::processTargetMaterials)
+                    .collectList()
+                    .map(lists -> lists.stream().flatMap(List::stream).collect(Collectors.toList()));
 
             resultMono.subscribe(
                     targetMaterials -> {
-                        log.info("Processed {} target materials", targetMaterials.size());
-                        targetMaterials.forEach(material -> log.info("Processed Target Material: {}", material));
+                        log.info("[작업 성공] 모든 공정에서 {}개의 작업 대상 재료가 처리되었습니다", targetMaterials.size());
+                        targetMaterials.forEach(material -> log.info("처리된 작업 대상 재료: {}", material));
                     },
-                    error -> log.error("Error processing target materials", error),
-                    () -> log.info("Finished processing target materials")
+                    error -> log.error("[작업 오류] 작업 대상 재료 처리 중 오류 발생", error),
+                    () -> log.info("[작업대상재 Finish] 작업 대상재 프로세스 종료")
             );
         };
     }
