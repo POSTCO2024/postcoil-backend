@@ -103,7 +103,11 @@ public class ControlController {
         return error_material_ids;  // return 수정
     }
 
-
+    /**
+     * 기준 관리
+     *
+     * @return
+     */
     @GetMapping("/management/extraction/{processcode}")
     public CriteriaDTO getExtractionStandard(@PathVariable String processcode) {
         return criteriaService.findExtractionCriteriaByProcessCode(processcode);

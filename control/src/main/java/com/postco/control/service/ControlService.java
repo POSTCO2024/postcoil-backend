@@ -354,6 +354,20 @@ public class ControlService implements TargetMaterialService {
         return MapperUtils.mapList(errorMaterials, Fc002DTO.class);
     }
 
+    /**
+     * 에러 패스
+     * @param errorMaterialIds
+     */
+    public void errorPass(List<Long> errorMaterialIds) {
+        targetMaterialRepository.updateisError(errorMaterialIds);
+    }
+
+
+    /**
+     * 기준 관리
+     * @param extractionStandardDTO
+     * @param processCode
+     */
     @Transactional
     public void updateExtractStandard(ExtractionStandardDTO extractionStandardDTO, String processCode) {
         ExtractionCriteriaMapper mapper = extractionCriteriaRepository.findByProcessCode(processCode)
@@ -381,11 +395,4 @@ public class ControlService implements TargetMaterialService {
         }
     }
 
-    /**
-     * 에러 패스
-     * @param errorMaterialIds
-     */
-    public void errorPass(List<Long> errorMaterialIds) {
-        targetMaterialRepository.updateisError(errorMaterialIds);
-    }
 }
