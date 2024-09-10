@@ -15,10 +15,10 @@ public class ManagementService {
     private final PriorityService priorityService;
     private final ConstraintInsertionService constraintInsertionService;
 
-    public ManagementDTO findManagementDataByProcessCodeAndMaterialUnitCode(String processCode, String materialUnitCode) {
+    public ManagementDTO findManagementDataByProcessCodeAndRollUnit(String processCode, String rollUnit) {
 
-        List<PriorityDTO> filteredPriority = priorityService.findAllByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode);
-        List<ConstraintInsertionDTO> filteredConstraintInsertion = constraintInsertionService.findAllByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode);
+        List<PriorityDTO> filteredPriority = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
+        List<ConstraintInsertionDTO> filteredConstraintInsertion = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
 
         return ManagementDTO.builder()
                 .priorities(filteredPriority)

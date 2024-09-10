@@ -2,22 +2,23 @@ package com.postco.schedule.presentation;
 
 import com.postco.schedule.presentation.dto.ManagementDTO;
 import com.postco.schedule.service.ManagementService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/management/schedule")
+@RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4000", allowCredentials = "true") // test용
 public class ManagementController {
 
-    @Autowired
-    private ManagementService managementService;
+    private final ManagementService managementService;
 
-    @GetMapping("/{processCode}/{materialUnitCode}")
+    @GetMapping("/{processCode}/{rollUnit}")
     public ManagementDTO getManagementDataByProcessAndUnit(
             @PathVariable String processCode,
-            @PathVariable String materialUnitCode) {
+            @PathVariable String rollUnit) {
 
-        return managementService.findManagementDataByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode);
+        return managementService.findManagementDataByProcessCodeAndRollUnit(processCode, rollUnit);
     }
 }

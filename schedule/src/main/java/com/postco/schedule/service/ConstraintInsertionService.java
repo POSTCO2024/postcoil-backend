@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class ConstraintInsertionService {
     private final ConstraintInsertionRepository constraintInsertionRepository;
 
-    public List<ConstraintInsertionDTO> findAllByProcessCodeAndMaterialUnitCode(String processCode, String materialUnitCode) {
-    return MapperUtils.mapList(constraintInsertionRepository.findByProcessCodeAndMaterialUnitCode(processCode, materialUnitCode), ConstraintInsertionDTO.class);
+    public List<ConstraintInsertionDTO> findAllByProcessCodeAndRollUnit(String processCode, String rollUnit) {
+    return MapperUtils.mapList(constraintInsertionRepository.findByProcessCodeAndRollUnit(processCode, rollUnit), ConstraintInsertionDTO.class);
     }
 }
