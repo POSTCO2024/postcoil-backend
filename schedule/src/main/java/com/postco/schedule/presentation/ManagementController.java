@@ -1,9 +1,11 @@
 package com.postco.schedule.presentation;
 
+import com.postco.core.dto.ApiResponseDTO;
 import com.postco.schedule.presentation.dto.ManagementDTO;
 import com.postco.schedule.service.ManagementService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,10 +17,18 @@ public class ManagementController {
     private final ManagementService managementService;
 
     @GetMapping("/{processCode}/{rollUnit}")
-    public ManagementDTO getManagementDataByProcessAndUnit(
+    public ResponseEntity<ApiResponseDTO<ManagementDTO>> getManagementDataByProcessAndUnit(
             @PathVariable String processCode,
             @PathVariable String rollUnit) {
 
-        return managementService.findManagementDataByProcessCodeAndRollUnit(processCode, rollUnit);
+        ManagementDTO results = managementService.findManagementDataByProcessCodeAndRollUnit(processCode, rollUnit);
+
+        ApiResponseDTO<ManagementDTO> response = ApiResponseDTO.<ManagementDTO>builder()
+                .status(HttpStatus.OK.value())
+                .resultMsg(HttpStatus.OK.getReasonPhrase())
+                .result(results)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 }
