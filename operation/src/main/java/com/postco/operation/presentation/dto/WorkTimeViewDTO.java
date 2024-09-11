@@ -1,4 +1,6 @@
 package com.postco.operation.presentation.dto;
 
-public class WorkTimeViewDTO {
+import com.postco.core.dto.DTO;
+
+public class WorkTimeViewDTO implements DTO {
 }

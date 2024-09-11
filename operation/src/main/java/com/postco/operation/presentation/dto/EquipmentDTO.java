@@ -1,5 +1,6 @@
 package com.postco.operation.presentation.dto;
 
+import com.postco.core.dto.DTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EquipmentDTO {
+public class EquipmentDTO implements DTO {
     private Long id;
     private String eqCode;
     private String process;
