@@ -170,17 +170,17 @@ public class SchedulingService {
     private List<ScheduleMaterialsDTO.View> applyPriorities(List<ScheduleMaterialsDTO.View> materials,
                                                             List<PriorityDTO> priorities) {
 
-        List<ScheduleMaterialsDTO.View> result = new ArrayList<>();
-        List<ScheduleMaterialsDTO.View> tmpList1 = new ArrayList<>();
-        List<List<ScheduleMaterialsDTO.View>> tmpList2 = new ArrayList<>();
+        List<ScheduleMaterialsDTO.View> prioritizedMaterials = new ArrayList<>();
+        List<ScheduleMaterialsDTO.View> sortedMaterials = new ArrayList<>();
+        List<List<ScheduleMaterialsDTO.View>> groupedMaterials = new ArrayList<>();
         for (PriorityDTO priority : priorities) {
             // 구현되면 삭제하기!
             if(priority.getId() == 5) {
-                result = tmpList2.stream()
+                prioritizedMaterials = groupedMaterials.stream()
                         .flatMap(List::stream)
                         .collect(Collectors.toList());
-                printCurrentState(result, "After applying priority: " + priority.getPriorityOrder());
-                return result;
+                printCurrentState(prioritizedMaterials, "After applying priority: " + priority.getPriorityOrder());
+                return prioritizedMaterials;
             }
 
             PriorityApplyMethod method = PriorityApplyMethod.valueOf(priority.getApplyMethod());
@@ -195,22 +195,22 @@ public class SchedulingService {
 
             switch (method) {
                 case ASC:
-                    tmpList2 = sortEachGroupByThicknessAsc(tmpList2);
+                    groupedMaterials = sortEachGroupByThicknessAsc(groupedMaterials);
                     break;
 
                 case DESC:
-                    tmpList1 = sortedWidthDesc(materials);
+                    sortedMaterials = sortedWidthDesc(materials);
                     break;
 
                 case GROUPING:
-                    tmpList2 = groupByWidth(tmpList1);
+                    groupedMaterials = groupByWidth(sortedMaterials);
                     break;
 
                 case CONSTRAINT:
                     break;
 
                 case ETC:
-                    tmpList2 = applySineCurveToGroups(tmpList2);
+                    groupedMaterials = applySineCurveToGroups(groupedMaterials);
                     break;
 
                 default:
@@ -219,7 +219,7 @@ public class SchedulingService {
 
         }
 
-        return result;
+        return prioritizedMaterials;
     }
 
     private List<ScheduleMaterialsDTO.View> groupByAndApplyNextPriority(List<ScheduleMaterialsDTO.View> materials, Method getterMethod, List<PriorityDTO> remainingPriorities) {
