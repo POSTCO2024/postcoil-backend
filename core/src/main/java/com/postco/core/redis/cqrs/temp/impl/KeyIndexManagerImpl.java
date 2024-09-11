@@ -1,6 +1,6 @@
 package com.postco.core.redis.cqrs.temp.impl;
 
-import com.postco.core.redis.cqrs.temp.KeyIndexManager;
+import com.postco.core.redis.cqrs.KeyIndexManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import reactor.core.publisher.Flux;

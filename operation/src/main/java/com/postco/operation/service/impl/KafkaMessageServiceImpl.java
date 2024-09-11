@@ -64,4 +64,9 @@ public class KafkaMessageServiceImpl implements KafkaMessageService {
         // Kafka 전송
         orderDTO.forEach(orderProducer::sendOrders);
     }
+
+    @Override
+    public void sendWorkTimeView() {
+
+    }
 }

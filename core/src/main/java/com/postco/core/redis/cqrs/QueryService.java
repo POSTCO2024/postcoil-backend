@@ -1,4 +1,4 @@
-package com.postco.cacheservice.service;
+package com.postco.core.redis.cqrs;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

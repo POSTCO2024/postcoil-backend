@@ -1,6 +1,6 @@
 package com.postco.control.presentation.dto.response;
 
-import com.postco.control.domain.StatusEnum;
+import com.postco.control.domain.MaterialStatus;
 import com.postco.core.dto.DTO;
 import lombok.*;
 
@@ -17,7 +17,7 @@ public class Fc001aDTO implements DTO {
 
     private String type;
     private String op_code;
-    private StatusEnum status;
+    private MaterialStatus status;
     private String cur_proc_code;
     private String progress;
     private double thickness;

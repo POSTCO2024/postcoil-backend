@@ -1,4 +1,4 @@
-package com.postco.cacheservice.service;
+package com.postco.core.redis.cqrs;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -40,4 +40,6 @@ public class MaterialDTO {
         private double goalWidth;
         private String planProcess;
     }
+
+
 }
