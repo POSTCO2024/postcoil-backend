@@ -244,3 +244,4 @@ public class ScheduleService {
         // Convert to DTO
         return MapperUtils.mapList(results, ScheduleResultDTO.Work.class);
     }
+}
