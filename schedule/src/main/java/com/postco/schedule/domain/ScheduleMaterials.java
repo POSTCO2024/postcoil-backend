@@ -15,6 +15,26 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ScheduleMaterials implements com.postco.core.entity.Entity, Serializable {
+//    @Id
+//    @GeneratedValue
+//    private Long id;
+//    private Long targetId;
+//    private Long scheduleId;
+//    private String isScheduled;  // 미편성 여부??
+//    private String rollUnitName;
+//    private double width; or private double goalWidth; // 그래프 그리려면 가지고 있어야할듯
+//    private double thickness;
+//    private double temperature;
+//    private String coilTypeCode;
+//    @ElementCollection(fetch = FetchType.EAGER)
+//    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "material_id"))
+//    @Column(name = "sequence", nullable = true)
+//    @OrderColumn(name = "sequence_order") // Optional: 사용 순서 보존
+//    private List<Integer> sequence;        // 순서
+//    private String isRejected;   // 리젝 여부
+//    private Long expectedDuration;   // 예상 작업 시간
+
+
     @Id
     @GeneratedValue
     @Column(name = "material_id")
@@ -28,11 +48,11 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
 
     private String type;
 
-    @Column(name = "cur_proc")
-    private String curProc;
+    @Column(name = "curr_proc")
+    private String currProc;
 
-    @Column(name = "f_code")
-    private String fCode;
+    @Column(name = "factory_code")
+    private String factoryCode;
 
     @Column(name = "op_code")
     private String opCode;
@@ -90,8 +110,8 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "temperature", nullable = true)
     private double temperature;
 
-    @Column(name = "roll_unit")
-    private String rollUnit;
+    @Column(name = "roll_unit_name")
+    private String rollUnitName;
 
     // 추가한 필드2 - 111111
     @Column(name = "schedule_id")
@@ -100,8 +120,8 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "schedule_no")
     private String scheduleNo;
 
-    @Column(name = "work_time", nullable = true)
-    private Long workTime;
+    @Column(name = "expected_item_duration")
+    private Long expectedItemDuration;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "material_id"))

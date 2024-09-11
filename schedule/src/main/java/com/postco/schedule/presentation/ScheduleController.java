@@ -24,10 +24,10 @@ public class ScheduleController {
 
     // GET : fs001 Request
     @GetMapping("/plan/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.Target>>> findAllMaterials(@PathVariable String processCode){
-        List<ScheduleMaterialsDTO.Target> results = scheduleService.findMaterialsByProcessCode(processCode);
+    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> findAllMaterials(@PathVariable String processCode){
+        List<ScheduleMaterialsDTO.View> results = scheduleService.findMaterialsByProcessCode(processCode);
 
-        ApiResponseDTO<List<ScheduleMaterialsDTO.Target>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.Target>>builder()
+        ApiResponseDTO<List<ScheduleMaterialsDTO.View>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.View>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
@@ -56,7 +56,7 @@ public class ScheduleController {
     @GetMapping("/pending/{processCode}")
     public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Info>>> getSchedulePendingId(@PathVariable String processCode) {
         // processCode가 오면, 편성되었던 롤단위(스케줄id)만 보내기
-        List<ScheduleResultDTO.Info> results = scheduleService.findSchedulePendingsByProcessCode(processCode);
+        List<ScheduleResultDTO.Info> results = scheduleService.findSchedulePlanByProcessCode(processCode);
 
         ApiResponseDTO<List<ScheduleResultDTO.Info>> response = ApiResponseDTO.<List<ScheduleResultDTO.Info>>builder()
                 .status(HttpStatus.OK.value())
@@ -69,8 +69,8 @@ public class ScheduleController {
 
     // GET : fs002 Request2
     @GetMapping("/pending/schedule")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> getSchedulePendingMaterials(@RequestParam("no") String scheduleNo) {
-        List<ScheduleMaterialsDTO.View> results = scheduleService.findMaterialsByScheduleNo(scheduleNo);
+    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> getSchedulePendingMaterials(@RequestParam("id") Long scheduleId) {
+        List<ScheduleMaterialsDTO.View> results = scheduleService.findMaterialsByScheduleId(scheduleId);
 
         ApiResponseDTO<List<ScheduleMaterialsDTO.View>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.View>>builder()
                 .status(HttpStatus.OK.value())
@@ -83,8 +83,8 @@ public class ScheduleController {
 
     // POST : fs002 Request
     @PostMapping("/pending/schedule")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> confirmSchedule(@RequestParam("no") String scheduleNo, @RequestBody List<ScheduleMaterialsDTO.View> materials) {
-        List<ScheduleMaterialsDTO.View> results = scheduleService.confirmSchedule(scheduleNo, materials);
+    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> confirmSchedule(@RequestParam("id") Long scheduleId, @RequestBody List<ScheduleMaterialsDTO.View> materials) {
+        List<ScheduleMaterialsDTO.View> results = scheduleService.confirmSchedule(scheduleId, materials);
 
         ApiResponseDTO<List<ScheduleMaterialsDTO.View>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.View>>builder()
                 .status(HttpStatus.CREATED.value()) // 변경: CREATED 사용

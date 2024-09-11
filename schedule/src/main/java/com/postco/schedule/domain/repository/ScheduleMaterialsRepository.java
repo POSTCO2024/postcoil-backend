@@ -9,7 +9,8 @@ import java.util.List;
 @Repository
 public interface ScheduleMaterialsRepository extends JpaRepository<ScheduleMaterials, Long> {
     List<ScheduleMaterials> findAllById(Iterable<Long> ids);
-    List<ScheduleMaterials> findAllByCurProc(String curProc);
+    List<ScheduleMaterials> findAllByCurrProc(String currProc);
     List<ScheduleMaterials> findAllByScheduleId(Long scheduleId);
     List<ScheduleMaterials> findAllByScheduleNo(String scheduleNo);
+    List<ScheduleMaterials> findByIdIn(List<Long> ids);
 }
