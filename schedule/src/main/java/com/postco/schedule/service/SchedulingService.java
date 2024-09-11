@@ -2,6 +2,7 @@ package com.postco.schedule.service;
 
 import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.schedule.domain.PriorityApplyMethod;
+import com.postco.schedule.domain.ScheduleMaterials;
 import com.postco.schedule.domain.repository.ScheduleMaterialsRepository;
 import com.postco.schedule.presentation.dto.PriorityDTO;
 import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,13 +25,16 @@ public class SchedulingService {
     private final PriorityService priorityService;
     private final ConstraintInsertionService constraintInsertionService;
 
+    private final double STANDARD_WIDTH = 50;
+
     //* 스케줄링로직~! */
     public List<ScheduleMaterialsDTO.View> planSchedule(List<Long> materialIds, String processCode) {
         // TODO: Redis Cache-server에서 List<ScheduleMaterialsDTO.Target>로 materialIds에 해당하는 재료들 불러오기
         //  scheduleMaterialsRepository.findAllById(materialIds) -> (cache에서 가져 온) materials로 변경
+
+
         List<ScheduleMaterialsDTO.View> materials = MapperUtils.mapList(scheduleMaterialsRepository.findAllById(materialIds), ScheduleMaterialsDTO.View.class); // 나중에 삭제하기
         List<PriorityDTO> priorities = priorityService.findAllByProcessCode(processCode);
-        // TODO: Constraints 추가하기
 
         // 우선순위 적용
         List<ScheduleMaterialsDTO.View> sortedMaterials = applyPriorities(materials, priorities);
@@ -42,26 +47,142 @@ public class SchedulingService {
         return sortedMaterials;
     }
 
+    // 폭 기준 내림차순 함수
+    private List<ScheduleMaterialsDTO.View> sortedWidthDesc(List<ScheduleMaterialsDTO.View> coils){
+        List<ScheduleMaterialsDTO.View> result = new ArrayList<>();
+        result= coils.stream()
+                .sorted(Comparator.comparingDouble(ScheduleMaterialsDTO.View::getGoalWidth).reversed())
+                .collect(Collectors.toList());
 
-    private void printCurrentState(List<ScheduleMaterialsDTO.View> materials, String message) {
-        log.info(message);
-        for (ScheduleMaterialsDTO.View material : materials) {
-            log.info("ID: {}, Goal Width: {}, Thickness: {}, Temperature: {}, CoilTypeCode: {}",
-                    material.getId(), material.getGoalWidth(), material.getThickness(), material.getTemperature(), material.getCoilTypeCode());
 
-        }
+        return result;
     }
 
-    private List<ScheduleMaterialsDTO.View> applyPriorities(List<ScheduleMaterialsDTO.View> materials, List<PriorityDTO> priorities) {
-        List<ScheduleMaterialsDTO.View> sortedMaterials = new ArrayList<>(materials);
+    // 폭 기준 동일폭 기준에 맞춰 그룹핑
+    private List<List<ScheduleMaterialsDTO.View>> groupByWidth(List<ScheduleMaterialsDTO.View> sortedCoils){
+        List<List<ScheduleMaterialsDTO.View>> coilGroups = new ArrayList<>();
+        List<ScheduleMaterialsDTO.View> currentCoilGroup = new ArrayList<>();
 
+        // 첫번째 코일 기준 start
+        ScheduleMaterialsDTO.View firstCoil = sortedCoils.get(0);
+        currentCoilGroup.add(firstCoil);
+        double currentBaseWidth = firstCoil.getGoalWidth();
+
+        // 그룹핑 로직
+        for(int i = 1; i < sortedCoils.size(); i++){
+            ScheduleMaterialsDTO.View currentCoil = sortedCoils.get(i);
+            if (currentBaseWidth - currentCoil.getGoalWidth() <= STANDARD_WIDTH) {
+                currentCoilGroup.add(currentCoil);
+            } else {
+                coilGroups.add(new ArrayList<>(currentCoilGroup));
+                currentCoilGroup.clear();
+                currentCoilGroup.add(currentCoil);
+                currentBaseWidth = currentCoil.getGoalWidth();
+            }
+        }
+        coilGroups.add(currentCoilGroup);
+
+        for(List<ScheduleMaterialsDTO.View> value : coilGroups) {
+            // 각 그룹의 goalWidth 값을 추출하여 출력
+            String goalWidths = value.stream()
+                    .map(coil -> String.valueOf(coil.getGoalWidth()))  // 각 View 객체에서 goalWidth 추출
+                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+
+
+        }
+
+        return coilGroups;
+    }
+
+    // 폭 기준 동일폭 그룹들을 각각 두께 오름차순
+    private List<List<ScheduleMaterialsDTO.View>> sortEachGroupByThicknessAsc
+    (List<List<ScheduleMaterialsDTO.View>> groupCoils) {
+
+        List<List<ScheduleMaterialsDTO.View>> result = new ArrayList<>();
+
+        result = groupCoils.stream()
+                .map(group -> group.stream()
+                        .sorted(Comparator.comparingDouble(ScheduleMaterialsDTO.View::getThickness))
+                        .collect(Collectors.toList())
+                ).collect(Collectors.toList());
+        for(List<ScheduleMaterialsDTO.View> value : result) {
+            // 각 그룹의 goalWidth 값을 추출하여 출력
+            String goalWidths = value.stream()
+                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
+                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+
+
+        }
+
+
+        return result;
+    }
+
+    // 각 그룹들 sin 그래프로 배치
+    private List<List<ScheduleMaterialsDTO.View>> applySineCurveToGroups
+    (List<List<ScheduleMaterialsDTO.View>> groupCoils){
+
+        List<List<ScheduleMaterialsDTO.View>> optimizedGroups = new ArrayList<>();
+        List<Double> prevGroupLastThickness = new ArrayList<>();
+        prevGroupLastThickness.add(0.0); // 초기값 설정
+
+        for(List<ScheduleMaterialsDTO.View> group : groupCoils){
+            if (prevGroupLastThickness.get(0) != 0.0) {
+                group = group.stream()
+                        .sorted(Comparator.comparingDouble(coil -> Math.abs(coil.getThickness() - prevGroupLastThickness.get(0))))
+                        .collect(Collectors.toList());
+            }
+
+            // sin 곡선 값 생성
+            double[] sineWave = generatedSineWave(group.size());
+            List<Integer> sineIndices = new ArrayList<>();
+            for (int i = 0; i < sineWave.length; i++) {
+                sineIndices.add(i);
+            }
+
+            // sin 곡선에 따라 배치
+            sineIndices.sort(Comparator.comparing(i -> sineWave[i]));
+            List<ScheduleMaterialsDTO.View> optimizedGroup = new ArrayList<>();
+            for (int i = 0; i < group.size(); i++) {
+                optimizedGroup.add(group.get(sineIndices.get(i)));
+            }
+
+            // 마지막 코일 두께를 리스트로 업데이트
+            prevGroupLastThickness.set(0, optimizedGroup.get(optimizedGroup.size() - 1).getThickness());
+
+            optimizedGroups.add(optimizedGroup);
+        }
+
+        for(List<ScheduleMaterialsDTO.View> value : optimizedGroups) {
+            // 각 그룹의 goalWidth 값을 추출하여 출력
+            String goalWidths = value.stream()
+                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
+                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+
+        }
+
+
+        return optimizedGroups;
+    }
+
+
+
+    private List<ScheduleMaterialsDTO.View> applyPriorities(List<ScheduleMaterialsDTO.View> materials,
+                                                            List<PriorityDTO> priorities) {
+
+        List<ScheduleMaterialsDTO.View> result = new ArrayList<>();
+        List<ScheduleMaterialsDTO.View> tmpList1 = new ArrayList<>();
+        List<List<ScheduleMaterialsDTO.View>> tmpList2 = new ArrayList<>();
         for (PriorityDTO priority : priorities) {
             // 구현되면 삭제하기!
-            if(priority.getId() == 6){
-                printCurrentState(sortedMaterials, "After applying priority: " + priority.getPriorityOrder());
-
-                return sortedMaterials;
+            if(priority.getId() == 5) {
+                result = tmpList2.stream()
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList());
+                printCurrentState(result, "After applying priority: " + priority.getPriorityOrder());
+                return result;
             }
+
             PriorityApplyMethod method = PriorityApplyMethod.valueOf(priority.getApplyMethod());
             String target = priority.getTargetColumn();
             Method getterMethod;
@@ -74,41 +195,31 @@ public class SchedulingService {
 
             switch (method) {
                 case ASC:
-                    sortedMaterials.sort(Comparator.comparing(material -> invokeGetter(material, getterMethod)));
+                    tmpList2 = sortEachGroupByThicknessAsc(tmpList2);
                     break;
 
                 case DESC:
-                    sortedMaterials.sort(Comparator.comparing(material -> invokeGetter(material, getterMethod)).reversed());
+                    tmpList1 = sortedWidthDesc(materials);
                     break;
 
                 case GROUPING:
-                    // Handle potential out-of-bounds exceptions
-                    int startIndex = priorities.indexOf(priority) + 1;
-                    int endIndex = priorities.size();
-                    if (startIndex < endIndex) {
-                        List<PriorityDTO> remainingPriorities = priorities.subList(startIndex, endIndex);
-                        sortedMaterials = groupByAndApplyNextPriority(sortedMaterials, getterMethod, remainingPriorities);
-                    }
-                    printCurrentState(sortedMaterials, "After applying priority: " + priority.getPriorityOrder() + priority.getName());
-                    return sortedMaterials; // GROUPING의 경우, 그룹 내에서 다시 적용된 결과를 반환
+                    tmpList2 = groupByWidth(tmpList1);
+                    break;
 
                 case CONSTRAINT:
-                    // Implement custom logic for CONSTRAINT
                     break;
 
                 case ETC:
-
+                    tmpList2 = applySineCurveToGroups(tmpList2);
                     break;
 
                 default:
                     throw new IllegalArgumentException("Unknown PriorityApplyMethod: " + method);
             }
 
-            // Print the current state after applying the priority
-            printCurrentState(sortedMaterials, "After applying priority: " + priority.getPriorityOrder());
         }
 
-        return sortedMaterials;
+        return result;
     }
 
     private List<ScheduleMaterialsDTO.View> groupByAndApplyNextPriority(List<ScheduleMaterialsDTO.View> materials, Method getterMethod, List<PriorityDTO> remainingPriorities) {
@@ -134,6 +245,16 @@ public class SchedulingService {
         return result;
     }
 
+    private double[] generatedSineWave(int size) {
+        double[] sineWave = new double[size];
+        for(int i = 0; i < size; i++){
+            sineWave[i] = 0.5 * Math.sin((2*Math.PI * i)/size);
+        }
+        return sineWave;
+    }
+
+
+
     // Helper method to capitalize the first letter of the field name
     public String convertSnakeToPascal(String snakeCaseString) {
         // Check for null or empty input
@@ -154,7 +275,6 @@ public class SchedulingService {
         }
         return pascalCaseString.toString();
     }
-
     // 헬퍼 메서드: Getter 메서드 호출 (제네릭)
     @SuppressWarnings("unchecked")
     private <T> T invokeGetter(Object obj, Method method) {
@@ -164,7 +284,6 @@ public class SchedulingService {
             throw new RuntimeException("Failed to invoke getter method: " + method.getName(), e);
         }
     }
-
     // TODO : Cache-Server 에서 설비 가져오기!
     public List<ScheduleMaterialsDTO.View> insertMaterialsWithWorkTime(List<ScheduleMaterialsDTO.View> materials) {
 
@@ -177,10 +296,17 @@ public class SchedulingService {
 
         return materials;
     }
-
     // 작업 시간 계산 메서드
     // TODO: TH 설비로 계산하기
     private Long calculateWorkTime(double goalLength, double goalThickness, double goalWidth, double totalWeight) {
         return  (long) ((goalLength * goalThickness * goalWidth) / totalWeight);
+    }
+    private void printCurrentState(List<ScheduleMaterialsDTO.View> materials, String message) {
+        log.info(message);
+        for (ScheduleMaterialsDTO.View material : materials) {
+            log.info("ID: {}, Goal Width: {}, Thickness: {}, Temperature: {}, CoilTypeCode: {}",
+                    material.getId(), material.getGoalWidth(), material.getThickness(), material.getTemperature(), material.getCoilTypeCode());
+
+        }
     }
 }
