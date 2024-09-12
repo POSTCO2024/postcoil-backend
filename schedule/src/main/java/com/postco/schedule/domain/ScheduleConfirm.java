@@ -33,9 +33,6 @@ public class ScheduleConfirm {
 
     private LocalDate confirmDate;
 
-    @Transient
-    private List<ScheduleMaterialsDTO.Result> materials;
-
     // 스케줄 확정한 사람
     private String confirmManager;
 

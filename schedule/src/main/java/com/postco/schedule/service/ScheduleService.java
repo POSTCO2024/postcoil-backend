@@ -155,14 +155,9 @@ public class ScheduleService {
     @Transactional
     public List<ScheduleMaterialsDTO.View> confirmSchedule(Long scheduleId, List<ScheduleMaterialsDTO.View> materials){
 
-        // 전달받은 새로운 처리 순서 삽입
-        List<ScheduleMaterials> scheduleMaterials = MapperUtils.mapList(materials, ScheduleMaterials.class);
-
         // Step 1: 해당 id로 SchedulePlan 엔터티 찾기
         SchedulePlan schedulePlan = schedulePlanRepository.findById(scheduleId)
                 .orElseThrow(() -> new EntityNotFoundException("SchedulePlan not found with Id: " + scheduleId));
-
-        schedulePlan.setMaterials(materials);
 
         // Step 2: isConfirmed 필드를 "Y"로 업데이트
         schedulePlan.setIsConfirmed("Y");
@@ -172,21 +167,43 @@ public class ScheduleService {
         ScheduleConfirm scheduleConfirm = dataInsertService.createScheduleConfirm(schedulePlan);
         scheduleConfirmRepository.save(scheduleConfirm);
 
-        // TODO: redis cache-server에 schedulePlan의 scheduleId, ExpectedItemDuration 보내기
+        // Step 4: 기존 ScheduleMaterials 엔터티 가져오기 및 업데이트할 필드만 수정
+        List<Long> materialIds = materials.stream().map(ScheduleMaterialsDTO.View::getId).collect(Collectors.toList());
+        List<ScheduleMaterials> existingMaterials = scheduleMaterialsRepository.findAllById(materialIds);
 
-        scheduleMaterials.forEach(material -> material.setScheduleId(schedulePlan.getId()));
-        scheduleMaterialsRepository.saveAll(scheduleMaterials);
+        for (ScheduleMaterialsDTO.View materialDto : materials) {
+            existingMaterials.stream()
+                    .filter(existing -> existing.getId().equals(materialDto.getId()))
+                    .forEach(existing -> {
+                        existing.setSequence(materialDto.getSequence());  // sequence 업데이트
+                        existing.setScheduleId(schedulePlan.getId());     // scheduleId 업데이트
+                    });
+        }
+
+        scheduleMaterialsRepository.saveAll(existingMaterials);
+
+
+        // TODO (Yerim):
+        //        - redis cache-server 에
+        //           schedulePlan의 id, no, processCode, quantity, materialIds, expectedDuration 와
+        //           scheduleConfirm의 confirmDate, confirmManager 보내기
+        //        - redis cache-server 에서 재료(MapperUtils.mapList(existingMaterials, ~~DTO.class)에 해당하는 sequence 삽입 및 scheduleId 컬럼을 schedulePlan의 id값 삽입
+
 
         return materials;
     }
 
-    // GET : fs003 Request
+    // TODO: !!! 여기서부터 다시 DTO 설계~!!
+
+    // GET : fs003 Request - 드롭박스를 위한 스케줄이름 데이터
     public List<ScheduleResultDTO.Info> findScheduleResultsByProcessCode(String processCode){
+        // TODO (Yerim, Ash): processCode랑도 맞지만 현재 작업중인 것부터 예정인 것만 보내야함!
+        //       Redis에서 workInstruction을 보고 요청. 거기의 startTime이 없는 것이나 현재 시간 이후의 값인 것들과,
+        //       현재시간보다 이전의 startTime을 가지고 있으면 endTime이 없거나 endTime이 현재 시간 이후 값인 경우 가져오게 하기
+        //
         return MapperUtils.mapList(scheduleConfirmRepository.findByProcessCode(processCode), ScheduleResultDTO.Info.class);
     }
 
-
-    // TODO: !!! 여기서부터 다시 DTO 설계~!!
 
     // GET : fs003 Request2, fs004 Request2
     public List<ScheduleMaterialsDTO.Result> findScheduledMaterialsByScheduleId(Long scheduleId){
