@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.redis.cqrs.AbstractRedisQueryService;
 import com.postco.core.dto.MaterialDTO;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.stereotype.Service;
 
-public class MaterialRedisQueryService extends AbstractRedisQueryService<MaterialDTO.View> {
-    public MaterialRedisQueryService(ReactiveRedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
+@Service
+public class MaterialQueryService extends AbstractRedisQueryService<MaterialDTO.View> {
+    public MaterialQueryService(ReactiveRedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
         super(redisTemplate, objectMapper);
     }
 

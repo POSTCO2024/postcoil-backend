@@ -3,40 +3,40 @@ package com.postco.cacheservice.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.cacheservice.service.impl.MaterialCommandService;
+import com.postco.cacheservice.service.impl.MaterialQueryService;
 import com.postco.core.dto.MaterialDTO;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class MaterialConsumer extends GenericKafkaConsumer<MaterialDTO.View> {
-    private final MaterialCommandService materialCommandService; // Redis 저장 서비스
-    private final ObjectMapper objectMapper;
-
     @Value("${feature-flags.kafka.enabled}")
     private boolean kafkaEnabled;
 
+    @Value("${spring.kafka.consumer.group-id}")
+    private String groupId;
+
+    public MaterialConsumer(ObjectMapper objectMapper,
+                              MaterialQueryService queryService,
+                              MaterialCommandService commandService) {
+        super(objectMapper, queryService, commandService);
+    }
+
     @Override
-    public void consumeMessage(String message) {
+    protected MaterialDTO.View deserializeMessage(String message) {
         try {
-            MaterialDTO.View material = objectMapper.readValue(message, MaterialDTO.View.class);
-            log.info("Received materials data from Kafka: {}", material);
-
-            saveData(material).subscribe(success -> {
-                if (success) {
-                    log.info("Material successfully saved in Redis: {}", material.getId());
-                } else {
-                    log.warn("Failed to save material in Redis: {}", material.getId());
-                }
-            });
-
+            return objectMapper.readValue(message, MaterialDTO.View.class);
         } catch (JsonProcessingException e) {
-            log.error("Failed to deserialize Kafka message", e);
+            log.error("[Kafka 실패] 재료 메시지 역직렬화 중 오류 발생: {}", message, e);
+            return null;
         }
+    }
+
+    @Override
+    protected String getDataId(MaterialDTO.View data) {
+        return String.valueOf(data.getId());
     }
 
     @Override
@@ -50,8 +50,8 @@ public class MaterialConsumer extends GenericKafkaConsumer<MaterialDTO.View> {
     }
 
     @Override
-    protected Mono<Boolean> saveData(MaterialDTO.View material) {
-        return materialCommandService.saveData(material);
+    public String getGroupId() {
+        return groupId;
     }
 }
 

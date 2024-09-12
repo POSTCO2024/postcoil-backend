@@ -4,14 +4,18 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.redis.db.SelectRedisDatabase;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveHashOperations;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 public abstract class AbstractRedisCommandService<T> implements CommandService<T> {
     protected final ReactiveRedisTemplate<String, Object> redisTemplate;
@@ -33,16 +37,42 @@ public abstract class AbstractRedisCommandService<T> implements CommandService<T
 
         String id = getIdFromData(data);
         String key = getKeyPrefix() + id;
-        return hashOperations.putAll(key, dataMap).thenReturn(true);
+
+        return hashOperations.putAll(key, dataMap)
+                .then(addProcessedId(id))
+                .thenReturn(true);
     }
 
-    @SelectRedisDatabase(database = "#this.getRedisDatabase()")
+    @Override
+    public Mono<Boolean> addProcessedId(String id) {
+        String processedSetKey = getProcessedIdsKey();
+        return redisTemplate.opsForSet().add(processedSetKey, id)
+                .doOnSuccess(result -> log.info("[Redis 성공] 처리된 ID 저장: {}", id))
+                .doOnError(error -> log.error("[Redis 실패] 처리된 ID 저장 중 오류 발생: {}", id, error)).hasElement();
+
+    }
+
+    @Override
+    public Mono<Map<String, Boolean>> checkProcessedIdSet(List<String> idSet) {
+        String processedSetKey = getProcessedIdsKey();
+        return Flux.fromIterable(idSet)
+                .flatMap(id -> redisTemplate.opsForSet().isMember(processedSetKey, id)
+                        .map(isMember -> Map.entry(id, isMember != null && isMember))
+                )
+                .collectMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    protected String getProcessedIdsKey() {
+        return "processed_idSet:" + getKeyPrefix();
+    }
+
+
     @Override
     public Mono<Boolean> updateData(String id, T data) {
         return saveData(data);
     }
 
-    @SelectRedisDatabase(database = "#this.getRedisDatabase()")
+
     @Override
     public Mono<Boolean> deleteData(String id) {
         return redisTemplate.delete(getKeyPrefix() + id).map(result -> result > 0);
@@ -52,7 +82,7 @@ public abstract class AbstractRedisCommandService<T> implements CommandService<T
         try {
             Method getIdMethod = getEntityClass().getMethod("getId");
             Long id = (Long) getIdMethod.invoke(data);
-            return String.valueOf(id);  // Long 타입을 String으로 변환
+            return String.valueOf(id);
         } catch (Exception e) {
             throw new RuntimeException("Failed to get ID from data", e);
         }

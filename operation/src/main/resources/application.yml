@@ -13,7 +13,7 @@ spring:
     active: local
 
 server:
-  port: 8081
+  port: 9000
   max-http-header-size: 32KB
   servlet:
     context-path: / 

@@ -7,6 +7,8 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -18,7 +20,6 @@ public abstract class AbstractRedisQueryService<T> implements QueryService<T> {
     protected abstract Class<T> getEntityClass();
     public abstract int getRedisDatabase();
 
-    @SelectRedisDatabase(database = "#this.getRedisDatabase()")
     @Override
     public Mono<T> getData(String id) {
         String key = getKeyPrefix() + id;
@@ -27,7 +28,6 @@ public abstract class AbstractRedisQueryService<T> implements QueryService<T> {
                 .map(this::convertMapToEntity);
     }
 
-    @SelectRedisDatabase(database = "#this.getRedisDatabase()")
     @Override
     public Flux<T> getAllData() {
         return redisTemplate.keys(getKeyPrefix() + "*")
@@ -36,7 +36,22 @@ public abstract class AbstractRedisQueryService<T> implements QueryService<T> {
                         .map(this::convertMapToEntity));
     }
 
+    @Override
+    public Mono<Map<String, Boolean>> checkProcessedIdList(List<String> ids) {
+        String processedSetKey = getProcessedIdsKey();
+        return Flux.fromIterable(ids)
+                .flatMap(id -> redisTemplate.opsForSet().isMember(processedSetKey, id)
+                        .map(isMember -> Map.entry(id, isMember != null && isMember))
+                        .defaultIfEmpty(Map.entry(id, false))) // null일 경우 false 처리
+                .collectMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    protected String getProcessedIdsKey() {
+        return "processed_idSet:" + getKeyPrefix();
+    }
+
     private T convertMapToEntity(Map<String, String> map) {
         return objectMapper.convertValue(map, getEntityClass());
     }
+
 }
