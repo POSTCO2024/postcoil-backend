@@ -200,6 +200,16 @@ public class SchedulingService {
 
         }
 
+        for(List<ScheduleMaterialsDTO.View> value : optimizedGroups) {
+            // 각 그룹의 goalWidth 값을 추출하여 출력
+            String goalWidths = value.stream()
+                    .map(coil -> String.valueOf(coil.getGoalThickness()))  // 각 View 객체에서 goalWidth 추출
+                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+
+            log.info("The Group goalWidths: {}", goalWidths);
+            log.info("======================================");
+        }
+
 
         return optimizedGroups;
     }
