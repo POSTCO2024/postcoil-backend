@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -18,7 +18,7 @@ import java.util.List;
 @Builder
 public class ScheduleConfirm {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "schedule_id")
@@ -31,7 +31,7 @@ public class ScheduleConfirm {
     @Column(name = "process_code")
     private String processCode;
 
-    private LocalDateTime confirmDate;
+    private LocalDate confirmDate;
 
     @Transient
     private List<ScheduleMaterialsDTO.Result> materials;
