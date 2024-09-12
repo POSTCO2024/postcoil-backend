@@ -161,7 +161,7 @@ public class ScheduleService {
 
     public List<ScheduleResultDTO.Work> findSchedulesByDates(String processCode, String startDate, String endDate){
         // TODO: redis에서 먼저 값을 scheduleResultRepository에 save 하기
-        
+
         // Validate date format (assuming yyyyMMdd for the dates)
         if (startDate.length() != 6 || endDate.length() != 6) {
             throw new IllegalArgumentException("Dates must be in the format yyMMdd");
@@ -190,5 +190,4 @@ public class ScheduleService {
         // Convert to DTO
         return MapperUtils.mapList(results, ScheduleResultDTO.Work.class);
     }
-
 }
