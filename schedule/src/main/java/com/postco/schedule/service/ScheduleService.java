@@ -19,12 +19,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,16 +46,17 @@ public class ScheduleService {
 
     // GET : fs001 Request
     public List<ScheduleMaterialsDTO.View> findMaterialsByProcessCode(String processCode) {
-        // TODO: Redis에서 targetId 존재 && processCode == currProc(1CAL or 2CAL) 인 데이터를 가져오기
+        // TODO (Yerim): Redis에서 targetId 존재, scheduleId가 비존재 && processCode == currProc(1CAL or 2CAL) 인 데이터를 가져오기
         // List<CompositeMaterialDTO.Target> targets = redis로 받기
         // List<ScheduleMaterialsDTO.View> scheduleMaterials =  ScheduleMaterialsMapper.mapTargetToView(targets);
         // scheduleMaterials = dataInsertService.insertExpectedItemDuration(scheduleMaterials); // 작업 예상 시간 삽입
+        // TODO: repository에서 targetId를 보고 이미 있는 거면 추가 안하고 없는 것만 추가하기!
         // scheduleMaterialsRepository.save(MapperUtils.mapList(scheduleMaterials, ScheduleMaterials.class));
-        // return scheduleMaterials;
+        // ScheduleMaterial currentScheduledMaterials = scheduleMaterialsRepository.findByScheduleIdIsNullAndCurrProc(String processCode);
+        // return MapperUtils.mapList(currentScheduledMaterials, ScheduleMaterialsDTO.View.class);
 
-        // redis로 가져오면, 삭제하기!
+        // TODO: redis로 가져오면, 삭제하기!
         List<ScheduleMaterials> scheduleMaterials = scheduleMaterialsRepository.findAllByCurrProc(processCode);
-
         return MapperUtils.mapList(scheduleMaterials, ScheduleMaterialsDTO.View.class);
     }
 
@@ -64,45 +64,75 @@ public class ScheduleService {
     @Transactional
     public List<ScheduleMaterials> createScheduleWithMaterials(List<Long> materialIds, String processCode) {
         System.out.println("createScheduleWithMaterials 메서드 실행 시작");
-        try {
-            log.info("Starting createScheduleWithMaterials for processCode: {}", processCode);
-            // Step 1: 스케줄링 알고리즘
-            // TODO: 롤단위로 먼저 나눠서 스케줄링 알고리즘 돌리기
-            List<ScheduleMaterialsDTO.View> materials = schedulingService.planSchedule(materialIds, processCode);
+        List<ScheduleMaterials> allScheduledMaterials = new ArrayList<>();
 
-            log.info("Materials after scheduling: {}", materials);
+        // Step 1: materialIds에 해당하는 ScheduleMaterials 조회
+        List<ScheduleMaterials> materials = scheduleMaterialsRepository.findAllById(materialIds);
 
-            // Step 2: SchedulePlan 엔티티를 DB에 저장
-            SchedulePlan schedulePlan = dataInsertService.createSchedulePlan(materials, processCode);
+        // Step 2: rollUnitName별로 materialIds를 그룹화
+        Map<String, List<ScheduleMaterials>> materialsGroupedByRollUnitName = materials.stream()
+                .collect(Collectors.groupingBy(
+                        ScheduleMaterials::getRollUnitName,  // rollUnitName으로 그룹화
+                        Collectors.toList() // 각 그룹에 속하는 material의 id만 추출
+                ));
+
+        log.info("Materials grouped by rollUnitName: {}", materialsGroupedByRollUnitName);
+
+        for (Map.Entry<String, List<ScheduleMaterials>> entry : materialsGroupedByRollUnitName.entrySet()) {
+            String rollUnitName = entry.getKey();
+            List<ScheduleMaterials> groupedMaterials = entry.getValue();
+
+            log.info("Executing planSchedule for rollUnitName: {} with materialIds: {}", rollUnitName, groupedMaterials.stream().map(ScheduleMaterials::getId).collect(Collectors.toList()));
+
+            // rollUnitName별로 planSchedule 호출
+            List<ScheduleMaterialsDTO.View> scheduledMaterials = schedulingService.planSchedule(MapperUtils.mapList(groupedMaterials, ScheduleMaterialsDTO.View.class), processCode);
+
+            log.info("Materials after scheduling: {}", scheduledMaterials);
+
+            // Step 3: SchedulePlan 엔티티를 DB에 저장
+            SchedulePlan schedulePlan = dataInsertService.createSchedulePlan(scheduledMaterials, processCode);
             SchedulePlan savedSchedulePlan = schedulePlanRepository.save(schedulePlan);
-            log.info("Saved SchedulePlan: {}", savedSchedulePlan);
+            log.info("Saved SchedulePlan: {}", savedSchedulePlan.getMaterialIds());
 
-            materials.forEach(material -> {
+            scheduledMaterials.forEach(material -> {
                 material.setScheduleId(savedSchedulePlan.getId());
                 material.setScheduleNo(savedSchedulePlan.getNo());
             });
 
-            // Step 3: ScheduleMaterials에 저장 및 TODO: Redis에 scheduleId, ExpectedItemDuration 보내기
-            List<ScheduleMaterials> scheduledMaterials = MapperUtils.mapList(materials, ScheduleMaterials.class);
-            scheduleMaterialsRepository.saveAll(scheduledMaterials); // sequence update
+            // Step 4: ScheduleMaterials에 저장
+            List<ScheduleMaterials> scheduledMaterialsToEntity = MapperUtils.mapList(scheduledMaterials, ScheduleMaterials.class);
+
+            // 확인: 저장하기 전 로그 출력
+            scheduledMaterialsToEntity.forEach(material -> {
+                log.info("Saving material: {}", material);
+            });
+
+            // Step 5: Update
+            scheduleMaterialsRepository.saveAll(scheduledMaterialsToEntity); // sequence update
 
             log.info("Scheduled materials saved: {}", scheduledMaterials);
 
-            return scheduledMaterials;
-
-        } catch (Exception e) {
-            log.error("Error occurred in createScheduleWithMaterials: {}", e.getMessage(), e);
-            throw e;  // 트랜잭션 롤백을 위해 예외를 다시 던짐
+            // 각 그룹의 결과를 전체 결과 리스트에 추가
+            allScheduledMaterials.addAll(scheduledMaterialsToEntity);
         }
+        return allScheduledMaterials;
 
     }
 
     // GET : fs002 Request
     public List<ScheduleResultDTO.Info> findSchedulePlanByProcessCode(String processCode){
         return schedulePlanRepository.findByProcessCode(processCode).stream()
-                // TODO: 펀성날짜 하루 내로 조회하기
-                .filter(schedulePending -> "N".equals(schedulePending.getIsConfirmed()))
-                .map(schedulePending -> new ScheduleResultDTO.Info(schedulePending.getId(), schedulePending.getNo()))  // DTO로 매핑
+                .filter(schedulePlan -> "N".equals(schedulePlan.getIsConfirmed()))
+                .filter(schedulePlan -> {
+                            // planDate가 현재 날짜를 기준으로 하루 전 것부터만 보이게 구현
+                            LocalDate today = LocalDate.now();
+                            LocalDate oneDayAgo = today.minusDays(1); // 하루 전 날짜 계산
+                            LocalDate planDate = schedulePlan.getPlanDate();
+                            return planDate != null && (planDate.isAfter(oneDayAgo) || planDate.isEqual(oneDayAgo))
+                                    && (planDate.isBefore(today) || planDate.isEqual(today));
+                        }
+                )
+                .map(schedulePlan -> new ScheduleResultDTO.Info(schedulePlan.getId(), schedulePlan.getNo()))  // DTO로 매핑
                 .collect(Collectors.toList());
     }
 
@@ -142,7 +172,7 @@ public class ScheduleService {
         ScheduleConfirm scheduleConfirm = dataInsertService.createScheduleConfirm(schedulePlan);
         scheduleConfirmRepository.save(scheduleConfirm);
 
-        // TODO: redis cache-server에 schedulePlan의 scheduleId 삽입~
+        // TODO: redis cache-server에 schedulePlan의 scheduleId, ExpectedItemDuration 보내기
 
         scheduleMaterials.forEach(material -> material.setScheduleId(schedulePlan.getId()));
         scheduleMaterialsRepository.saveAll(scheduleMaterials);

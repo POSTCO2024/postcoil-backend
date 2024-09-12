@@ -13,4 +13,6 @@ public interface ScheduleMaterialsRepository extends JpaRepository<ScheduleMater
     List<ScheduleMaterials> findAllByScheduleId(Long scheduleId);
     List<ScheduleMaterials> findAllByScheduleNo(String scheduleNo);
     List<ScheduleMaterials> findByIdIn(List<Long> ids);
+    List<ScheduleMaterials> findByScheduleIdIsNullAndCurrProc(String processCode);
+
 }

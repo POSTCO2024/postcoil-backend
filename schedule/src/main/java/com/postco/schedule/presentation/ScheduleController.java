@@ -6,8 +6,6 @@ import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
 import com.postco.schedule.presentation.dto.ScheduleResultDTO;
 import com.postco.schedule.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,18 +41,17 @@ public class ScheduleController {
         List<ScheduleMaterials> results = scheduleService.createScheduleWithMaterials(materialIds, processCode);
 
         ApiResponseDTO<List<ScheduleMaterials>> response = ApiResponseDTO.<List<ScheduleMaterials>>builder()
-                .status(HttpStatus.CREATED.value())
-                .resultMsg(HttpStatus.CREATED.getReasonPhrase())
+                .status(HttpStatus.OK.value())
+                .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);  // 201 상태와 함께 응답 반환
+        return ResponseEntity.ok(response);
     }
-
 
     // GET : fs002 Request
     @GetMapping("/pending/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Info>>> getSchedulePendingId(@PathVariable String processCode) {
+    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Info>>> getSchedulePlanId(@PathVariable String processCode) {
         // processCode가 오면, 편성되었던 롤단위(스케줄id)만 보내기
         List<ScheduleResultDTO.Info> results = scheduleService.findSchedulePlanByProcessCode(processCode);
 
@@ -69,7 +66,7 @@ public class ScheduleController {
 
     // GET : fs002 Request2
     @GetMapping("/pending/schedule")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> getSchedulePendingMaterials(@RequestParam("id") Long scheduleId) {
+    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> getSchedulePlanMaterials(@RequestParam("id") Long scheduleId) {
         List<ScheduleMaterialsDTO.View> results = scheduleService.findMaterialsByScheduleId(scheduleId);
 
         ApiResponseDTO<List<ScheduleMaterialsDTO.View>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.View>>builder()
@@ -87,17 +84,17 @@ public class ScheduleController {
         List<ScheduleMaterialsDTO.View> results = scheduleService.confirmSchedule(scheduleId, materials);
 
         ApiResponseDTO<List<ScheduleMaterialsDTO.View>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.View>>builder()
-                .status(HttpStatus.CREATED.value()) // 변경: CREATED 사용
-                .resultMsg(HttpStatus.CREATED.getReasonPhrase())
+                .status(HttpStatus.OK.value())
+                .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
                 .build();
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(response); // CREATED 반환
+        return ResponseEntity.ok(response);
     }
 
     // GET : fs003 Request
     @GetMapping("/result/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Info>>> getScheduleResultId(@PathVariable String processCode) {
+    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Info>>> getScheduleResultsId(@PathVariable String processCode) {
         List<ScheduleResultDTO.Info> results = scheduleService.findScheduleResultsByProcessCode(processCode);
 
         ApiResponseDTO<List<ScheduleResultDTO.Info>> response = ApiResponseDTO.<List<ScheduleResultDTO.Info>>builder()
@@ -127,7 +124,7 @@ public class ScheduleController {
 
     // GET : fs004 Request
     @GetMapping("/timeline/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Work>>> getScheduleResultIdByDates(@PathVariable String processCode, @RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) {
+    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Work>>> getScheduleResultsIdByDates(@PathVariable String processCode, @RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) {
         // TODO: 해당하는 날짜에 생성되었던 schedule 이력 DB 데이터 전송
         List<ScheduleResultDTO.Work> results = scheduleService.findSchedulesByDates(processCode, startDate, endDate);
 

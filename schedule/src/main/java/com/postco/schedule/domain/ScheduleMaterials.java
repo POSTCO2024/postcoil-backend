@@ -15,44 +15,19 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ScheduleMaterials implements com.postco.core.entity.Entity, Serializable {
-//    @Id
-//    @GeneratedValue
-//    private Long id;
-//    private Long targetId;
-//    private Long scheduleId;
-//    private String isScheduled;  // 미편성 여부??
-//    private String rollUnitName;
-//    private double width; or private double goalWidth; // 그래프 그리려면 가지고 있어야할듯
-//    private double thickness;
-//    private double temperature;
-//    private String coilTypeCode;
-//    @ElementCollection(fetch = FetchType.EAGER)
-//    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "material_id"))
-//    @Column(name = "sequence", nullable = true)
-//    @OrderColumn(name = "sequence_order") // Optional: 사용 순서 보존
-//    private List<Integer> sequence;        // 순서
-//    private String isRejected;   // 리젝 여부
-//    private Long expectedDuration;   // 예상 작업 시간
-
 
     @Id
-    @GeneratedValue
-    @Column(name = "material_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // IDENTITY 전략을 사용해 자동 증가 설정
     private Long id;
 
-    @Column(nullable = false, name="material_no")
+    @Column(name="material_no")
     private String no;
 
     @Column(name = "coil_type_code")
     private String coilTypeCode;
 
-    private String type;
-
     @Column(name = "curr_proc")
     private String currProc;
-
-    @Column(name = "factory_code")
-    private String factoryCode;
 
     @Column(name = "op_code")
     private String opCode;
@@ -71,10 +46,6 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
 
     private Double length;
 
-    private String progress;
-
-    private String status;
-
     @Column(name = "total_weight", nullable = true)
     private double totalWeight;
 
@@ -90,12 +61,6 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "next_proc")
     private String nextProc;
 
-    @Column(name = "storage_loc")
-    private String storageLoc;
-
-    private Double yard;
-
-    // 추가한 필드1
     private Long targetId;
 
     @Column(name = "goal_thickness")
@@ -124,10 +89,9 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     private Long expectedItemDuration;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "material_id"))
+    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "sequence", nullable = true)
     @OrderColumn(name = "sequence_order") // Optional: 사용 순서 보존
     private List<Integer> sequence;
-
 
 }

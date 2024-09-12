@@ -13,7 +13,7 @@ public class ScheduleMaterialsDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class View implements DTO{ // 스케줄 편성-관리 용
-        private Long id;
+        private Long id; // sch_materials id
         private String no;
         private String status;
         private String opCode;
@@ -43,7 +43,7 @@ public class ScheduleMaterialsDTO {
         private Long targetId;
 
         // 추가한 필드
-        private double expectedItemDuration;
+        private Long expectedItemDuration;
         private Long scheduleId;
         private String scheduleNo;
         private List<Integer> sequence;
@@ -87,7 +87,7 @@ public class ScheduleMaterialsDTO {
         private String isRejected; // 재료의 reject 여부 "Y" or "N"
 
         // 추가한 필드
-        private double expectedItemDuration; // 재료의 작업하는데 걸리는 시간
+        private Long expectedItemDuration; // 재료의 작업하는데 걸리는 시간
         private Long scheduleId;
         private String scheduleNo;
         private List<Integer> sequence;

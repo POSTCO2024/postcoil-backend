@@ -11,8 +11,7 @@ public class ScheduleMaterialsMapper {
     // 공통 필드 매핑 메소드
     private static ScheduleMaterialsDTO.View.ViewBuilder mapCommonFields(MaterialDTO.View material, TargetMaterialDTO.View target) {
         return ScheduleMaterialsDTO.View.builder()
-                // material 필드 매핑
-                .id(material.getId())
+                // Material 필드 매핑
                 .no(material.getNo())
                 .status(material.getStatus())
                 .opCode(material.getOpCode())

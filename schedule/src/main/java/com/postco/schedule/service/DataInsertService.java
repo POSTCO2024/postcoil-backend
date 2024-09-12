@@ -7,8 +7,9 @@ import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -72,29 +73,31 @@ public class DataInsertService {
 
     // sch_plan db 삽입
     public SchedulePlan createSchedulePlan(List<ScheduleMaterialsDTO.View> materials, String processCode) {
-        SchedulePlan schedulePlan = new SchedulePlan();
-        schedulePlan.setMaterials(materials);
-        schedulePlan.setProcessCode(processCode);
-        schedulePlan.setPlanDate(LocalDateTime.now());
-        schedulePlan.setIsConfirmed("N");
-        schedulePlan.setNo(createScheduleNo(processCode, materials.get(0)));
-        schedulePlan.setMaterialIds(schedulePlan.getMaterials()
-                .stream()
-                .map(ScheduleMaterialsDTO.View::getId) // Extract ID from each material DTO
-                .collect(Collectors.toList()));
-        schedulePlan.setQuantity((long) materials.size());
+        // 각 material의 expectedItemDuration을 모두 더한 값
+        Long totalExpectedDuration = materials.stream()
+                .map(ScheduleMaterialsDTO.View::getExpectedItemDuration)
+                .filter(Objects::nonNull) // null 값을 제외
+                .reduce(0L, Long::sum);   // 합계를 계산
 
-        return schedulePlan;
+        return SchedulePlan.builder()
+                .materials(materials)
+                .processCode(processCode)
+                .planDate(LocalDate.now())
+                .isConfirmed("N")
+                .no(createScheduleNo(processCode, materials.get(0)))
+                .materialIds(materials.stream().map(ScheduleMaterialsDTO.View::getId).collect(Collectors.toList()))
+                .quantity((long) materials.size())
+                .expectedDuration(totalExpectedDuration)
+                .build();
     }
 
     // sch_confirm db 삽입
     public ScheduleConfirm createScheduleConfirm(SchedulePlan schedulePlan) {
-        ScheduleConfirm scheduleConfirm = new ScheduleConfirm();
-        scheduleConfirm.setScheduleId(schedulePlan.getId());
-        scheduleConfirm.setScheduleNo(schedulePlan.getNo());
-        scheduleConfirm.setProcessCode(schedulePlan.getProcessCode());
-        scheduleConfirm.setConfirmDate(LocalDateTime.now());
-
-        return scheduleConfirm;
+        return ScheduleConfirm.builder()
+                .scheduleId(schedulePlan.getId())
+                .scheduleNo(schedulePlan.getNo())
+                .processCode(schedulePlan.getProcessCode())
+                .confirmDate(LocalDate.now())
+                .build();
     }
 }

@@ -20,5 +20,5 @@ public class WorkInstructionDTO implements DTO {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private String workStatus;
-    private Long rejectedQuantity; // reject된 코일 수
+    private Long rejectedQuantity;
 }

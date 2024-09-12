@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -19,7 +19,7 @@ import java.util.List;
 public class SchedulePlan {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "schedule_no")
@@ -28,7 +28,7 @@ public class SchedulePlan {
     @Column(name = "process_code")
     private String processCode;
 
-    private LocalDateTime planDate;
+    private LocalDate planDate;
 
     private Long expectedDuration; // 스케줄 예상 작업 시간
 
@@ -40,8 +40,8 @@ public class SchedulePlan {
     @Transient
     private List<ScheduleMaterialsDTO.View> materials;
 
-    @ElementCollection
-    @CollectionTable(name = "sch_materials", joinColumns = @JoinColumn(name = "schedule_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "sch_plan_materials", joinColumns = @JoinColumn(name = "schedule_id"))
     @Column(name = "material_id")
     private List<Long> materialIds;  // List of material IDs
 
