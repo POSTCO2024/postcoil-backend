@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -88,16 +89,39 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
                 })
                 .collect(Collectors.toList());
     }
-
+    @Transactional
     public List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.View> targetMaterials) {
-        List<TargetMaterial> entities = targetMaterials.stream()
-                .map(targetMaterial -> modelMapper.map(targetMaterial, TargetMaterial.class))
-                .collect(Collectors.toList());
+        List<TargetMaterial> entitiesToSave = new ArrayList<>();
+        List<TargetMaterial> entitiesToUpdate = new ArrayList<>();
 
-        List<TargetMaterial> savedEntities = targetMaterialRepository.saveAll(entities);
-        log.info("Saved {} target materials", savedEntities.size());
-        return savedEntities;
+        for (TargetMaterialDTO.View targetMaterialDTO : targetMaterials) {
+            targetMaterialRepository.findByMaterialId(targetMaterialDTO.getMaterialId())
+                    .ifPresentOrElse(
+                            existingEntity -> {
+                                log.info("materialId가 {}인 기존 작업대상재 업데이트 중", targetMaterialDTO.getMaterialId());
+                                modelMapper.map(targetMaterialDTO, existingEntity);
+                                entitiesToUpdate.add(existingEntity);
+                            },
+                            () -> {
+                                log.info("materialId가 {}인 새로운 작업대상재 생성 중", targetMaterialDTO.getMaterialId());
+                                TargetMaterial newEntity = modelMapper.map(targetMaterialDTO, TargetMaterial.class);
+                                entitiesToSave.add(newEntity);
+                            }
+                    );
+        }
+
+        log.info("업데이트할 엔티티 수: {}, 저장할 새로운 엔티티 수: {}", entitiesToUpdate.size(), entitiesToSave.size());
+
+        List<TargetMaterial> updatedEntities = targetMaterialRepository.saveAll(entitiesToUpdate);
+        List<TargetMaterial> savedEntities = targetMaterialRepository.saveAll(entitiesToSave);
+
+        List<TargetMaterial> allEntities = new ArrayList<>(updatedEntities);
+        allEntities.addAll(savedEntities);
+
+        log.info("총 처리된 엔티티 수: {}", allEntities.size());
+        return allEntities;
     }
+
 
     @Override
     public String setRollUnit(MaterialDTO.View material) {
