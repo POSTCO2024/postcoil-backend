@@ -3,41 +3,40 @@ package com.postco.cacheservice.kafka;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.cacheservice.service.impl.OrderCommandService;
+import com.postco.cacheservice.service.impl.OrderQueryService;
 import com.postco.core.dto.OrderDTO;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
+
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class OrderConsumer extends GenericKafkaConsumer<OrderDTO.View> {
-    private final OrderCommandService orderCommandService; // Redis 저장 서비스
-    private final ObjectMapper objectMapper;
-
     @Value("${feature-flags.kafka.enabled}")
     private boolean kafkaEnabled;
 
+    @Value("${spring.kafka.consumer.group-id}")
+    private String groupId;
+
+    public OrderConsumer(ObjectMapper objectMapper,
+                            OrderQueryService queryService,
+                            OrderCommandService commandService) {
+        super(objectMapper, queryService, commandService);
+    }
+
     @Override
-    public void consumeMessage(String message) {
+    protected OrderDTO.View deserializeMessage(String message) {
         try {
-            // Kafka에서 받은 메시지를 OrderDTO.View로 변환
-            OrderDTO.View order = objectMapper.readValue(message, OrderDTO.View.class);
-            log.info("Received order data from Kafka: {}", order);
-
-            // Redis에 저장
-            saveData(order).subscribe(success -> {
-                if (success) {
-                    log.info("Order successfully saved in Redis: {}", order.getId());
-                } else {
-                    log.warn("Failed to save order in Redis: {}", order.getId());
-                }
-            });
-
+            return objectMapper.readValue(message, OrderDTO.View.class);
         } catch (JsonProcessingException e) {
-            log.error("Failed to deserialize Kafka message", e);
+            log.error("[Kafka 실패] 주문 메시지 역직렬화 중 오류 발생: {}", message, e);
+            return null;
         }
+    }
+
+    @Override
+    protected String getDataId(OrderDTO.View data) {
+        return String.valueOf(data.getId());
     }
 
     @Override
@@ -51,7 +50,8 @@ public class OrderConsumer extends GenericKafkaConsumer<OrderDTO.View> {
     }
 
     @Override
-    protected Mono<Boolean> saveData(OrderDTO.View order) {
-        return orderCommandService.saveData(order);
+    public String getGroupId() {
+        return groupId;
     }
+
 }

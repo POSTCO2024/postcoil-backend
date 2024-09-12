@@ -1,5 +1,6 @@
 package com.postco.operation.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
@@ -22,6 +23,7 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     private Long id;
 
     @ManyToOne(fetch = LAZY)
+    @JsonManagedReference
     @JoinColumn(name = "work_instruction_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private WorkInstruction workInstruction;
 
@@ -53,10 +55,6 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
         if (workInstruction != null && !workInstruction.getItems().contains(this)) {
             workInstruction.getItems().add(this);
         }
-    }
-
-    public void setMaterial(Materials material) {
-        this.material = material;
     }
 
     public void startWork() {

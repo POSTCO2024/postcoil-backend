@@ -1,6 +1,6 @@
 package com.postco.control.presentation;
 
-import com.postco.control.service.RedisService;
+import com.postco.control.service.ControlRedisService;
 import com.postco.core.dto.MaterialDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,12 +17,12 @@ import java.util.List;
 @RequestMapping("/api/v1/redis")
 @RequiredArgsConstructor
 public class CacheProcessController {
-    private final RedisService redisService;
+    private final ControlRedisService controlRedisService;
 
 
     @GetMapping("/all")
     public Mono<ResponseEntity<List<MaterialDTO.View>>> getAllMaterials() {
-        return redisService.getAllMaterialsFromRedis()
+        return controlRedisService.getAllMaterialsFromRedis()
                 .map(materials -> {
                     log.info("Successfully retrieved materials: {}", materials);
                     return ResponseEntity.ok(materials);
@@ -31,7 +31,7 @@ public class CacheProcessController {
 
     @GetMapping("/new")
     public Mono<ResponseEntity<List<MaterialDTO.View>>> getNewMaterials() {
-        return redisService.getNewMaterialsFromRedis()
+        return controlRedisService.getNewMaterialsFromRedis()
                 .map(materials -> {
                     log.info("Successfully retrieved new materials: {}", materials);
                     return ResponseEntity.ok(materials);

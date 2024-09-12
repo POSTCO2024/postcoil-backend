@@ -1,5 +1,6 @@
 package com.postco.operation.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
@@ -19,7 +20,7 @@ import java.util.List;
 public class WorkInstruction implements com.postco.core.entity.Entity, Serializable {
     @Id
     @GeneratedValue
-    @Column(name = "work_id")
+    @Column(name = "work_instruction_id")
     private Long id;
 
     @Column(name = "work_code", nullable = false)
@@ -46,6 +47,7 @@ public class WorkInstruction implements com.postco.core.entity.Entity, Serializa
 
     @OneToMany(mappedBy = "workInstruction")
     @Builder.Default
+    @JsonManagedReference
     private List<WorkInstructionItem> items = new ArrayList<>();
 
     public void addItem(WorkInstructionItem item) {
