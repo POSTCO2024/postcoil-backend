@@ -28,12 +28,7 @@ public class SchedulingService {
     private final double STANDARD_WIDTH = 50;
 
     //* 스케줄링로직~! */
-    public List<ScheduleMaterialsDTO.View> planSchedule(List<Long> materialIds, String processCode) {
-        // TODO: Redis Cache-server에서 List<ScheduleMaterialsDTO.Target>로 materialIds에 해당하는 재료들 불러오기
-        //  scheduleMaterialsRepository.findAllById(materialIds) -> (cache에서 가져 온) materials로 변경
-
-
-        List<ScheduleMaterialsDTO.View> materials = MapperUtils.mapList(scheduleMaterialsRepository.findAllById(materialIds), ScheduleMaterialsDTO.View.class); // 나중에 삭제하기
+    public List<ScheduleMaterialsDTO.View> planSchedule(List<ScheduleMaterialsDTO.View> materials, String processCode) {
         List<PriorityDTO> priorities = priorityService.findAllByProcessCode(processCode);
 
         // 우선순위 적용
@@ -275,6 +270,7 @@ public class SchedulingService {
         }
         return pascalCaseString.toString();
     }
+
     // 헬퍼 메서드: Getter 메서드 호출 (제네릭)
     @SuppressWarnings("unchecked")
     private <T> T invokeGetter(Object obj, Method method) {
@@ -284,23 +280,7 @@ public class SchedulingService {
             throw new RuntimeException("Failed to invoke getter method: " + method.getName(), e);
         }
     }
-    // TODO : Cache-Server 에서 설비 가져오기!
-    public List<ScheduleMaterialsDTO.View> insertMaterialsWithWorkTime(List<ScheduleMaterialsDTO.View> materials) {
 
-        for (ScheduleMaterialsDTO.View material : materials) {
-            // 작업 시간 계산
-            Long workTime = calculateWorkTime(material.getGoalLength(), material.getGoalThickness(),
-                    material.getGoalWidth(), material.getTotalWeight());
-            material.setWorkTime(workTime);
-        }
-
-        return materials;
-    }
-    // 작업 시간 계산 메서드
-    // TODO: TH 설비로 계산하기
-    private Long calculateWorkTime(double goalLength, double goalThickness, double goalWidth, double totalWeight) {
-        return  (long) ((goalLength * goalThickness * goalWidth) / totalWeight);
-    }
     private void printCurrentState(List<ScheduleMaterialsDTO.View> materials, String message) {
         log.info(message);
         for (ScheduleMaterialsDTO.View material : materials) {
