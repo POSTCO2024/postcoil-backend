@@ -32,4 +32,6 @@ public interface TargetMaterialService {
      * @param material 작업대상재
      */
     String setRollUnit(MaterialDTO.View material);
+    boolean isTargetMaterialExists(Long materialId, String materialNo);
+
 }
