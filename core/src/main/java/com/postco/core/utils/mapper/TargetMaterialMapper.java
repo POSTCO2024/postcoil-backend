@@ -16,17 +16,12 @@ import java.util.stream.Stream;
 public class TargetMaterialMapper {
     public static final ModelMapper modelMapper = new ModelMapper();
     static {
-        Converter<LocalDateTime, String> localDateTimeToStringConverter = new Converter<LocalDateTime, String>() {
-            @Override
-            public String convert(MappingContext<LocalDateTime, String> context) {
-                return context.getSource() != null
-                        ? context.getSource().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-                        : null;
-            }
-        };
+        Converter<LocalDateTime, String> localDateTimeToStringConverter = context -> context.getSource() != null
+                ? context.getSource().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                : null;
 
-        // MaterialDTO.View -> TargetMaterialDTO.View 매핑
-        modelMapper.addMappings(new PropertyMap<MaterialDTO.View, TargetMaterialDTO.View>() {
+        // MaterialDTO.View -> TargetMaterialDTO.Create 매핑
+        modelMapper.addMappings(new PropertyMap<MaterialDTO.View, TargetMaterialDTO.Create>() {
             @Override
             protected void configure() {
                 map().setMaterialId(source.getId());
@@ -50,8 +45,8 @@ public class TargetMaterialMapper {
             }
         });
 
-        // OrderDTO.View -> TargetMaterialDTO.View 매핑
-        modelMapper.addMappings(new PropertyMap<OrderDTO.View, TargetMaterialDTO.View>() {
+        // OrderDTO.View -> TargetMaterialDTO.Create 매핑
+        modelMapper.addMappings(new PropertyMap<OrderDTO.View, TargetMaterialDTO.Create>() {
             @Override
             protected void configure() {
                 map().setOrderNo(source.getNo());
@@ -63,8 +58,8 @@ public class TargetMaterialMapper {
         });
     }
 
-    public static TargetMaterialDTO.View mapToTargetMaterial(MaterialDTO.View material, OrderDTO.View order) {
-        TargetMaterialDTO.View targetMaterialDTO = modelMapper.map(material, TargetMaterialDTO.View.class);
+    public static TargetMaterialDTO.Create mapToTargetMaterialCreate(MaterialDTO.View material, OrderDTO.View order) {
+        TargetMaterialDTO.Create targetMaterialDTO = modelMapper.map(material, TargetMaterialDTO.Create.class);
 
         // 주문 정보가 있으면 추가로 매핑
         if (order != null) {

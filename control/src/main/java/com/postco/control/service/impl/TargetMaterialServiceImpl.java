@@ -50,7 +50,7 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
                 List<MaterialDTO.View> filteredMaterials = extractionFilterService.applyExtractionCriteria(materials, processCode);
 
                 // 작업대상재 매핑
-                List<TargetMaterialDTO.View> targetMaterials = mapToTargetMaterials(filteredMaterials, orders);
+                List<TargetMaterialDTO.Create> targetMaterials = mapToTargetMaterials(filteredMaterials, orders);
                 // 작업대상재 저장
                 List<TargetMaterial> savedEntities = saveTargetMaterials(targetMaterials);
 
@@ -71,14 +71,14 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
     }
 
     @Transactional
-    public List<TargetMaterialDTO.View> mapToTargetMaterials(List<MaterialDTO.View> materials, List<OrderDTO.View> orders) {
+    public List<TargetMaterialDTO.Create> mapToTargetMaterials(List<MaterialDTO.View> materials, List<OrderDTO.View> orders) {
         Map<Long, OrderDTO.View> orderMap = orders.stream()
                 .collect(Collectors.toMap(OrderDTO.View::getId, Function.identity()));
 
         return materials.stream()
                 .map(material -> {
                     OrderDTO.View order = orderMap.get(material.getOrderId());
-                    TargetMaterialDTO.View targetMaterial = TargetMaterialMapper.mapToTargetMaterial(material, order);
+                    TargetMaterialDTO.Create targetMaterial = TargetMaterialMapper.mapToTargetMaterialCreate(material, order);
 
                     // 롤 단위 설정
                     String rollUnitName = setRollUnit(material);
@@ -95,7 +95,7 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
     }
 
     @Transactional
-    public List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.View> targetMaterials) {
+    public List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.Create> targetMaterials) {
         List<TargetMaterial> newTargetMaterials = targetMaterials.stream()
                 .filter(dto -> !isTargetMaterialExists(dto.getMaterialId(), dto.getMaterialNo()))
                 .map(dto -> modelMapper.map(dto, TargetMaterial.class))

@@ -19,13 +19,13 @@ public interface TargetMaterialService {
     /**
      * 재료와 주문 정보를 작업대상재로 매핑합니다.
      */
-    List<TargetMaterialDTO.View> mapToTargetMaterials(List<MaterialDTO.View> materials, List<OrderDTO.View> orders);
+    List<TargetMaterialDTO.Create> mapToTargetMaterials(List<MaterialDTO.View> materials, List<OrderDTO.View> orders);
 
     /**
      * 작업대상재를 DB 에 저장하는 메서드 입니다.
      * @param targetMaterials 작업대상재 DTO
      */
-    List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.View> targetMaterials);
+    List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.Create> targetMaterials);
 
     /**
      * 추출된 작업대상재에 롤 단위를 매핑합니다.
