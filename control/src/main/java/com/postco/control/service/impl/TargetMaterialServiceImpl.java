@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -49,8 +50,7 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
                 List<MaterialDTO.View> filteredMaterials = extractionFilterService.applyExtractionCriteria(materials, processCode);
 
                 // 작업대상재 매핑
-                List<TargetMaterialDTO.View> targetMaterials = mapToTargetMaterials(filteredMaterials, orders);
-
+                List<TargetMaterialDTO.Create> targetMaterials = mapToTargetMaterials(filteredMaterials, orders);
                 // 작업대상재 저장
                 List<TargetMaterial> savedEntities = saveTargetMaterials(targetMaterials);
 
@@ -58,7 +58,6 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
                 errorFilterService.applyErrorCriteria(savedEntities, filteredMaterials, processCode);
 
                 // 저장된 작업대상재 -> DTO 변환
-
                 List<TargetMaterialDTO.View> savedDTOs = savedEntities.stream()
                         .map(entity -> modelMapper.map(entity, TargetMaterialDTO.View.class))
                         .collect(Collectors.toList());
@@ -72,14 +71,14 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
     }
 
     @Transactional
-    public List<TargetMaterialDTO.View> mapToTargetMaterials(List<MaterialDTO.View> materials, List<OrderDTO.View> orders) {
+    public List<TargetMaterialDTO.Create> mapToTargetMaterials(List<MaterialDTO.View> materials, List<OrderDTO.View> orders) {
         Map<Long, OrderDTO.View> orderMap = orders.stream()
                 .collect(Collectors.toMap(OrderDTO.View::getId, Function.identity()));
 
         return materials.stream()
                 .map(material -> {
                     OrderDTO.View order = orderMap.get(material.getOrderId());
-                    TargetMaterialDTO.View targetMaterial = TargetMaterialMapper.mapToTargetMaterial(material, order);
+                    TargetMaterialDTO.Create targetMaterial = TargetMaterialMapper.mapToTargetMaterialCreate(material, order);
 
                     // 롤 단위 설정
                     String rollUnitName = setRollUnit(material);
@@ -89,42 +88,36 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
                 })
                 .collect(Collectors.toList());
     }
-    @Transactional
-    public List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.View> targetMaterials) {
-        List<TargetMaterial> entitiesToSave = new ArrayList<>();
-        List<TargetMaterial> entitiesToUpdate = new ArrayList<>();
-
-        for (TargetMaterialDTO.View targetMaterialDTO : targetMaterials) {
-            targetMaterialRepository.findByMaterialId(targetMaterialDTO.getMaterialId())
-                    .ifPresentOrElse(
-                            existingEntity -> {
-                                log.info("materialId가 {}인 기존 작업대상재 업데이트 중", targetMaterialDTO.getMaterialId());
-                                modelMapper.map(targetMaterialDTO, existingEntity);
-                                entitiesToUpdate.add(existingEntity);
-                            },
-                            () -> {
-                                log.info("materialId가 {}인 새로운 작업대상재 생성 중", targetMaterialDTO.getMaterialId());
-                                TargetMaterial newEntity = modelMapper.map(targetMaterialDTO, TargetMaterial.class);
-                                entitiesToSave.add(newEntity);
-                            }
-                    );
-        }
-
-        log.info("업데이트할 엔티티 수: {}, 저장할 새로운 엔티티 수: {}", entitiesToUpdate.size(), entitiesToSave.size());
-
-        List<TargetMaterial> updatedEntities = targetMaterialRepository.saveAll(entitiesToUpdate);
-        List<TargetMaterial> savedEntities = targetMaterialRepository.saveAll(entitiesToSave);
-
-        List<TargetMaterial> allEntities = new ArrayList<>(updatedEntities);
-        allEntities.addAll(savedEntities);
-
-        log.info("총 처리된 엔티티 수: {}", allEntities.size());
-        return allEntities;
-    }
-
 
     @Override
     public String setRollUnit(MaterialDTO.View material) {
         return rollUnitService.determineRollUnit(material.getThickness());
+    }
+
+    @Transactional
+    public List<TargetMaterial> saveTargetMaterials(List<TargetMaterialDTO.Create> targetMaterials) {
+        List<TargetMaterial> newTargetMaterials = targetMaterials.stream()
+                .filter(dto -> !isTargetMaterialExists(dto.getMaterialId(), dto.getMaterialNo()))
+                .map(dto -> modelMapper.map(dto, TargetMaterial.class))
+                .collect(Collectors.toList());
+
+        if (!newTargetMaterials.isEmpty()) {
+            List<TargetMaterial> newSavedEntities = new ArrayList<>();
+            try {
+                newSavedEntities = targetMaterialRepository.saveAll(newTargetMaterials);
+                log.info("[저장 성공] 작업대상재 {} 개를 새롭게 저장했습니다. (총 제공된 재료: {} 개)",
+                        newSavedEntities.size(), targetMaterials.size());
+            } catch (Exception e) {
+                log.error("[저장 실패] 작업대상재 저장 중 오류 발생: {}", e.getMessage(), e);
+            }
+            return newSavedEntities;
+        }
+        log.info("[저장 Skip] 새롭게 저장할 작업대상재가 없습니다.");
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isTargetMaterialExists(Long materialId, String materialNo) {
+        return targetMaterialRepository.findByMaterialIdAndMaterialNo(materialId, materialNo).isPresent();
     }
 }

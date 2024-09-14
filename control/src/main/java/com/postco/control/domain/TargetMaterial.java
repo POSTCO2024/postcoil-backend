@@ -65,7 +65,8 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     private String isErrorPassed;    // 수동 에러패스 여부 (데이터 분석을 위한 컬럼)
 
     @PrePersist
-    public void prePersist() {
+    @PreUpdate
+    public void initErrorNotNull() {
         if (this.isError == null) {
             this.isError = "N";
         }
