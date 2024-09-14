@@ -1,7 +1,6 @@
 package com.postco.core.dto;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 @Getter
 public class ApiResponseDTO<T> {

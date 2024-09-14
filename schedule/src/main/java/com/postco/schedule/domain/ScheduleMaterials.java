@@ -15,24 +15,19 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ScheduleMaterials implements com.postco.core.entity.Entity, Serializable {
+
     @Id
-    @GeneratedValue
-    @Column(name = "material_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // IDENTITY 전략을 사용해 자동 증가 설정
     private Long id;
 
-    @Column(nullable = false, name="material_no")
+    @Column(name="material_no")
     private String no;
 
     @Column(name = "coil_type_code")
     private String coilTypeCode;
 
-    private String type;
-
-    @Column(name = "cur_proc")
-    private String curProc;
-
-    @Column(name = "f_code")
-    private String fCode;
+    @Column(name = "curr_proc")
+    private String currProc;
 
     @Column(name = "op_code")
     private String opCode;
@@ -51,10 +46,6 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
 
     private Double length;
 
-    private String progress;
-
-    private String status;
-
     @Column(name = "total_weight", nullable = true)
     private double totalWeight;
 
@@ -70,12 +61,6 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "next_proc")
     private String nextProc;
 
-    @Column(name = "storage_loc")
-    private String storageLoc;
-
-    private Double yard;
-
-    // 추가한 필드1
     private Long targetId;
 
     @Column(name = "goal_thickness")
@@ -90,8 +75,8 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "temperature", nullable = true)
     private double temperature;
 
-    @Column(name = "roll_unit")
-    private String rollUnit;
+    @Column(name = "roll_unit_name")
+    private String rollUnitName;
 
     // 추가한 필드2 - 111111
     @Column(name = "schedule_id")
@@ -100,14 +85,13 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "schedule_no")
     private String scheduleNo;
 
-    @Column(name = "work_time", nullable = true)
-    private Long workTime;
+    @Column(name = "expected_item_duration")
+    private Long expectedItemDuration;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "material_id"))
+    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "id"))
     @Column(name = "sequence", nullable = true)
     @OrderColumn(name = "sequence_order") // Optional: 사용 순서 보존
     private List<Integer> sequence;
-
 
 }
