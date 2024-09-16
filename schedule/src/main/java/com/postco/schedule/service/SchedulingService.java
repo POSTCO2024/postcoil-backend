@@ -412,7 +412,7 @@ public class SchedulingService {
             // 작업 시간 계산
             Long workTime = calculateWorkTime(material.getGoalLength(), material.getGoalThickness(),
                     material.getGoalWidth(), material.getTotalWeight());
-            material.setWorkTime(workTime);
+            //material.setWorkTime(workTime);
         }
 
         return materials;
