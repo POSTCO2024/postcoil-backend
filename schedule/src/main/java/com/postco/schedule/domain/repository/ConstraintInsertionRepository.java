@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface ConstraintInsertionRepository extends JpaRepository<ConstraintInsertion, Long> {
     List<ConstraintInsertion> findByProcessCodeAndRollUnit(String processCode, String rollUnit);
+    List<ConstraintInsertion> findByProcessCode(String processCode);
 }
