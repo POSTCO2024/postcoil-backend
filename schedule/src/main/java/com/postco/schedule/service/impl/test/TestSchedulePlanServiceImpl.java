@@ -1,15 +1,22 @@
 package com.postco.schedule.service.impl.test;
 
 import com.postco.schedule.domain.edit.SCHMaterial;
+import com.postco.schedule.domain.edit.SCHPlan;
 import com.postco.schedule.domain.edit.repo.SCHMaterialRepository;
+import com.postco.schedule.domain.edit.repo.SCHPlanRepository;
+import com.postco.schedule.presentation.test.SCHPlanDTO;
 import com.postco.schedule.service.SchedulingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -22,94 +29,115 @@ import java.util.stream.Collectors;
 public class TestSchedulePlanServiceImpl {
     private final SCHMaterialRepository schMaterialRepository;
     private final SchedulingService schedulingService;
+    private final SCHPlanRepository schPlanRepository;
 
-    // 롤 단위 별 스케쥴링 진행
-    public List<SCHMaterial> executeScheduling() {
-        // step1. 등록된 스케줄 대상재 모두 불러오기 (CAL 만 저장했음)
+    // 스케쥴링 및 저장을 한번에 진행하는 메서드
+    @Transactional
+    public List<SCHPlan> executeSchedulingAndSave() {
+        // step 1: 등록된 스케줄 대상재 모두 불러오기
         List<SCHMaterial> materials = getScheduleMaterials();
 
+        // step 2: 공정별, 롤 단위별로 그룹화 진행
+        Map<String, List<SCHMaterial>> groupedMaterials = groupedByProcessAndRollUnit(materials);
 
-        // step2. 롤 단위 별 그룹화 진행 (rollUnitName)
-        Map<String, List<SCHMaterial>> groupedMaterials = groupedByRollUnitName(materials);
+        // step 3: 각 그룹에 대해 스케줄링을 진행하고 DB에 저장
+        List<SCHPlan> savedPlans = new ArrayList<>();
+        groupedMaterials.forEach((groupKey, groupMaterials) -> {
+            log.info("그룹 키: {}, 재료 수: {}", groupKey, groupMaterials.size());
 
-        // step4. 스케줄링 로직 진행
-        List<SCHMaterial> scheduledMaterials = new ArrayList<>();
-        groupedMaterials.forEach((rollUnit, rollUnitMaterials) -> {
-            log.info("롤 유닛: {}, 재료 수: {}", rollUnit, rollUnitMaterials.size());
-
-            // 공정별 그룹화 및 스케줄링 로직 적용
-            List<SCHMaterial> scheduledRollUnitMaterials = applySchedulingByProcess(rollUnitMaterials);
-            scheduledMaterials.addAll(scheduledRollUnitMaterials);
+            // 스케줄 생성 및 저장
+            SCHPlan savedPlan = saveSchedule(groupMaterials);
+            savedPlans.add(savedPlan);
         });
 
-        scheduledMaterials.forEach(material -> log.info("스케쥴링 결과: {}", material));
-
-        // step4. 하나의 스케쥴로 편성
-
-        return scheduledMaterials;
+        return savedPlans; // 각 그룹별로 생성된 스케줄 Plan들을 반환
     }
 
-
-    // step1. 등록된 스케쥴 대상재 모두 불러오기 (CAL 만 저장했음)
-    //        ( 모든 작업대상재 저장했으면 currProc 가 CAL 인 것만 조회 필요 )
+    // step 1: 등록된 스케쥴 대상재 모두 불러오기
     public List<SCHMaterial> getScheduleMaterials() {
         return schMaterialRepository.findAll();
     }
 
-    // step2. 롤 단위 별 그룹화 진행 (rollUnitName)
-    // 여기서 공정 별 그룹화를 한꺼번에 진행해도 됨. 지금은 어떤 순서로 되는 지 몰라서 분리함.
-    // 기존에 존재하는 함수명 동일 사용. materialsGroupedByRollUnitName
-    private Map<String, List<SCHMaterial>> groupedByRollUnitName(List<SCHMaterial> materials) {
+    // step 2: 공정과 롤 단위 별로 스케쥴 대상재 그룹화
+    private Map<String, List<SCHMaterial>> groupedByProcessAndRollUnit(List<SCHMaterial> materials) {
         return materials.stream()
-                .collect(Collectors.groupingBy(SCHMaterial::getRollUnit));
+                .collect(Collectors.groupingBy(material -> material.getCurrProc() + "_" + material.getRollUnit()));
     }
 
-
-    private Map<String, List<SCHMaterial>> groupByProcessCode(List<SCHMaterial> materials) {
-        return materials.stream()
-                .collect(Collectors.groupingBy(SCHMaterial::getCurrProc));  // 공정 코드 기준으로 그룹화
-    }
-
-    // step3. 스케쥴링 로직 진행 ( 동일한 공정끼리 )
-    // 기존의 planSchedule 호출( Yerim kim 이 수정한 버전의 메서드 호출했음)
-    private List<SCHMaterial> applySchedulingByProcess(List<SCHMaterial> groupedMaterial) {
+    // step 3: 스케쥴링 로직을 공정과 롤 단위 별로 진행 (이 메서드는 외부 스케쥴링 로직을 사용)
+    private List<SCHMaterial> applySchedulingByProcess(Map<String, List<SCHMaterial>> groupedMaterials) {
         List<SCHMaterial> scheduledMaterials = new ArrayList<>();
+        groupedMaterials.forEach((groupKey, materials) -> {
+            String processCode = materials.get(0).getCurrProc();
+            log.info("그룹 키: {}, 공정 코드: {}, 재료 수: {}", groupKey, processCode, materials.size());
 
-        // 공정별로 그룹화
-        Map<String, List<SCHMaterial>> materialsByProcess = groupByProcessCode(groupedMaterial);
-
-        // 공정별로 스케쥴링 로직 적용
-        materialsByProcess.forEach((processCode, processMaterials) -> {
-            log.info("공정 코드: {}, 재료 수: {}", processCode, processMaterials.size());
-
-            // 스케쥴링 로직 호출
-            List<SCHMaterial> scheduledProcessMaterials = schedulingService.testPlanSchedule(processMaterials, processCode);
+            // 외부 스케쥴링 서비스 호출
+            List<SCHMaterial> scheduledProcessMaterials = schedulingService.testPlanSchedule(materials, processCode);
             scheduledMaterials.addAll(scheduledProcessMaterials);
         });
-
         return scheduledMaterials;
     }
 
+    // 스케쥴 저장 메서드 - 단일 그룹에 대해 스케쥴을 저장
+    @Transactional
+    public SCHPlan saveSchedule(List<SCHMaterial> scheduledMaterials) {
+        String processCode = scheduledMaterials.get(0).getCurrProc();
+        String rollUnit = scheduledMaterials.get(0).getRollUnit();
 
+        // 스케줄 Plan 생성
+        SCHPlan newPlan = SCHPlan.builder()
+                .scheduleNo(generateScheduleNo(processCode, rollUnit))
+                .process(processCode)
+                .rollUnit(rollUnit)
+                .planDate(LocalDateTime.now())
+                .scExpectedDuration(calculateTotalDuration(scheduledMaterials))
+                .quantity(scheduledMaterials.size())
+                .isConfirmed("N")
+                .build();
 
-    // 하나의 스케쥴로 편성
+        // 스케줄 Plan DB에 저장
+        SCHPlan savedPlan = schPlanRepository.save(newPlan);
 
+        // 재료들을 해당 스케줄에 속하도록 업데이트
+        updateMaterialsWithSchedule(savedPlan, scheduledMaterials);
 
+        return savedPlan;
+    }
 
+    // 스케쥴 대상재 업데이트 (해당 스케쥴에 소속되도록 설정)
+    @Transactional
+    public void updateMaterialsWithSchedule(SCHPlan plan, List<SCHMaterial> materials) {
+        materials.forEach(material -> {
+            material.setSchPlan(plan);   // 연관관계 설정
+            material.setIsScheduled("Y");
+        });
 
-    // 스케쥴 대상재 저장
-    // 1) 스케쥴 plan DB 에 저장하면서 + 2) 스케쥴 대상 재료 값도 업데이트 해야함.
+        schMaterialRepository.saveAll(materials);
+    }
 
+    // 스케쥴 번호 생성 (랜덤 No: S + 공정 이름 + 세자리 시퀀스 + 롤 단위)
+    private String generateScheduleNo(String processCode, String rollUnit) {
+        Long lastId = schPlanRepository.findLastSavedId();
+        long nextId = (lastId != null) ? lastId + 1 : 1;
+        String sequence = String.format("%03d", nextId);
+        return String.format("S%s%s%s", processCode, sequence, rollUnit);
+    }
 
-    // step 1. 스케쥴 편성 DB 에 저장
-    //         스케쥴 랜덤 No, 해당 공정, 스케쥴 총 예상 작업 시간(각 코일 예상 작업 시간 합), 코일 수, 컨펌 여부
+    // 스케쥴 총 예상 작업시간 계산
+    private Long calculateTotalDuration(List<SCHMaterial> materials) {
+        return materials.stream()
+                .mapToLong(SCHMaterial::getExpectedDuration)
+                .sum();  // 총합 계산
+    }
 
+    // 모든 스케쥴 결과 조회
+    public List<SCHPlanDTO.View> getAllScheduleResults() {
+        List<SCHPlan> plans = schPlanRepository.findAll();
+        ModelMapper modelMapper = new ModelMapper();
 
-    // step 2. 스케쥴 대상 재료 업데이트
-    //         편성된 재료는 isScheduled 를 Y 로 속한 스케쥴 schedulePlanId 업데이트, sequence 업데이트 필요
-
-
-
-
-
+        // List<SCHPlanDTO.View>로 변환 후 반환
+        return plans.stream()
+                .map(plan -> modelMapper.map(plan, SCHPlanDTO.View.class))
+                .collect(Collectors.toList());
+    }
 }

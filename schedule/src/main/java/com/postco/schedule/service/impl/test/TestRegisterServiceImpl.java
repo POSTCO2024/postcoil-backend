@@ -63,7 +63,6 @@ public class TestRegisterServiceImpl {
         long expectedDuration = calculateExpectedDuration(material, equipment);
 
         return SCHMaterial.builder()
-                .targetMaterialId(targetMaterial.getId())
                 .rollUnit(targetMaterial.getRollUnitName())
                 .currProc(material.getCurrProc())
                 .temperature(material.getTemperature())

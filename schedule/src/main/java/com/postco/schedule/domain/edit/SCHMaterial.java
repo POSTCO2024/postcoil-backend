@@ -18,7 +18,6 @@ public class SCHMaterial implements com.postco.core.entity.Entity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long targetMaterialId;
     private String rollUnit;
     private String currProc;
     private Double temperature;
@@ -29,4 +28,8 @@ public class SCHMaterial implements com.postco.core.entity.Entity{
     private int sequence;        // 순서
     private String isRejected;   // 리젝 여부
     private Long expectedDuration;   // 예상 작업 시간
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "plan_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+    private SCHPlan schPlan;
 }
