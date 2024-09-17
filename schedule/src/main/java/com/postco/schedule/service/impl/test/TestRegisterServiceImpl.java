@@ -1,9 +1,8 @@
-package com.postco.schedule.service.impl;
+package com.postco.schedule.service.impl.test;
 
 import com.postco.core.dto.*;
 import com.postco.schedule.domain.edit.SCHMaterial;
 import com.postco.schedule.domain.edit.repo.SCHMaterialRepository;
-import com.postco.schedule.service.ScheduleRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 
 /**
  * 스케쥴 대상재 관련 서비스
- * 스케쥴 대상재를 등록하고 업데이트 합니다. (예사)
+ * 스케쥴 대상재를 등록하고 업데이트 합니다. (예시)
  *
  */
 @Slf4j
@@ -66,7 +65,10 @@ public class TestRegisterServiceImpl {
         return SCHMaterial.builder()
                 .targetMaterialId(targetMaterial.getId())
                 .rollUnit(targetMaterial.getRollUnitName())
+                .currProc(material.getCurrProc())
                 .temperature(material.getTemperature())
+                .width(material.getWidth())
+                .thickness(material.getThickness())
                 .isScheduled("N")
                 .sequence(0)
                 .isRejected("N")

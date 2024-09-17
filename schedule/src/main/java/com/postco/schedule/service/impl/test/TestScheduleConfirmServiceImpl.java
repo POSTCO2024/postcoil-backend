@@ -1,4 +1,4 @@
-package com.postco.schedule.service.impl;
+package com.postco.schedule.service.impl.test;
 
 public class TestScheduleConfirmServiceImpl {
 }

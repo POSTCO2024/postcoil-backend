@@ -20,7 +20,10 @@ public class SCHMaterial implements com.postco.core.entity.Entity{
     private Long id;
     private Long targetMaterialId;
     private String rollUnit;
+    private String currProc;
     private Double temperature;
+    private Double width;
+    private Double thickness;
     private Long schedulePlanId;
     private String isScheduled;  // 미편성 여부
     private int sequence;        // 순서

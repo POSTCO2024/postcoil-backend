@@ -2,12 +2,11 @@ package com.postco.schedule.service;
 
 import com.postco.core.dto.RedisDataContainer;
 import com.postco.core.dto.RefDataContainer;
-import com.postco.schedule.service.impl.TestRegisterServiceImpl;
+import com.postco.schedule.service.impl.test.TestRegisterServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
 

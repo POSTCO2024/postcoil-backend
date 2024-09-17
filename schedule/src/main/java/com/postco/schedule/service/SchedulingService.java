@@ -3,6 +3,7 @@ package com.postco.schedule.service;
 import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.schedule.domain.PriorityApplyMethod;
 import com.postco.schedule.domain.ScheduleMaterials;
+import com.postco.schedule.domain.edit.SCHMaterial;
 import com.postco.schedule.domain.repository.ScheduleMaterialsRepository;
 import com.postco.schedule.presentation.dto.PriorityDTO;
 import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
@@ -26,6 +27,46 @@ public class SchedulingService {
     private final ConstraintInsertionService constraintInsertionService;
 
     private final double STANDARD_WIDTH = 50;
+
+    // *************** 임의로 수정한 스케쥴링 진행 호출 메서드 ************
+    // yerim kim 기준, 스케쥴 대상재에 CAL 공정만 애초에 저장해서 공정 파라미터를 없앴음.
+    // 테스트 용. 폭 기준 내림차순 함수만 가지고 적용 예정 ( 대충 전체 스케쥴링 메서드라고 가정)
+    public List<SCHMaterial> testPlanSchedule(List<SCHMaterial> materials, String processCode) {
+        // 현재 저장된 우선순위 없음 -> 패스
+        List<PriorityDTO> priorities = priorityService.findAllByProcessCode(processCode);
+
+        // 우선순위 적용
+        List<SCHMaterial> sortedMaterials = testApplyPriorities(materials, priorities);
+
+        // priorityOrder 설정
+        for (int i = 0; i < sortedMaterials.size(); i++) {
+            sortedMaterials.get(i).setSequence(i + 1);
+        }
+
+        return sortedMaterials;
+    }
+
+
+
+    // 우선순위 적용 함수
+    private List<SCHMaterial> testApplyPriorities(List<SCHMaterial> materials, List<PriorityDTO> priorities) {
+        // 여기서는 간단히 폭 기준 내림차순만 적용
+        return testSortedWidthDesc(materials);
+    }
+
+
+
+    // 폭 기준 내림차순 함수
+    // 그외 등등 기존 작성 우선순위 함수들 이런식으로 수정해서 적용하면 됨.
+    private List<SCHMaterial> testSortedWidthDesc(List<SCHMaterial> materials) {
+        return materials.stream()
+                .sorted(Comparator.comparingDouble(SCHMaterial::getWidth).reversed())
+                .collect(Collectors.toList());
+    }
+
+    // *****************************************************************//
+
+
 
     //* 스케줄링로직~! */
     public List<ScheduleMaterialsDTO.View> planSchedule(List<ScheduleMaterialsDTO.View> materials, String processCode) {
@@ -52,6 +93,7 @@ public class SchedulingService {
 
         return result;
     }
+
 
     // 폭 기준 동일폭 기준에 맞춰 그룹핑
     private List<List<ScheduleMaterialsDTO.View>> groupByWidth(List<ScheduleMaterialsDTO.View> sortedCoils){
