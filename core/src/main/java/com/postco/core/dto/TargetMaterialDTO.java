@@ -14,17 +14,20 @@ public class TargetMaterialDTO {
     public static class Create implements DTO {
         private Long materialId;
         private String materialNo;
+
+        // 자주 조회되는 주문 데이터 저장
         private String orderNo;
         private double goalWidth;
         private double goalThickness;
         private double goalLength;
-        private double weight;
-        private String processPlan;
         private String dueDate;
-        private String rollUnitName;
         private String customerName;
         private String remarks;
-        private String coilTypeCode;
+
+        private String processPlan;    // 전체 공정
+
+        // 작업대상재 시점에서 생기는 것
+        private String rollUnitName;
         private String isError;
         private String errorType;
         private String isErrorPassed;
@@ -42,13 +45,11 @@ public class TargetMaterialDTO {
         private double goalWidth;
         private double goalThickness;
         private double goalLength;
-        private double weight;
-        private String processPlan;
         private String dueDate;
-        private String rollUnitName;
         private String customerName;
         private String remarks;
-        private String coilTypeCode;
+        private String processPlan;    // 전체 공정
+        private String rollUnitName;
         private String isError;
         private String errorType;
         private String isErrorPassed;

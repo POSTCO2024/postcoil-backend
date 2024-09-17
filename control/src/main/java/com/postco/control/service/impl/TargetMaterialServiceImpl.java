@@ -29,19 +29,17 @@ import static com.postco.core.utils.mapper.TargetMaterialMapper.modelMapper;
 @Service
 @RequiredArgsConstructor
 public class TargetMaterialServiceImpl implements TargetMaterialService {
+    private final RedisDataLoader redisDataLoader;
     private final TargetMaterialRepository targetMaterialRepository;
     private final ExtractionFilterService extractionFilterService;
     private final ErrorFilterService errorFilterService;
-    private final ControlRedisService controlRedisService;
     private final RollUnitService rollUnitService;
     private final TargetMaterialProducer targetMaterialProducer;
 
     @Transactional
     public Mono<List<TargetMaterialDTO.View>> processTargetMaterials(String processCode) {
-        return Mono.zip(
-                controlRedisService.getAllMaterialsFromRedis(),
-                controlRedisService.getAllOrders()
-        ).flatMap(tuple -> {
+        return redisDataLoader.loadRedisData()
+        .flatMap(tuple -> {
             List<MaterialDTO.View> materials = tuple.getT1();
             List<OrderDTO.View> orders = tuple.getT2();
 

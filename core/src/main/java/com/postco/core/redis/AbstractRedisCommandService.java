@@ -1,8 +1,7 @@
-package com.postco.core.redis.cqrs;
+package com.postco.core.redis;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.postco.core.redis.db.SelectRedisDatabase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveHashOperations;

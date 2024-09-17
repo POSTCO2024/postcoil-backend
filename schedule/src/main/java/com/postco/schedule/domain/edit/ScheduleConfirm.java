@@ -9,15 +9,15 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "sch_materials")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class ScheduleConfirm {
-    private Long id;
-    private String scheduleId;
-    private LocalDateTime confirmDate;
-    private String confirmManager;
-}
+//@Entity
+//@Table(name = "sch_materials")
+//@Data
+//@NoArgsConstructor
+//@AllArgsConstructor
+//@Builder
+//public class ScheduleConfirm {
+//    private Long id;
+//    private String scheduleId;
+//    private LocalDateTime confirmDate;
+//    private String confirmManager;
+//}

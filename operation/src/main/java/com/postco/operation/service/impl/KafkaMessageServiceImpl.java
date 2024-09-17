@@ -5,7 +5,6 @@ import com.postco.core.dto.OrderDTO;
 import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.operation.domain.entity.Materials;
 import com.postco.operation.domain.entity.Order;
-import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.OrderRepository;
 import com.postco.operation.infra.kafka.MaterialsProducer;
 import com.postco.operation.infra.kafka.OrderProducer;
@@ -41,9 +40,6 @@ public class KafkaMessageServiceImpl implements KafkaMessageService {
             @Override
             protected void configure() {
                 map(source.getOrder().getId(), destination.getOrderId());
-                map(source.getOrder().getNo(), destination.getOrderNo());
-                map(source.getOrder().getThickness(), destination.getGoalThickness());
-                map(source.getOrder().getWidth(), destination.getGoalWidth());
             }
         };
 

@@ -24,6 +24,7 @@ public class MaterialDTO {
         private double thickness;
         private double length;
         private double weight;
+        private double temperature;
         private double totalWeight;
         private String passProc;
         private String remProc;
@@ -32,14 +33,6 @@ public class MaterialDTO {
         private String storageLoc;
         private String yard;
         private String coilTypeCode;
-
-        // 주문 데이터 (자주 조회되는 핵심 데이터만 저장)
         private Long orderId;
-        private String orderNo;
-        private double goalThickness;
-        private double goalWidth;
-        private String planProcess;
     }
-
-
 }

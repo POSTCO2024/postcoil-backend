@@ -2,7 +2,7 @@ package com.postco.operation.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.dto.DTO;
-import com.postco.core.redis.cqrs.AbstractRedisCommandService;
+import com.postco.core.redis.AbstractRedisCommandService;
 import com.postco.operation.domain.repository.*;
 import com.postco.operation.presentation.dto.*;
 import com.postco.operation.service.RedisDirectService;

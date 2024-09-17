@@ -5,20 +5,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "sch_materials")
+@Table(name = "test_sch_materials")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SCHMaterial {
+public class SCHMaterial implements com.postco.core.entity.Entity{
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long targetMaterialId;
-    private Long scheduleId;
+    private String rollUnit;
+    private Double temperature;
+    private Long schedulePlanId;
     private String isScheduled;  // 미편성 여부
     private int sequence;        // 순서
     private String isRejected;   // 리젝 여부

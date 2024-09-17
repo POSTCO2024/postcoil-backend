@@ -1,7 +1,5 @@
 package com.postco.operation.service;
 
-import com.postco.core.dto.MaterialDTO;
-import com.postco.core.dto.OrderDTO;
 
 public interface KafkaMessageService {
     // 모든 재료 전송 메서드

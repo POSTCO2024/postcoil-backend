@@ -57,6 +57,8 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
 
     private double weight;
 
+    private double temperature;
+
     @Column(name = "total_weight")
     private double totalWeight;
 
