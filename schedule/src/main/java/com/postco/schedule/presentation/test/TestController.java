@@ -68,22 +68,22 @@ public class TestController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 스케줄링만 진행하는 메서드 (저장 없이 스케줄 결과만 반환)
-     */
-    @GetMapping("/doSCH")
-    public ResponseEntity<ApiResponseDTO<List<SCHMaterial>>> executeScheduling() {
-        // 스케줄링 실행 후 결과 받기 (저장 없이)
-        List<SCHMaterial> scheduledMaterials = schedulePlanService.getScheduleMaterials();  // 혹은 스케줄링 적용 로직이 필요하면 수정
-
-        // ApiResponseDTO로 결과 반환
-        ApiResponseDTO<List<SCHMaterial>> response = ApiResponseDTO.<List<SCHMaterial>>builder()
-                .status(HttpStatus.OK.value())
-                .resultMsg(HttpStatus.OK.getReasonPhrase())
-                .result(scheduledMaterials)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
+//    /**
+//     * 스케줄링만 진행하는 메서드 (저장 없이 스케줄 결과만 반환)
+//     */
+//    @GetMapping("/doSCH")
+//    public ResponseEntity<ApiResponseDTO<List<SCHMaterial>>> executeScheduling() {
+//        // 스케줄링 실행 후 결과 받기 (저장 없이)
+//        List<SCHMaterial> scheduledMaterials = schedulePlanService.getScheduleMaterials();  // 혹은 스케줄링 적용 로직이 필요하면 수정
+//
+//        // ApiResponseDTO로 결과 반환
+//        ApiResponseDTO<List<SCHMaterial>> response = ApiResponseDTO.<List<SCHMaterial>>builder()
+//                .status(HttpStatus.OK.value())
+//                .resultMsg(HttpStatus.OK.getReasonPhrase())
+//                .result(scheduledMaterials)
+//                .build();
+//
+//        return ResponseEntity.ok(response);
+//    }
 
 }
