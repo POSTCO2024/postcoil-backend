@@ -77,10 +77,6 @@ public class SchedulingService {
         // TODO: Constraints 추가하기
         List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findByProcessCode(processCode);
 
-        log.info("Here is constraintList=================================");
-        log.info(constraintInsertionList.toString());
-
-
         // 우선순위 적용
         List<ScheduleMaterialsDTO.View> sortedMaterials = applyPriorities(materials, priorities);
 
@@ -264,22 +260,25 @@ public class SchedulingService {
 
                 // thickness 차이가 제약조건을 넘으면 미편성 처리
                 if (thicknessDifference >= thicknessConstraintValue) {
-                    unassignedCoils.add(currentCoil);  // 미편성된 코일을 저장
-                    filteredCoils.remove(i);  // 조건을 위반한 코일을 리스트에서 제거
+                    unassignedCoils.add(currentCoil);
+                    log.info("**************Here is 미편성 {}",currentCoil.getId());
+                    filteredCoils.remove(i);
                     constraintViolated = true;  // 제약조건 위반이 발생했음을 표시
                     break;  // 리스트의 처음부터 다시 검사
                 }
             }
-        } while (constraintViolated);  // 제약조건 위반이 발생할 때까지 반복
+        } while (constraintViolated);  // 제약조건 위반이 없을때까지 반복
 
-        // 미편성된 코일 리스트와 필터된 코일 리스트를 로그로 출력 (원하는 형식으로 출력 가능)
-        System.out.println("미편성된 코일:");
-        for (ScheduleMaterialsDTO.View coil : unassignedCoils) {
+        // 미편성된 코일 리스트와 필터된 코일 리스트
+        System.out.println("미편성된 코일");
+        for (ScheduleMaterialsDTO.View unAssignedCoil : unassignedCoils) {
+            System.out.println("ID: " + unAssignedCoil.getId() + ", Thickness: " + unAssignedCoil.getGoalThickness());
+        }
+        System.out.println("편성된 코일들");
+        for (ScheduleMaterialsDTO.View coil : filteredCoils) {
             System.out.println("ID: " + coil.getId() + ", Thickness: " + coil.getGoalThickness());
         }
-
-        // 필요한 경우 미편성된 코일을 반환하거나 다른 처리 수행 가능
-        // 이 예시에서는 필터된 코일 리스트를 반환
+        // 필터링된 코일들 반환
         return filteredCoils;
     }
 

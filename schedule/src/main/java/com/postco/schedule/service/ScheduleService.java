@@ -65,27 +65,40 @@ public class ScheduleService {
     public List<ScheduleMaterials> createScheduleWithMaterials(List<Long> materialIds, String processCode) {
         System.out.println("createScheduleWithMaterials 메서드 실행 시작");
         List<ScheduleMaterials> allScheduledMaterials = new ArrayList<>();
-
         // Step 1: materialIds에 해당하는 ScheduleMaterials 조회
         List<ScheduleMaterials> materials = scheduleMaterialsRepository.findAllById(materialIds);
-
         // Step 2: rollUnitName별로 materialIds를 그룹화
         Map<String, List<ScheduleMaterials>> materialsGroupedByRollUnitName = materials.stream()
                 .collect(Collectors.groupingBy(
-                        ScheduleMaterials::getRollUnitName,  // rollUnitName으로 그룹화
+                        ScheduleMaterials::getOpCode,  // rollUnitName으로 그룹화 -> rollUnitName 일단 null이라서 로직 돌리기 위해 코일타입으로 바꿔놓음
                         Collectors.toList() // 각 그룹에 속하는 material의 id만 추출
                 ));
 
         log.info("Materials grouped by rollUnitName: {}", materialsGroupedByRollUnitName);
 
+//        for (Map.Entry<String, List<ScheduleMaterials>> entry : materialsGroupedByRollUnitName.entrySet()) {
+//            String rollUnitName = entry.getKey();
+//            List<ScheduleMaterials> groupedMaterials = entry.getValue();
+//
+//            log.info("Executing planSchedule for rollUnitName: {} with materialIds: {}", rollUnitName, groupedMaterials.stream().map(ScheduleMaterials::getId).collect(Collectors.toList()));
+//
+//            // rollUnitName별로 planSchedule 호출
+//            List<ScheduleMaterialsDTO.View> scheduledMaterials = schedulingService.planSchedule(MapperUtils.mapList(groupedMaterials, ScheduleMaterialsDTO.View.class), processCode);
+//
+//            log.info("Materials after scheduling: {}", scheduledMaterials);
         for (Map.Entry<String, List<ScheduleMaterials>> entry : materialsGroupedByRollUnitName.entrySet()) {
             String rollUnitName = entry.getKey();
             List<ScheduleMaterials> groupedMaterials = entry.getValue();
 
             log.info("Executing planSchedule for rollUnitName: {} with materialIds: {}", rollUnitName, groupedMaterials.stream().map(ScheduleMaterials::getId).collect(Collectors.toList()));
 
-            // rollUnitName별로 planSchedule 호출
-            List<ScheduleMaterialsDTO.View> scheduledMaterials = schedulingService.planSchedule(MapperUtils.mapList(groupedMaterials, ScheduleMaterialsDTO.View.class), processCode);
+            // ScheduleMaterials의 id를 추출하여 List<Long>으로 변환
+            List<Long> materialId = groupedMaterials.stream()
+                    .map(ScheduleMaterials::getId) // ScheduleMaterials에서 id 추출
+                    .collect(Collectors.toList());
+
+            // planSchedule 호출 시 List<Long>을 전달
+            List<ScheduleMaterialsDTO.View> scheduledMaterials = schedulingService.planSchedule(materialId, processCode);
 
             log.info("Materials after scheduling: {}", scheduledMaterials);
 
