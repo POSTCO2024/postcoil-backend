@@ -3,16 +3,15 @@ package com.postco.schedule.presentation.test;
 import com.postco.core.dto.ApiResponseDTO;
 import com.postco.schedule.domain.edit.SCHMaterial;
 import com.postco.schedule.domain.edit.SCHPlan;
+import com.postco.schedule.service.impl.test.TestPlanAfterWorkServiceImpl;
+import com.postco.schedule.service.impl.test.TestScheduleConfirmServiceImpl;
 import com.postco.schedule.service.impl.test.TestSchedulePlanServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +23,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TestController {
     private final TestSchedulePlanServiceImpl schedulePlanService;
+    private final TestPlanAfterWorkServiceImpl testPlanAfterWorkService;
+    private final TestScheduleConfirmServiceImpl testScheduleConfirmService;
 
     /**
      * 스케줄링을 진행하고 저장하는 메서드
@@ -68,22 +69,37 @@ public class TestController {
         return ResponseEntity.ok(response);
     }
 
-//    /**
-//     * 스케줄링만 진행하는 메서드 (저장 없이 스케줄 결과만 반환)
-//     */
-//    @GetMapping("/doSCH")
-//    public ResponseEntity<ApiResponseDTO<List<SCHMaterial>>> executeScheduling() {
-//        // 스케줄링 실행 후 결과 받기 (저장 없이)
-//        List<SCHMaterial> scheduledMaterials = schedulePlanService.getScheduleMaterials();  // 혹은 스케줄링 적용 로직이 필요하면 수정
-//
-//        // ApiResponseDTO로 결과 반환
-//        ApiResponseDTO<List<SCHMaterial>> response = ApiResponseDTO.<List<SCHMaterial>>builder()
-//                .status(HttpStatus.OK.value())
-//                .resultMsg(HttpStatus.OK.getReasonPhrase())
-//                .result(scheduledMaterials)
-//                .build();
-//
-//        return ResponseEntity.ok(response);
-//    }
+    /**
+     * 시퀀스 변경 및 스케쥴 확정
+     */
+    @PostMapping("/confirm")
+    public ResponseEntity<ApiResponseDTO<Boolean>> confirmSchedule(@RequestBody SCHForm schForm) {
+        log.info("스케줄 확정 요청. 스케줄 ID: {}", schForm.getPlanId());
+
+        // 스케줄 확정 및 재료 순서 업데이트
+        boolean result = testPlanAfterWorkService.confirmScheduleWithNewMaterials(schForm);
+
+        ApiResponseDTO<Boolean> response = ApiResponseDTO.<Boolean>builder()
+                .status(HttpStatus.OK.value())
+                .resultMsg(HttpStatus.OK.getReasonPhrase())
+                .result(result)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/confirmed-results")
+    public ResponseEntity<ApiResponseDTO<List<SCHConfirmDTO.View>>> getConfirmedSchedules() {
+
+        List<SCHConfirmDTO.View> confirmedSchedules = testScheduleConfirmService.getAllConfirmedSchedules();
+
+        ApiResponseDTO<List<SCHConfirmDTO.View>> response = ApiResponseDTO.<List<SCHConfirmDTO.View>>builder()
+                .status(HttpStatus.OK.value())
+                .resultMsg(HttpStatus.OK.getReasonPhrase())
+                .result(confirmedSchedules)
+                .build();
+
+        return ResponseEntity.ok(response);
+    }
 
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +70,7 @@ public class TestPlanAfterWorkServiceImpl {
                     );
 
             // 3. 확정 DB 저장에 저장.
-            SCHConfirm schConfirm = createAndSaveConfirm(schPlan, confirmBy);
+            SCHConfirm schConfirm = saveScheduleConfirm(schPlan, confirmBy);
             log.info("스케줄 확정 정보 저장 완료. 확정 ID: {}", schConfirm.getId());
 
             // 4. 히스토리 추가
@@ -110,7 +111,7 @@ public class TestPlanAfterWorkServiceImpl {
     }
 
     // step 2. 스케쥴 확정 DB 저장
-    private SCHConfirm createAndSaveConfirm(SCHPlan schPlan, String confirmBy) {
+    private SCHConfirm saveScheduleConfirm(SCHPlan schPlan, String confirmBy) {
         log.info("스케줄 확정 정보 생성 및 저장 시작. 스케줄 ID: {}", schPlan.getId());
 
         SCHConfirm schConfirm = SCHConfirm.builder()
@@ -120,6 +121,7 @@ public class TestPlanAfterWorkServiceImpl {
                 .scExpectedDuration(schPlan.getScExpectedDuration())
                 .quantity(schPlan.getQuantity())
                 .confirmedBy(confirmBy)
+                .confirmDate(LocalDateTime.now())
                 .workStatus(WorkStatus.PENDING)
                 .build();
 
@@ -146,6 +148,7 @@ public class TestPlanAfterWorkServiceImpl {
                 .columnName(columnName)
                 .oldValue(oldValue)
                 .newValue(newValue)
+                .changedAt(LocalDateTime.now())
                 .changedBy(changedBy)
                 .build();
     }
