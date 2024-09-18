@@ -1,14 +1,13 @@
 package com.postco.schedule.domain.edit;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.postco.core.entity.BaseEntity;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
 
 @Entity
 @Table(name = "test_sch_plan")
@@ -32,7 +31,12 @@ public class SCHPlan {
     @OneToMany(mappedBy = "schPlan")
     private List<SCHMaterial> materials = new ArrayList<>();
 
-    // 연관관계 메서드
+    // ========= 연관관계 메서드 ===========
+    // 1. 스케쥴 확정 시, 업데이트 메서드
+    public void confirmSchedule() {
+        this.isConfirmed = "Y";
+    }
+
     public void addMaterial(SCHMaterial material) {
         materials.add(material);
         material.setSchPlan(this);

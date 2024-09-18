@@ -17,22 +17,22 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @MappedSuperclass
-@SuperBuilder
-@NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity {
 
     @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createTime;
+    @Column(updatable = false, nullable = false)
+    private LocalDateTime createdAt;    // 생성 시간
 
     @LastModifiedDate
-    private LocalDateTime lastUpdateTime;
+    private LocalDateTime updatedAt;    // 업데이트 시간
 
     @CreatedBy
-    private String createProgramId;
+    @Column(updatable = false)
+    private String createdPgId;         // 생성 프로그램 Id
 
     @LastModifiedBy
-    private String lastUpdateProgramId;
+    private String updatedPgId;        // 업데이트 프로그램 Id
 }

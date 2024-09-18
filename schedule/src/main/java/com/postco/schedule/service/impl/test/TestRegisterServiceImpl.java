@@ -2,6 +2,7 @@ package com.postco.schedule.service.impl.test;
 
 import com.postco.core.dto.*;
 import com.postco.schedule.domain.edit.SCHMaterial;
+import com.postco.schedule.domain.edit.WorkStatus;
 import com.postco.schedule.domain.edit.repo.SCHMaterialRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,7 @@ public class TestRegisterServiceImpl {
                 .thickness(material.getThickness())
                 .isScheduled("N")
                 .sequence(0)
+                .workStatus(WorkStatus.PENDING)
                 .isRejected("N")
                 .expectedDuration(expectedDuration)
                 .build();

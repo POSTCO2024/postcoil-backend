@@ -16,7 +16,6 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = {"order"})
-@SuperBuilder
 public class Materials extends BaseEntity implements com.postco.core.entity.Entity, Serializable  {
     @Id
     @GeneratedValue
