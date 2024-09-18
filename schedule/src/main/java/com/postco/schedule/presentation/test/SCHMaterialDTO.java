@@ -22,4 +22,5 @@ public class SCHMaterialDTO implements DTO {
     private int sequence;
     private String isRejected;
     private Long expectedDuration;
+    private String workStatus;
 }

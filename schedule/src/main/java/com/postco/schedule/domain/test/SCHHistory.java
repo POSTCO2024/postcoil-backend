@@ -1,4 +1,4 @@
-package com.postco.schedule.domain.edit;
+package com.postco.schedule.domain.test;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

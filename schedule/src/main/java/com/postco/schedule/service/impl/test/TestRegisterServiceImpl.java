@@ -1,9 +1,9 @@
 package com.postco.schedule.service.impl.test;
 
 import com.postco.core.dto.*;
-import com.postco.schedule.domain.edit.SCHMaterial;
-import com.postco.schedule.domain.edit.WorkStatus;
-import com.postco.schedule.domain.edit.repo.SCHMaterialRepository;
+import com.postco.schedule.domain.test.SCHMaterial;
+import com.postco.schedule.domain.test.WorkStatus;
+import com.postco.schedule.domain.test.repo.SCHMaterialRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

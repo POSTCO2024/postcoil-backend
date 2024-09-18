@@ -1,4 +1,4 @@
-package com.postco.schedule.domain.edit;
+package com.postco.schedule.domain.test;
 
 public enum WorkStatus {
     PENDING,      // 작업 대기 중

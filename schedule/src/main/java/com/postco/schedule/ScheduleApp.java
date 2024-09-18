@@ -3,6 +3,7 @@ package com.postco.schedule;
 import com.postco.core.config.RedisConfig;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
+import org.modelmapper.ModelMapper;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,5 +27,10 @@ public class ScheduleApp {
                 .group("schedule")
                 .pathsToMatch("/api/**")
                 .build();
+    }
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
     }
 }

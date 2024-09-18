@@ -1,6 +1,5 @@
-package com.postco.schedule.domain.edit;
+package com.postco.schedule.domain.test;
 
-import com.postco.core.entity.BaseEntity;
 import lombok.*;
 
 import javax.persistence.*;

@@ -1,9 +1,9 @@
 package com.postco.schedule.service.impl.test;
 
-import com.postco.schedule.domain.edit.SCHMaterial;
-import com.postco.schedule.domain.edit.SCHPlan;
-import com.postco.schedule.domain.edit.repo.SCHMaterialRepository;
-import com.postco.schedule.domain.edit.repo.SCHPlanRepository;
+import com.postco.schedule.domain.test.SCHMaterial;
+import com.postco.schedule.domain.test.SCHPlan;
+import com.postco.schedule.domain.test.repo.SCHMaterialRepository;
+import com.postco.schedule.domain.test.repo.SCHPlanRepository;
 import com.postco.schedule.presentation.test.SCHPlanDTO;
 import com.postco.schedule.service.SchedulingService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +29,7 @@ public class TestSchedulePlanServiceImpl {
     private final SCHMaterialRepository schMaterialRepository;
     private final SchedulingService schedulingService;
     private final SCHPlanRepository schPlanRepository;
+    private final ModelMapper modelMapper;
 
     /**
      * 스케줄링 및 저장을 한번에 진행하는 메서드
@@ -147,7 +147,6 @@ public class TestSchedulePlanServiceImpl {
     // 모든 스케쥴 결과 조회
     public List<SCHPlanDTO.View> getAllScheduleResults() {
         List<SCHPlan> plans = schPlanRepository.findAll();
-        ModelMapper modelMapper = new ModelMapper();
 
         // List<SCHPlanDTO.View>로 변환 후 반환
         return plans.stream()

@@ -1,9 +1,7 @@
 package com.postco.schedule.service;
 
-import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.schedule.domain.PriorityApplyMethod;
-import com.postco.schedule.domain.ScheduleMaterials;
-import com.postco.schedule.domain.edit.SCHMaterial;
+import com.postco.schedule.domain.test.SCHMaterial;
 import com.postco.schedule.domain.repository.ScheduleMaterialsRepository;
 import com.postco.schedule.presentation.dto.PriorityDTO;
 import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
@@ -29,7 +27,6 @@ public class SchedulingService {
     private final double STANDARD_WIDTH = 50;
 
     // *************** 임의로 수정한 스케쥴링 진행 호출 메서드 ************
-    // yerim kim 기준, 스케쥴 대상재에 CAL 공정만 애초에 저장해서 공정 파라미터를 없앴음.
     // 테스트 용. 폭 기준 내림차순 함수만 가지고 적용 예정 ( 대충 전체 스케쥴링 메서드라고 가정)
     public List<SCHMaterial> testPlanSchedule(List<SCHMaterial> materials, String processCode) {
         // 현재 저장된 우선순위 없음 -> 패스

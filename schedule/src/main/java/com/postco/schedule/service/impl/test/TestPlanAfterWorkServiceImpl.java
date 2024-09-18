@@ -1,10 +1,10 @@
 package com.postco.schedule.service.impl.test;
 
-import com.postco.schedule.domain.edit.*;
-import com.postco.schedule.domain.edit.repo.SCHConfirmRepository;
-import com.postco.schedule.domain.edit.repo.SCHHistoryRepository;
-import com.postco.schedule.domain.edit.repo.SCHMaterialRepository;
-import com.postco.schedule.domain.edit.repo.SCHPlanRepository;
+import com.postco.schedule.domain.test.*;
+import com.postco.schedule.domain.test.repo.SCHConfirmRepository;
+import com.postco.schedule.domain.test.repo.SCHHistoryRepository;
+import com.postco.schedule.domain.test.repo.SCHMaterialRepository;
+import com.postco.schedule.domain.test.repo.SCHPlanRepository;
 import com.postco.schedule.presentation.test.SCHForm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
