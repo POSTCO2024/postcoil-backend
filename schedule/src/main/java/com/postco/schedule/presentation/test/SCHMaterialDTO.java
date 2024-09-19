@@ -27,7 +27,6 @@ public class SCHMaterialDTO implements DTO {
     // 추가 필드 - maxbort 2024-09-19
     private double goalWidth;
     private double goalThickness;
-    private String nextProc;
 
     // 추가 필드 - Sohyun Ahn 2024-09-19
     private String materialNo;
