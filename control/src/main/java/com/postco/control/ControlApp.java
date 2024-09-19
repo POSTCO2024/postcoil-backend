@@ -6,6 +6,7 @@ import com.postco.core.dto.TargetMaterialDTO;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -39,6 +40,11 @@ public class ControlApp {
                 .group("control")
                 .pathsToMatch("/api/**")
                 .build();
+    }
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
     }
 
     @Bean
