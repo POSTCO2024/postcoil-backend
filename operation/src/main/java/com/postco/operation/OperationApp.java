@@ -9,11 +9,13 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.AuditorAware;
 
 @SpringBootApplication
+@EnableDiscoveryClient
 @OpenAPIDefinition(info = @Info(title = "Operation API", version = "1.0", description = "Operation Service API"))
 @EntityScan(basePackages = "com.postco.operation.domain.entity")
 @ComponentScan(basePackages = {"com.postco.core", "com.postco.operation"})

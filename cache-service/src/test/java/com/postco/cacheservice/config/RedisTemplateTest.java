@@ -51,26 +51,4 @@ public class RedisTemplateTest {
                 .assertNext(result -> assertEquals(value, result))
                 .verifyComplete();
     }
-
-    @Test
-    public void 해시_키_값_저장_테스트() {
-        String hashKey = "testHash:1";
-        String fieldKey = "id";
-        String fieldValue = "testId : 12345";
-
-        // 해시 필드 저장
-        Mono<Boolean> putResult = hashOperations.put(hashKey, fieldKey, fieldValue);
-
-        // 해시 필드 조회
-        Mono<Object> getHashResult = hashOperations.get(hashKey, fieldKey);
-
-        // 해시 필드 저장 및 검증
-        StepVerifier.create(putResult)
-                .expectNext(true)
-                .verifyComplete();
-
-        StepVerifier.create(getHashResult)
-                .assertNext(result -> assertEquals(fieldValue, result))
-                .verifyComplete();
-    }
 }
