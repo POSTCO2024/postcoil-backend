@@ -4,9 +4,9 @@ import lombok.*;
 
 @Getter
 public class ApiResponseDTO<T> {
-    private int status;
-    private String resultMsg;
-    private T result;
+    private final int status;
+    private final String resultMsg;
+    private final T result;
 
     @Builder
     public ApiResponseDTO(final int status, final String resultMsg, final T result) {

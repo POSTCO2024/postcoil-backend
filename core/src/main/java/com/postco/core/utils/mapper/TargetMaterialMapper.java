@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 public class TargetMaterialMapper {
     public static final ModelMapper modelMapper = new ModelMapper();
+
     static {
         Converter<LocalDateTime, String> localDateTimeToStringConverter = context -> context.getSource() != null
                 ? context.getSource().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
@@ -24,12 +25,8 @@ public class TargetMaterialMapper {
         modelMapper.addMappings(new PropertyMap<MaterialDTO.View, TargetMaterialDTO.Create>() {
             @Override
             protected void configure() {
-                map().setMaterialId(source.getId());
+                map().setMaterialId(source.getId());  // materialId 명시적 매핑
                 map().setMaterialNo(source.getNo());
-                map().setGoalWidth(source.getGoalWidth());
-                map().setGoalThickness(source.getGoalThickness());
-                map().setWeight(source.getWeight());
-                map().setCoilTypeCode(source.getCoilTypeCode());
 
                 // processPlan 매핑 로직
                 using((Converter<MaterialDTO.View, String>) context -> {
@@ -50,6 +47,8 @@ public class TargetMaterialMapper {
             @Override
             protected void configure() {
                 map().setOrderNo(source.getNo());
+                map().setGoalWidth(source.getWidth());
+                map().setGoalThickness(source.getThickness());
                 map().setGoalLength(source.getLength());
                 using(localDateTimeToStringConverter).map(source.getDueDate(), destination.getDueDate());
                 map().setCustomerName(source.getCustomer());
@@ -58,6 +57,7 @@ public class TargetMaterialMapper {
         });
     }
 
+    // MaterialDTO와 OrderDTO를 TargetMaterialDTO.Create로 매핑하는 메서드
     public static TargetMaterialDTO.Create mapToTargetMaterialCreate(MaterialDTO.View material, OrderDTO.View order) {
         TargetMaterialDTO.Create targetMaterialDTO = modelMapper.map(material, TargetMaterialDTO.Create.class);
 

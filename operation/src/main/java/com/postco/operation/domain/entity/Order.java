@@ -1,7 +1,6 @@
 package com.postco.operation.domain.entity;
 import com.postco.core.entity.BaseEntity;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -16,7 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = "materials")
-@SuperBuilder
 public class Order extends BaseEntity implements com.postco.core.entity.Entity, Serializable {
     @Id @GeneratedValue
     @Column(name = "order_id")

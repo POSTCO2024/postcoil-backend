@@ -14,7 +14,7 @@ public enum ErrorFilter {
     MIN_WIDTH("min_width"),
     COIL_TYPE_CODE("coil_type_code"),
     FACTORY_CODE("factory_code"),
-    ORDER_NO("order_no"),
+    ORDER_ID("order_id"),
     REM_PROC("rem_proc");
 
     private final String columnName;

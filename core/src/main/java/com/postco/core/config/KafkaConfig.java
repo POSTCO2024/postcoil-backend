@@ -1,8 +1,9 @@
 package com.postco.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.postco.core.kafka.KafkaMessageStrategy;
 import com.postco.core.kafka.producer.KafkaProducer;
+import com.postco.core.redis.cqrs.command.CommandService;
+import com.postco.core.redis.cqrs.query.QueryService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.common.TopicPartition;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.springframework.util.backoff.FixedBackOff;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
@@ -35,7 +37,6 @@ public class KafkaConfig {
 
     private final KafkaProperties kafkaProperties;
     private final ObjectMapper objectMapper;
-    private final List<KafkaMessageStrategy<?>> messageStrategies;
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
@@ -103,18 +104,4 @@ public class KafkaConfig {
 
         return new DefaultErrorHandler(dlqRecover, new FixedBackOff(0L, 2L)); // 2번 재시도 후 DLQ로 전송
     }
-
-
-//    @Bean
-//    public KafkaConsumerFactory kafkaConsumerFactory() {
-//        return new KafkaConsumerFactory(messageStrategies, objectMapper, kafkaListenerContainerFactory());
-//    }
-//
-//    // 동적 컨슈머 생성을 위한 메서드
-//    @Bean
-//    public List<GenericKafkaConsumer<?>> kafkaConsumers() {
-//        return messageStrategies.stream()
-//                .map(strategy -> kafkaConsumerFactory().createConsumer(strategy.getDataType()))
-//                .collect(Collectors.toList());
-//    }
 }

@@ -1,8 +1,8 @@
 package com.postco.cacheservice.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.postco.core.redis.cqrs.AbstractRedisCommandService;
-import com.postco.core.redis.cqrs.AbstractRedisQueryService;
+import com.postco.core.redis.AbstractRedisCommandService;
+import com.postco.core.redis.AbstractRedisQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

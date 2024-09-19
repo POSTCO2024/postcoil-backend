@@ -93,5 +93,4 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     @Column(name = "sequence", nullable = true)
     @OrderColumn(name = "sequence_order") // Optional: 사용 순서 보존
     private List<Integer> sequence;
-
 }

@@ -54,30 +54,3 @@ public class MaterialConsumer extends GenericKafkaConsumer<MaterialDTO.View> {
         return groupId;
     }
 }
-
-//@Component
-//@RequiredArgsConstructor
-//public class MaterialKafkaConsumer implements KafkaMessageStrategy<MaterialDTO.View> {
-//    private final CommandService<MaterialDTO.View> commandService;
-//    private final ObjectMapper objectMapper;
-//
-//    @Override
-//    public Class<MaterialDTO.View> getDataType() {
-//        return MaterialDTO.View.class;
-//    }
-//
-//    @Override
-//    public Mono<Boolean> processMessage(String message) {
-//        try {
-//            MaterialDTO.View data = objectMapper.readValue(message, MaterialDTO.View.class);
-//            return commandService.saveData(data);
-//        } catch (Exception e) {
-//            return Mono.error(new RuntimeException("Failed to process message", e));
-//        }
-//    }
-//
-//    @Override
-//    public String getTopic() {
-//        return "operation-material-data";
-//    }
-//}

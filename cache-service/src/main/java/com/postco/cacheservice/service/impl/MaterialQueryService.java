@@ -1,8 +1,8 @@
 package com.postco.cacheservice.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.postco.core.redis.cqrs.AbstractRedisQueryService;
 import com.postco.core.dto.MaterialDTO;
+import com.postco.core.redis.AbstractRedisQueryService;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 
