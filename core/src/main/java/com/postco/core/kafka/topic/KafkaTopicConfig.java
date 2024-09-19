@@ -56,4 +56,12 @@ public class KafkaTopicConfig {
                 .replicas(3)
                 .build();
     }
+
+    @Bean
+    public NewTopic getScheduleResultTopic() {
+        return TopicBuilder.name("schedule-confirm-data")
+                .partitions(3)
+                .replicas(3)
+                .build();
+    }
 }

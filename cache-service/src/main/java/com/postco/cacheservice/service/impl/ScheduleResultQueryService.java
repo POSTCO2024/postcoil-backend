@@ -1,25 +1,25 @@
 package com.postco.cacheservice.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.postco.core.dto.MaterialDTO;
+import com.postco.core.dto.ScheduleResultDTO;
 import com.postco.core.redis.AbstractRedisQueryService;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MaterialQueryService extends AbstractRedisQueryService<MaterialDTO.View> {
-    public MaterialQueryService(ReactiveRedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
+public class ScheduleResultQueryService extends AbstractRedisQueryService<ScheduleResultDTO.View> {
+    public ScheduleResultQueryService(ReactiveRedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
         super(redisTemplate, objectMapper);
     }
 
     @Override
     protected String getKeyPrefix() {
-        return "material:";
+        return "schedule:";
     }
 
     @Override
-    protected Class<MaterialDTO.View> getEntityClass() {
-        return MaterialDTO.View.class;
+    protected Class<ScheduleResultDTO.View> getEntityClass() {
+        return ScheduleResultDTO.View.class;
     }
 
     @Override
