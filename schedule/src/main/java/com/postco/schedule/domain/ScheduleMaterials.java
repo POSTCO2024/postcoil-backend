@@ -18,6 +18,7 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // IDENTITY 전략을 사용해 자동 증가 설정
+    @Column(name ="material_id")
     private Long id;
 
     @Column(name="material_no")
@@ -89,7 +90,7 @@ public class ScheduleMaterials implements com.postco.core.entity.Entity, Seriali
     private Long expectedItemDuration;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "id"))
+    @CollectionTable(name = "material_sequences", joinColumns = @JoinColumn(name = "material_id"))
     @Column(name = "sequence", nullable = true)
     @OrderColumn(name = "sequence_order") // Optional: 사용 순서 보존
     private List<Integer> sequence;

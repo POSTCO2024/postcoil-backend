@@ -1,8 +1,10 @@
 package com.postco.schedule.service;
 
+import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.schedule.domain.PriorityApplyMethod;
 import com.postco.schedule.domain.test.SCHMaterial;
 import com.postco.schedule.domain.repository.ScheduleMaterialsRepository;
+import com.postco.schedule.presentation.dto.ConstraintInsertionDTO;
 import com.postco.schedule.presentation.dto.PriorityDTO;
 import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +33,9 @@ public class SchedulingService {
     public List<SCHMaterial> testPlanSchedule(List<SCHMaterial> materials, String processCode) {
         // 현재 저장된 우선순위 없음 -> 패스
         List<PriorityDTO> priorities = priorityService.findAllByProcessCode(processCode);
-
+        for(SCHMaterial a :  materials){
+            System.out.println(a);
+        }
         // 우선순위 적용
         List<SCHMaterial> sortedMaterials = testApplyPriorities(materials, priorities);
 
@@ -61,13 +65,22 @@ public class SchedulingService {
                 .collect(Collectors.toList());
     }
 
+
+
     // *****************************************************************//
 
 
 
     //* 스케줄링로직~! */
-    public List<ScheduleMaterialsDTO.View> planSchedule(List<ScheduleMaterialsDTO.View> materials, String processCode) {
+    public List<ScheduleMaterialsDTO.View> planSchedule(List<Long> materialIds, String processCode) {
+        // TODO: Redis Cache-server에서 List<ScheduleMaterialsDTO.Target>로 materialIds에 해당하는 재료들 불러오기
+        //  scheduleMaterialsRepository.findAllById(materialIds) -> (cache에서 가져 온) materials로 변경
+
+
+        List<ScheduleMaterialsDTO.View> materials = MapperUtils.mapList(scheduleMaterialsRepository.findAllById(materialIds), ScheduleMaterialsDTO.View.class); // 나중에 삭제하기
         List<PriorityDTO> priorities = priorityService.findAllByProcessCode(processCode);
+        // TODO: Constraints 추가하기
+        List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findByProcessCode(processCode);
 
         // 우선순위 적용
         List<ScheduleMaterialsDTO.View> sortedMaterials = applyPriorities(materials, priorities);
@@ -77,7 +90,11 @@ public class SchedulingService {
             sortedMaterials.get(i).setSequence(Collections.singletonList(i + 1));
         }
 
-        return sortedMaterials;
+        // 제약 조건 적용 후 미편성 처리
+        List<ScheduleMaterialsDTO.View> filteredCoils = applyConstraintToCoils(sortedMaterials, constraintInsertionList);
+
+
+        return filteredCoils;
     }
 
     // 폭 기준 내림차순 함수
@@ -115,15 +132,15 @@ public class SchedulingService {
             }
         }
         coilGroups.add(currentCoilGroup);
-
-        for(List<ScheduleMaterialsDTO.View> value : coilGroups) {
-            // 각 그룹의 goalWidth 값을 추출하여 출력
-            String goalWidths = value.stream()
-                    .map(coil -> String.valueOf(coil.getGoalWidth()))  // 각 View 객체에서 goalWidth 추출
-                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-
-
-        }
+//
+//        for(List<ScheduleMaterialsDTO.View> value : coilGroups) {
+//            // 각 그룹의 goalWidth 값을 추출하여 출력
+//            String goalWidths = value.stream()
+//                    .map(coil -> String.valueOf(coil.getGoalWidth()))  // 각 View 객체에서 goalWidth 추출
+//                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+//
+//
+//        }
 
         return coilGroups;
     }
@@ -139,14 +156,15 @@ public class SchedulingService {
                         .sorted(Comparator.comparingDouble(ScheduleMaterialsDTO.View::getThickness))
                         .collect(Collectors.toList())
                 ).collect(Collectors.toList());
-        for(List<ScheduleMaterialsDTO.View> value : result) {
-            // 각 그룹의 goalWidth 값을 추출하여 출력
-            String goalWidths = value.stream()
-                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
-                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-
-
-        }
+//
+//        for(List<ScheduleMaterialsDTO.View> value : result) {
+//            // 각 그룹의 goalWidth 값을 추출하여 출력
+//            String goalWidths = value.stream()
+//                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
+//                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+//
+//
+//        }
 
 
         return result;
@@ -186,19 +204,88 @@ public class SchedulingService {
 
             optimizedGroups.add(optimizedGroup);
         }
+//
+//        for(List<ScheduleMaterialsDTO.View> value : optimizedGroups) {
+//            // 각 그룹의 goalWidth 값을 추출하여 출력
+//            String goalWidths = value.stream()
+//                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
+//                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+//
+//        }
 
-        for(List<ScheduleMaterialsDTO.View> value : optimizedGroups) {
-            // 각 그룹의 goalWidth 값을 추출하여 출력
-            String goalWidths = value.stream()
-                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
-                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-
-        }
+//        for(List<ScheduleMaterialsDTO.View> value : optimizedGroups) {
+//            // 각 그룹의 goalWidth 값을 추출하여 출력
+//            String goalWidths = value.stream()
+//                    .map(coil -> String.valueOf(coil.getGoalThickness()))  // 각 View 객체에서 goalWidth 추출
+//                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+//
+//            log.info("The Group goalWidths: {}", goalWidths);
+//            log.info("======================================");
+//        }
 
 
         return optimizedGroups;
     }
 
+    // 제약조건에 맞춰 미편성 처리
+    private List<ScheduleMaterialsDTO.View> applyConstraintToCoils(List<ScheduleMaterialsDTO.View> coils, List<ConstraintInsertionDTO> constraintInsertionList) {
+        // 미편성된 코일을 저장할 리스트
+        List<ScheduleMaterialsDTO.View> unassignedCoils = new ArrayList<>();
+
+        // thickness 제약조건을 추출
+        Double thicknessConstraintValue = null;
+        for (ConstraintInsertionDTO constraint : constraintInsertionList) {
+            if ("thickness".equals(constraint.getTargetColumn()) && "CONSTRAINT".equals(constraint.getType())) {
+                thicknessConstraintValue = Double.valueOf(constraint.getTargetValue());
+                break;
+            }
+        }
+
+        // 제약조건이 없으면 바로 반환
+        if (thicknessConstraintValue == null) {
+            return coils;  // 제약조건이 없으면 아무것도 처리하지 않고 원래 리스트 반환
+        }
+
+        // 처리된 코일을 저장할 리스트
+        List<ScheduleMaterialsDTO.View> filteredCoils = new ArrayList<>(coils); // 처음엔 전체 리스트 복사
+
+        boolean constraintViolated;
+
+        // 리스트를 계속해서 처음부터 순회하여 제약조건 위반 코일 제거
+        do {
+            constraintViolated = false;  // 매 순회마다 초기화
+
+            // 인접한 코일을 순회하면서 thickness 차이 확인
+            for (int i = 1; i < filteredCoils.size(); i++) {
+                ScheduleMaterialsDTO.View previousCoil = filteredCoils.get(i - 1);
+                ScheduleMaterialsDTO.View currentCoil = filteredCoils.get(i);
+
+                // 두 코일의 thickness 차이를 확인
+                double thicknessDifference = Math.abs(previousCoil.getGoalThickness() - currentCoil.getGoalThickness());
+
+                // thickness 차이가 제약조건을 넘으면 미편성 처리
+                if (thicknessDifference >= thicknessConstraintValue) {
+                    unassignedCoils.add(currentCoil);
+                    log.info("**************Here is 미편성 {}",currentCoil.getId());
+                    filteredCoils.remove(i);
+                    constraintViolated = true;  // 제약조건 위반이 발생했음을 표시
+                    break;  // 리스트의 처음부터 다시 검사
+                }
+            }
+        } while (constraintViolated);  // 제약조건 위반이 없을때까지 반복
+
+        // 미편성된 코일 리스트와 필터된 코일 리스트
+        System.out.println("미편성된 코일");
+        for (ScheduleMaterialsDTO.View unAssignedCoil : unassignedCoils) {
+            System.out.println("ID: " + unAssignedCoil.getId() + ", Thickness: " + unAssignedCoil.getGoalThickness());
+        }
+        System.out.println("편성된 코일들");
+        for (ScheduleMaterialsDTO.View coil : filteredCoils) {
+            System.out.println("ID: " + coil.getId() + ", Thickness: " + coil.getGoalThickness());
+        }
+        // 필터링된 코일들 반환
+        return filteredCoils;
+    }
 
 
     private List<ScheduleMaterialsDTO.View> applyPriorities(List<ScheduleMaterialsDTO.View> materials,
@@ -251,6 +338,8 @@ public class SchedulingService {
                     throw new IllegalArgumentException("Unknown PriorityApplyMethod: " + method);
             }
 
+            // Print the current state after applying the priority
+            //printCurrentState(sortedMaterials, "After applying priority: " + priority.getPriorityOrder());
         }
 
         return prioritizedMaterials;
@@ -320,11 +409,29 @@ public class SchedulingService {
         }
     }
 
+    // TODO : Cache-Server 에서 설비 가져오기!
+    public List<ScheduleMaterialsDTO.View> insertMaterialsWithWorkTime(List<ScheduleMaterialsDTO.View> materials) {
+
+        for (ScheduleMaterialsDTO.View material : materials) {
+            // 작업 시간 계산
+            Long workTime = calculateWorkTime(material.getGoalLength(), material.getGoalThickness(),
+                    material.getGoalWidth(), material.getTotalWeight());
+            //material.setWorkTime(workTime);
+        }
+
+        return materials;
+    }
+
+    // 작업 시간 계산 메서드
+    // TODO: TH 설비로 계산하기
+    private Long calculateWorkTime(double goalLength, double goalThickness, double goalWidth, double totalWeight) {
+        return  (long) ((goalLength * goalThickness * goalWidth) / totalWeight);
+    }
     private void printCurrentState(List<ScheduleMaterialsDTO.View> materials, String message) {
         log.info(message);
         for (ScheduleMaterialsDTO.View material : materials) {
             log.info("ID: {}, Goal Width: {}, Thickness: {}, Temperature: {}, CoilTypeCode: {}",
-                    material.getId(), material.getGoalWidth(), material.getThickness(), material.getTemperature(), material.getCoilTypeCode());
+                    material.getId(), material.getGoalWidth(), material.getGoalThickness(), material.getTemperature(), material.getCoilTypeCode());
 
         }
     }

@@ -15,6 +15,10 @@ public class ConstraintInsertionService {
     private final ConstraintInsertionRepository constraintInsertionRepository;
 
     public List<ConstraintInsertionDTO> findAllByProcessCodeAndRollUnit(String processCode, String rollUnit) {
-    return MapperUtils.mapList(constraintInsertionRepository.findByProcessCodeAndRollUnit(processCode, rollUnit), ConstraintInsertionDTO.class);
+        return MapperUtils.mapList(constraintInsertionRepository.findByProcessCodeAndRollUnit(processCode, rollUnit), ConstraintInsertionDTO.class);
+    }
+
+    public List<ConstraintInsertionDTO> findByProcessCode(String processCode){
+        return MapperUtils.mapList(constraintInsertionRepository.findByProcessCode(processCode), ConstraintInsertionDTO.class);
     }
 }

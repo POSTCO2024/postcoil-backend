@@ -1,5 +1,6 @@
 package com.postco.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ public class MaterialDTO {
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true) // error 수정 - maxbort 2024-09-19
     public static class View implements DTO {
         private Long id;
         private String no;

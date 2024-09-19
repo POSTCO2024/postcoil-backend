@@ -15,7 +15,9 @@ public enum ErrorFilter {
     COIL_TYPE_CODE("coil_type_code"),
     FACTORY_CODE("factory_code"),
     ORDER_ID("order_id"),
-    REM_PROC("rem_proc");
+    REM_PROC("rem_proc"),
+    ORDER_NO("order_no"); // 빠진 필터 기준 추가 - maxbort 2024-09-19
+
 
     private final String columnName;
 
