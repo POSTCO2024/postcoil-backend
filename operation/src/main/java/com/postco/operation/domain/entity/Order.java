@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@Builder
 @Entity
 @Table(name = "orders")
 @Getter
@@ -45,7 +46,6 @@ public class Order extends BaseEntity implements com.postco.core.entity.Entity, 
     private String remarks;
 
     @OneToMany(mappedBy = "order")
-    @Builder.Default
     private List<Materials> materials = new ArrayList<>();
 
     public void addMaterial(Materials material) {
