@@ -1,5 +1,6 @@
 package com.postco.schedule.service;
 
+import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.schedule.domain.PriorityApplyMethod;
 import com.postco.schedule.domain.test.SCHMaterial;
 import com.postco.schedule.domain.repository.ScheduleMaterialsRepository;
@@ -32,7 +33,9 @@ public class SchedulingService {
     public List<SCHMaterial> testPlanSchedule(List<SCHMaterial> materials, String processCode) {
         // 현재 저장된 우선순위 없음 -> 패스
         List<PriorityDTO> priorities = priorityService.findAllByProcessCode(processCode);
-
+        for(SCHMaterial a :  materials){
+            System.out.println(a);
+        }
         // 우선순위 적용
         List<SCHMaterial> sortedMaterials = testApplyPriorities(materials, priorities);
 
@@ -61,6 +64,8 @@ public class SchedulingService {
                 .sorted(Comparator.comparingDouble(SCHMaterial::getWidth).reversed())
                 .collect(Collectors.toList());
     }
+
+
 
     // *****************************************************************//
 

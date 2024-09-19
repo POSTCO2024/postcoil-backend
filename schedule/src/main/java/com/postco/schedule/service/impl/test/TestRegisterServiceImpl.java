@@ -45,12 +45,17 @@ public class TestRegisterServiceImpl {
     // < SCHMaterial 매퍼>  : 임시 스케쥴 대상재 클래스에 대한 매퍼로,
     //                       매퍼 클래스를 따로 두거나 리팩토링 하면 좋음.
     //                       일단 급하니 빌더로 만들어 봤습니다. 스케쥴 매퍼는 별로 안길어서 그냥 사용해도 될 듯.
-    private SCHMaterial convertToSCHMaterial(TargetMaterialDTO.View targetMaterial, Map<Long, MaterialDTO.View> materialMap, Map<String, EquipmentInfoDTO.View> equipmentMap) {
+    private SCHMaterial convertToSCHMaterial(TargetMaterialDTO.View targetMaterial,
+                                             Map<Long, MaterialDTO.View> materialMap,
+                                             Map<String, EquipmentInfoDTO.View> equipmentMap
+                                             ) {
         // targetMaterialId를 기반으로 해당 재료 정보 찾기
         MaterialDTO.View material = materialMap.get(targetMaterial.getMaterialId());  // Long -> String 변환
         if (material == null) {
             throw new RuntimeException("해당 재료 정보를 찾을 수 없습니다: " + targetMaterial.getMaterialId());
         }
+
+        log.info("goalWidth: {}, goalThickness: {}, nextProc: {}", targetMaterial.getGoalWidth(), targetMaterial.getGoalThickness(), material.getNextProc());
 
         // 재료의 현공정 값 가져오기 (currProc)
         String currProc = material.getCurrProc();
@@ -69,6 +74,11 @@ public class TestRegisterServiceImpl {
                 .temperature(material.getTemperature())
                 .width(material.getWidth())
                 .thickness(material.getThickness())
+                // 여기부터
+                .goalWidth(targetMaterial.getGoalWidth())
+                .goalThickness(targetMaterial.getGoalThickness())
+                .nextProc(material.getNextProc())
+                // 여기까지 추가 maxbort 2024-09-19
                 .isScheduled("N")
                 .sequence(0)
                 .workStatus(WorkStatus.PENDING)
@@ -84,6 +94,7 @@ public class TestRegisterServiceImpl {
         //    이제 material.getId()를 그대로 사용하여 Long 타입의 키를 유지합니다.
         Map<Long, MaterialDTO.View> materialMap = container.getMaterials().stream()
                 .collect(Collectors.toMap(MaterialDTO.View::getId, material -> material));
+
 
         // 2. 설비 정보를 캐싱하여 eqCode 기준으로 빠르게 검색할 수 있도록 Map<String, EquipmentInfoDTO.View>로 변환.
         Map<String, EquipmentInfoDTO.View> equipmentMap = equipmentData.getEquipmentInfo().stream()

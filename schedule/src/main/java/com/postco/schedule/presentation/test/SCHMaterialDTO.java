@@ -23,4 +23,9 @@ public class SCHMaterialDTO implements DTO {
     private String isRejected;
     private Long expectedDuration;
     private String workStatus;
+
+    // 추가 필드 - maxbort 2024-09-19
+    private double goalWidth;
+    private double goalThickness;
+
 }

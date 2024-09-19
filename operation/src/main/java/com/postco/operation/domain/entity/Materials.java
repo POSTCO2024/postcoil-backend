@@ -56,6 +56,7 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
 
     private double weight;
 
+    @Column(name = "temperature", columnDefinition = "double default 0") // temparture nullable 피하기 위해 default 값 추가 - maxbort 2024-09-19
     private double temperature;
 
     @Column(name = "total_weight")
