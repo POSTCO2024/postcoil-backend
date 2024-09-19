@@ -7,12 +7,17 @@ import com.postco.schedule.domain.SchedulePlan;
 import com.postco.schedule.domain.repository.ScheduleMaterialsRepository;
 import com.postco.schedule.domain.repository.SchedulePlanRepository;
 import com.postco.schedule.domain.repository.ScheduleConfirmRepository;
+import com.postco.schedule.domain.test.SCHMaterial;
+import com.postco.schedule.domain.test.repo.SCHMaterialRepository;
+import com.postco.schedule.domain.test.repo.SCHPlanRepository;
 import com.postco.schedule.presentation.dto.CompositeMaterialDTO;
+import com.postco.schedule.presentation.test.SCHMaterialDTO;
 import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
 import com.postco.schedule.presentation.dto.ScheduleResultDTO;
 import com.postco.schedule.service.mapper.ScheduleMaterialsMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,8 +49,12 @@ public class ScheduleService {
     @Autowired
     private DataInsertService dataInsertService;
 
+    private final SCHMaterialRepository schMaterialRepository;
+    private final SCHPlanRepository schPlanRepository;
+    private final ModelMapper modelMapper;
+
     // GET : fs001 Request
-    public List<ScheduleMaterialsDTO.View> findMaterialsByProcessCode(String processCode) {
+    public List<SCHMaterialDTO> findMaterialsByProcessCode(String processCode) {
         // TODO (Yerim): Redis에서 targetId 존재, scheduleId가 비존재 && processCode == currProc(1CAL or 2CAL) 인 데이터를 가져오기
         // List<CompositeMaterialDTO.Target> targets = redis로 받기
         // List<ScheduleMaterialsDTO.View> scheduleMaterials =  ScheduleMaterialsMapper.mapTargetToView(targets);
@@ -56,8 +65,11 @@ public class ScheduleService {
         // return MapperUtils.mapList(currentScheduledMaterials, ScheduleMaterialsDTO.View.class);
 
         // TODO: redis로 가져오면, 삭제하기!
-        List<ScheduleMaterials> scheduleMaterials = scheduleMaterialsRepository.findAllByCurrProc(processCode);
-        return MapperUtils.mapList(scheduleMaterials, ScheduleMaterialsDTO.View.class);
+        //List<ScheduleMaterials> scheduleMaterials = scheduleMaterialsRepository.findAllByCurrProc(processCode);
+        //return MapperUtils.mapList(scheduleMaterials, ScheduleMaterialsDTO.View.class);
+
+
+        return MapperUtils.mapList(schMaterialRepository.findBySchPlanIsNullAndSchConfirmIsNullAndCurrProc(processCode), SCHMaterialDTO.class);
     }
 
     // POST : fs001 Response
