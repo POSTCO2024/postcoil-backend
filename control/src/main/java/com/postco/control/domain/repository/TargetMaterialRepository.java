@@ -18,6 +18,9 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     // 공정 별 작업대상재/에러재 조회
     // List<TargetMaterial> findByIsErrorAndCriteria(String isError, String criteria);
 
+    // 정상재만 가져오기
+    List<TargetMaterial> findByIsError(String isError);
+
     // 에러패스
     @Modifying
     @Transactional
