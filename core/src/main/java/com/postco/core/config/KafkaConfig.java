@@ -1,7 +1,6 @@
 package com.postco.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.postco.core.kafka.consumer.KafkaConsumer;
 import com.postco.core.kafka.producer.KafkaProducer;
 import com.postco.core.redis.cqrs.command.CommandService;
 import com.postco.core.redis.cqrs.query.QueryService;
