@@ -24,9 +24,6 @@ dependencies {
     implementation "org.springframework.kafka:spring-kafka:${springKafkaVersion}"
     implementation "org.apache.kafka:kafka-clients:${kafkaVersion}"
 
-    // websocket
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
 }
 
 // prepareKotlinBuildScriptModel 오류 방지

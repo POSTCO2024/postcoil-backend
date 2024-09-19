@@ -89,9 +89,6 @@ subprojects {
         // Redis
         implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
-        // websocket
-        implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
         // dev
         compileOnly 'org.springframework.boot:spring-boot-devtools'
 
