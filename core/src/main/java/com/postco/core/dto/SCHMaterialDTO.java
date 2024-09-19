@@ -1,7 +1,6 @@
-package com.postco.schedule.presentation.test;
+package com.postco.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.postco.core.dto.DTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
