@@ -76,7 +76,7 @@ public class TargetMaterialController {
             .map(result -> {
                 ApiResponseDTO<List<Fc001aDTO.Table>> responseDTO = ApiResponseDTO.<List<Fc001aDTO.Table>>builder()
                         .status(HttpStatus.OK.value())
-                        .resultMsg("성공적으로 데이터를 조회하였습니다.")
+                        .resultMsg("Material Table 조회 완료")
                         .result(result)
                         .build();
 

@@ -57,7 +57,7 @@ public class ErrorMaterialController {
      * @return
      */
     @PutMapping("/errorpass")
-    public ResponseEntity<ApiResponseDTO<Map<String, Long>>> ErrorPass(@RequestBody List<Long> error_material_ids) {
+    public ResponseEntity<ApiResponseDTO<Map<String, Long>>> errorPass(@RequestBody List<Long> error_material_ids) {
         log.info("에러패스를 진행합니다. " + error_material_ids);
         errorPassService.errorPass(error_material_ids);
 
