@@ -57,6 +57,9 @@ INSERT INTO PRIORITY (id, name, priority_order, apply_method, target_column, pro
 
 INSERT INTO PRIORITY (id, name, priority_order, apply_method, target_column, process_code, roll_unit) VALUES (28, '같은 품명으로 그룹핑', 7, 'GROUPING', 'coil_type_code', '2CAL', 'B');
 
+-- target_column : 'goal_width'에서 width로 변경함
+update priority set target_column='width' where priority_order=1 or priority_order=2 ;
+
 -- constraint_insertion insert문
 select * from CONSTRAINT_INSERTION;
 
@@ -75,3 +78,4 @@ INSERT INTO CONSTRAINT_INSERTION (id, type, target_column, target_value, process
 INSERT INTO CONSTRAINT_INSERTION (id, type, target_column, target_value, process_code, roll_unit) VALUES (10, 'CONSTRAINT', 'width', 100, '2CAL', 'B');
 INSERT INTO CONSTRAINT_INSERTION (id, type, target_column, target_value, process_code, roll_unit) VALUES (11, 'CONSTRAINT', 'thickness', 0.5, '2CAL', 'B');
 INSERT INTO CONSTRAINT_INSERTION (id, type, target_column, target_value, process_code, roll_unit) VALUES (12, 'INSERTION', 'width', 10, '2CAL', 'B');
+
