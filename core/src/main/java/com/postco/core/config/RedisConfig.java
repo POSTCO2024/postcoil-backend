@@ -36,7 +36,6 @@ public class RedisConfig {
 //    @Value("${spring.redis.password}")
 //    private String password;
 
-
     /**
      * @return 비동기식 reactive 레디스 설정
      */

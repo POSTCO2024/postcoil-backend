@@ -1,10 +1,10 @@
-package com.postco.websocketserver;
+package com.postco.websocket;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class WebsocketServerAppTests {
+class WebsocketApplicationTests {
 
 	@Test
 	void contextLoads() {

@@ -142,7 +142,7 @@ public class RedisDirectServiceImpl extends AbstractRedisCommandService<Object> 
         }
     }
 
-    private String getIdFromData(Object data) {
+    protected String getIdFromData(Object data) {
         try {
             String id = String.valueOf(data.getClass().getMethod("getId").invoke(data));
             log.info("[Redis] 생성된 키: {}", id);

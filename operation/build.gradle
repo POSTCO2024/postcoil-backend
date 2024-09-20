@@ -34,6 +34,8 @@ dependencies {
     implementation 'mysql:mysql-connector-java:8.0.33'
 
     implementation project(':core')
+
+    implementation project(':websocket')
 }
 
 // OpenAPI 스펙 생성 설정

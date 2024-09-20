@@ -6,3 +6,6 @@ spring:
 spring:
   profiles:
     active: local
+
+server:
+  port: 9000

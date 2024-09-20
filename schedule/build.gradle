@@ -28,6 +28,8 @@ dependencies {
     runtimeOnly 'com.h2database:h2'
 
     implementation project(':core')
+
+    implementation project(':websocket')
 }
 
 // OpenAPI 스펙 생성 설정

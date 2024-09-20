@@ -32,6 +32,12 @@ eureka:
   instance:
     instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
 
+---
+spring:
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true
 
 ---
 springdoc:

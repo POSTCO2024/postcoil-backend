@@ -1,13 +1,13 @@
-package com.postco.websocketserver;
+package com.postco.websocket;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class WebsocketServerApp {
+public class WebsocketApp {
 
 	public static void main(String[] args) {
-		SpringApplication.run(WebsocketServerApp.class, args);
+		SpringApplication.run(WebsocketApp.class, args);
 	}
 
 }

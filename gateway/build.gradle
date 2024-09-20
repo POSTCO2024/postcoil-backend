@@ -42,8 +42,8 @@ dependencies {
     // Eureka
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
-    // Websocket
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    // 상태 체크
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
