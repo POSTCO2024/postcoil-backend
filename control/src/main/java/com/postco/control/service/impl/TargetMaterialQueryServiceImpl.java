@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,54 +43,60 @@ public class TargetMaterialQueryServiceImpl implements TargetMaterialQueryServic
                     .materials(relatedData.getMaterials())
                     .orders(relatedData.getOrders())
                     .build();
-        }).doOnNext(result -> log.info("작업대상재 {} 개와 관련 데이터를 조회 성공 및  RedisDataContainer 매핑",
+        }).doOnNext(result -> log.info("작업대상재 {} 개와 관련 데이터를 조회 성공 및 RedisDataContainer 매핑",
                 result.getTargetMaterials().size()));
     }
 
     @Override
     public Mono<List<TargetViewDTO>> mapToTargetViewDTOs() {
-        return Mono.zip(
-                Mono.fromCallable(this::getAllTargetMaterials),
-                controlRedisQueryService.getRedisData()
-        ).map(tuple -> {
-            List<TargetMaterialDTO.View> targetMaterials = tuple.getT1();
-            RedisDataContainer relatedData = tuple.getT2();
-            return convertToTargetViewDTOs(targetMaterials, relatedData);
-        }).doOnNext(result -> log.info("작업대상재 {} 개와 관련 데이터를 조회 성공 및 TargetViewDTO 매핑", result.size()));
+        return getTargetViewDTOs(this::getAllTargetMaterials);
     }
 
     @Override
     public List<TargetMaterialDTO.View> getAllTargetMaterials() {
-        List<TargetMaterial> targetMaterials = targetMaterialRepository.findAll();
-        return targetMaterials.stream()
+        return targetMaterialRepository.findAll().stream()
                 .map(tm -> modelMapper.map(tm, TargetMaterialDTO.View.class))
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<TargetViewDTO> convertToTargetViewDTOs(List<TargetMaterialDTO.View> targetMaterials, RedisDataContainer container) {
-        Map<Long, MaterialDTO.View> materialMap = container.getMaterials().stream()
-                .collect(Collectors.toMap(MaterialDTO.View::getId, Function.identity()));
-        Map<Long, OrderDTO.View> orderMap = container.getOrders().stream()
-                .collect(Collectors.toMap(OrderDTO.View::getId, Function.identity()));
-
-        return targetMaterials.stream()
-                .map(targetMaterial -> {
-                    MaterialDTO.View material = materialMap.get(targetMaterial.getMaterialId());
-                    OrderDTO.View order = orderMap.get(material.getOrderId());
-
-                    return TargetViewDTO.builder()
-                            .material(material)
-                            .order(order)
-                            .targetId(targetMaterial.getId())
-                            .processPlan(targetMaterial.getProcessPlan())
-                            .rollUnitName(targetMaterial.getRollUnitName())
-                            .isError(targetMaterial.getIsError())
-                            .errorType(targetMaterial.getErrorType())
-                            .isErrorPassed(targetMaterial.getIsErrorPassed())
-                            .build();
-                })
+    public List<TargetMaterialDTO.View> getNormalTargetMaterials() {
+        return targetMaterialRepository.findByIsError("N").stream()
+                .map(tm -> modelMapper.map(tm, TargetMaterialDTO.View.class))
                 .collect(Collectors.toList());
     }
 
+    public Mono<List<TargetViewDTO>> getNormalMaterialsByCurrProc(String currProc) {
+        return getTargetViewDTOs(this::getNormalTargetMaterials)
+                .map(targetViews -> targetViews.stream()
+                        .filter(view -> currProc.equals(view.getMaterial().getCurrProc()))
+                        .collect(Collectors.toList()));
+    }
+
+    private Mono<List<TargetViewDTO>> getTargetViewDTOs(Supplier<List<TargetMaterialDTO.View>> targetMaterialsSupplier) {
+        return controlRedisQueryService.getRedisData()
+                .map(redisDataContainer -> {
+                    Map<Long, MaterialDTO.View> materialMap = redisDataContainer.getMaterials().stream()
+                            .collect(Collectors.toMap(MaterialDTO.View::getId, Function.identity()));
+                    Map<Long, OrderDTO.View> orderMap = redisDataContainer.getOrders().stream()
+                            .collect(Collectors.toMap(OrderDTO.View::getId, Function.identity()));
+
+                    return targetMaterialsSupplier.get().stream()
+                            .map(targetMaterial -> {
+                                MaterialDTO.View material = materialMap.get(targetMaterial.getMaterialId());
+                                OrderDTO.View order = material != null ? orderMap.get(material.getOrderId()) : null;
+
+                                return TargetViewDTO.builder()
+                                        .material(material)
+                                        .order(order)
+                                        .targetId(targetMaterial.getId())
+                                        .processPlan(targetMaterial.getProcessPlan())
+                                        .rollUnitName(targetMaterial.getRollUnitName())
+                                        .isError(targetMaterial.getIsError())
+                                        .errorType(targetMaterial.getErrorType())
+                                        .isErrorPassed(targetMaterial.getIsErrorPassed())
+                                        .build();
+                            })
+                            .collect(Collectors.toList());
+                });
+    }
 }

@@ -1,7 +1,6 @@
-package com.postco.schedule.presentation.test;
+package com.postco.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.postco.core.dto.DTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,6 +28,4 @@ public class SCHMaterialDTO implements DTO {
     private double goalThickness;
     private String nextProc;
 
-    // 추가 필드 - Sohyun Ahn 2024-09-19
-    private String materialNo;
 }
