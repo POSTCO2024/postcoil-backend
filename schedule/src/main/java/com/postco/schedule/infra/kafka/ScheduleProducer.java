@@ -1,7 +1,7 @@
 package com.postco.schedule.infra.kafka;
 
 import com.postco.core.kafka.producer.KafkaProducer;
-import com.postco.schedule.presentation.test.SCHConfirmDTO;
+import com.postco.schedule.presentation.dto.SCHConfirmDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

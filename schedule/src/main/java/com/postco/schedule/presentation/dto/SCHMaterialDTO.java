@@ -1,4 +1,4 @@
-package com.postco.schedule.presentation.test;
+package com.postco.schedule.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.postco.core.dto.DTO;

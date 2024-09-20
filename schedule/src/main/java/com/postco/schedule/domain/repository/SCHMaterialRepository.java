@@ -1,6 +1,6 @@
-package com.postco.schedule.domain.test.repo;
+package com.postco.schedule.domain.repository;
 
-import com.postco.schedule.domain.test.SCHMaterial;
+import com.postco.schedule.domain.SCHMaterial;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

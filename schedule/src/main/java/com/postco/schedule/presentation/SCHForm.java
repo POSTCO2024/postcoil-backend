@@ -1,6 +1,8 @@
-package com.postco.schedule.presentation.test;
+package com.postco.schedule.presentation;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
@@ -21,5 +23,13 @@ public class SCHForm {
     public static class UpdateMaterialInfo {
         private Long materialId;   // 재료 Id
         private int sequence;      // 새로운 시퀀스 값
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Info  {
+        private Long id;
+        private String scheduleNo;
     }
 }

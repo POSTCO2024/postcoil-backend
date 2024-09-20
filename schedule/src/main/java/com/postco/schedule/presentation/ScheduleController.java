@@ -1,37 +1,40 @@
 package com.postco.schedule.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
-import com.postco.schedule.domain.ScheduleMaterials;
-import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
-import com.postco.schedule.presentation.dto.ScheduleResultDTO;
-import com.postco.schedule.service.ScheduleService;
-import com.postco.schedule.service.impl.test.TestPlanAfterWorkServiceImpl;
-import com.postco.schedule.service.impl.test.TestScheduleConfirmServiceImpl;
-import com.postco.schedule.service.impl.test.TestSchedulePlanServiceImpl;
+import com.postco.schedule.domain.SCHPlan;
+import com.postco.schedule.presentation.dto.SCHConfirmDTO;
+import com.postco.schedule.presentation.dto.SCHMaterialDTO;
+import com.postco.schedule.presentation.dto.SCHPlanDTO;
+import com.postco.schedule.service.impl.PlanAfterWorkServiceImpl;
+import com.postco.schedule.service.impl.ScheduleConfirmServiceImpl;
+import com.postco.schedule.service.impl.SchedulePlanServiceImpl;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.postco.schedule.presentation.test.SCHMaterialDTO;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
-@RequestMapping("/schedule")
+@RequestMapping("api/v2/schedule") // swagger용
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4000", allowCredentials = "true") // test용
 public class ScheduleController {
 
-    private final ScheduleService scheduleService;
-
-    private final TestSchedulePlanServiceImpl schedulePlanService;
-    private final TestPlanAfterWorkServiceImpl testPlanAfterWorkService;
-    private final TestScheduleConfirmServiceImpl testScheduleConfirmService;
+    private final SchedulePlanServiceImpl schedulePlanService;
+    private final PlanAfterWorkServiceImpl planAfterWorkService;
+    private final ScheduleConfirmServiceImpl scheduleConfirmService;
 
     // GET : fs001 Request
     @GetMapping("/plan/{processCode}")
     public ResponseEntity<ApiResponseDTO<List<SCHMaterialDTO>>> findAllMaterials(@PathVariable String processCode){
-        List<SCHMaterialDTO> results = scheduleService.findMaterialsByProcessCode(processCode);
+        List<SCHMaterialDTO> results = schedulePlanService.getMaterialsByProcessCode(processCode);
 
         ApiResponseDTO<List<SCHMaterialDTO>> response = ApiResponseDTO.<List<SCHMaterialDTO>>builder()
                 .status(HttpStatus.OK.value())
@@ -44,14 +47,21 @@ public class ScheduleController {
 
     // POST : fs001 Response - ScheduleMaterials 생성
     @PostMapping("/plan/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterials>>> processScheduleMaterials(@PathVariable String processCode, @RequestBody List<Long> materialIds) {
-        // 요청 받은 materialIds와 processCode를 이용해 results 생성
-        List<ScheduleMaterials> results = scheduleService.createScheduleWithMaterials(materialIds, processCode);
+    public ResponseEntity<ApiResponseDTO<List<SCHPlanDTO.View>>> executeAndSaveSchedule(@PathVariable String processCode, @RequestBody List<Long> materialIds) {
+        // 스케줄링 실행 후 결과 받기
+        List<SCHPlan> savedPlans = schedulePlanService.executeSchedulingAndSave(materialIds, processCode);
 
-        ApiResponseDTO<List<ScheduleMaterials>> response = ApiResponseDTO.<List<ScheduleMaterials>>builder()
+        // 저장된 스케줄 Plan을 DTO로 변환
+        List<SCHPlanDTO.View> scheduleResults = savedPlans.stream()
+                .map(plan -> new SCHPlanDTO.View(plan.getId(), plan.getScheduleNo(), plan.getProcess(),
+                        plan.getRollUnit(), plan.getPlanDate(), plan.getScExpectedDuration(),
+                        plan.getQuantity(), plan.getIsConfirmed(), null))  // 재료 리스트는 필요시 추가
+                .collect(Collectors.toList());
+
+        ApiResponseDTO<List<SCHPlanDTO.View>> response = ApiResponseDTO.<List<SCHPlanDTO.View>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
-                .result(results)
+                .result(scheduleResults)
                 .build();
 
         return ResponseEntity.ok(response);
@@ -59,11 +69,11 @@ public class ScheduleController {
 
     // GET : fs002 Request
     @GetMapping("/pending/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Info>>> getSchedulePlanId(@PathVariable String processCode) {
-        // processCode가 오면, 편성되었던 롤단위(스케줄id)만 보내기
-        List<ScheduleResultDTO.Info> results = scheduleService.findSchedulePlanByProcessCode(processCode);
+    public ResponseEntity<ApiResponseDTO<List<SCHForm.Info>>> getSchedulePlanId(@PathVariable String processCode) {
+        // processCode가 오면, plan - id, scheduleNo 보내기
+        List<SCHForm.Info> results = schedulePlanService.getAllScheduleNotConfirmedResults(processCode);
 
-        ApiResponseDTO<List<ScheduleResultDTO.Info>> response = ApiResponseDTO.<List<ScheduleResultDTO.Info>>builder()
+        ApiResponseDTO<List<SCHForm.Info>> response = ApiResponseDTO.<List<SCHForm.Info>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
@@ -74,10 +84,10 @@ public class ScheduleController {
 
     // GET : fs002 Request2
     @GetMapping("/pending/schedule")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> getSchedulePlanMaterials(@RequestParam("id") Long scheduleId) {
-        List<ScheduleMaterialsDTO.View> results = scheduleService.findMaterialsByScheduleId(scheduleId);
+    public ResponseEntity<ApiResponseDTO<List<SCHMaterialDTO>>> getSchedulePlanMaterials(@RequestParam("id") Long planId) {
+        List<SCHMaterialDTO> results = schedulePlanService.getScheduleMaterialsByPlanId(planId);
 
-        ApiResponseDTO<List<ScheduleMaterialsDTO.View>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.View>>builder()
+        ApiResponseDTO<List<SCHMaterialDTO>> response = ApiResponseDTO.<List<SCHMaterialDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
@@ -87,25 +97,38 @@ public class ScheduleController {
     }
 
     // POST : fs002 Request
-    @PostMapping("/pending/schedule")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> confirmSchedule(@RequestParam("id") Long scheduleId, @RequestBody List<ScheduleMaterialsDTO.View> materials) {
-        List<ScheduleMaterialsDTO.View> results = scheduleService.confirmSchedule(scheduleId, materials);
+    // TODO: 예림 언니가 변경한 코드 보기~!
+    @PostMapping("/confirm")
+    public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> confirmSchedule(@RequestBody SCHForm schForm) {
+        log.info("스케줄 확정 요청. 스케줄 ID: {}", schForm.getPlanId());
 
-        ApiResponseDTO<List<ScheduleMaterialsDTO.View>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.View>>builder()
-                .status(HttpStatus.OK.value())
-                .resultMsg(HttpStatus.OK.getReasonPhrase())
-                .result(results)
-                .build();
-
-        return ResponseEntity.ok(response);
+        return Mono.fromCallable(() -> planAfterWorkService.confirmScheduleWithNewMaterials(schForm))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(result -> {
+                    if (result) {
+                        // Kafka 전송
+                        return Mono.fromRunnable(() -> scheduleConfirmService.sendConfirmedSchedule(schForm.getPlanId()))
+                                .subscribeOn(Schedulers.boundedElastic())
+                                .thenReturn(true);
+                    }
+                    return Mono.just(false);
+                })
+                .map(result -> ResponseEntity.ok(ApiResponseDTO.<Boolean>builder()
+                        .status(HttpStatus.OK.value())
+                        .resultMsg("스케줄 확정 성공 및 Kafka 전송 완료")
+                        .result(true)
+                        .build()))
+                .doOnSuccess(response -> log.info("스케줄 확정 처리 완료. 결과: {}", Objects.requireNonNull(response.getBody()).getResult()))
+                .doOnError(e -> log.error("스케줄 확정 처리 중 오류 발생", e));
     }
 
     // GET : fs003 Request
     @GetMapping("/result/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Info>>> getScheduleResultsId(@PathVariable String processCode) {
-        List<ScheduleResultDTO.Info> results = scheduleService.findScheduleResultsByProcessCode(processCode);
+    public ResponseEntity<ApiResponseDTO<List<SCHForm.Info>>> getScheduleResultsId(@PathVariable String processCode) {
+        // processCode가 오면, confirm - id, scheduleNo 보내기
+        List<SCHForm.Info> results = scheduleConfirmService.getAllConfirmedScheduleIdsFromInProgressToPending(processCode);
 
-        ApiResponseDTO<List<ScheduleResultDTO.Info>> response = ApiResponseDTO.<List<ScheduleResultDTO.Info>>builder()
+        ApiResponseDTO<List<SCHForm.Info>> response = ApiResponseDTO.<List<SCHForm.Info>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
@@ -116,10 +139,10 @@ public class ScheduleController {
 
     // GET : fs003 Request2
     @GetMapping("/result/schedule")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.Result>>> getScheduleResultMaterials(@RequestParam("id") Long scheduleId) {
-        List<ScheduleMaterialsDTO.Result> results = scheduleService.findScheduledMaterialsByScheduleId(scheduleId);
+    public ResponseEntity<ApiResponseDTO<List<SCHMaterialDTO>>> getScheduleResultMaterials(@RequestParam("id") Long confirmId) {
+        List<SCHMaterialDTO> results = scheduleConfirmService.getScheduleMaterialsByConfirmId(confirmId);
 
-        ApiResponseDTO<List<ScheduleMaterialsDTO.Result>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.Result>>builder()
+        ApiResponseDTO<List<SCHMaterialDTO>> response = ApiResponseDTO.<List<SCHMaterialDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
@@ -132,14 +155,13 @@ public class ScheduleController {
 
     // GET : fs004 Request
     @GetMapping("/timeline/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleResultDTO.Work>>> getScheduleResultsIdByDates(@PathVariable String processCode, @RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) {
-        // TODO: 해당하는 날짜에 생성되었던 schedule 이력 DB 데이터 전송
-        List<ScheduleResultDTO.Work> results = scheduleService.findSchedulesByDates(processCode, startDate, endDate);
+    public ResponseEntity<ApiResponseDTO<List<SCHConfirmDTO.View>>> getScheduleResultsIdByDates(@PathVariable String processCode, @RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) {
+        List<SCHConfirmDTO.View> confirmedSchedules = scheduleConfirmService.getAllConfirmedSchedulesBetweenDates(startDate, endDate, processCode);
 
-        ApiResponseDTO<List<ScheduleResultDTO.Work>> response = ApiResponseDTO.<List<ScheduleResultDTO.Work>>builder()
+        ApiResponseDTO<List<SCHConfirmDTO.View>> response = ApiResponseDTO.<List<SCHConfirmDTO.View>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
-                .result(results)
+                .result(confirmedSchedules)
                 .build();
 
         return ResponseEntity.ok(response);
@@ -147,10 +169,10 @@ public class ScheduleController {
 
     // GET : fs004 Request2
     @GetMapping("/timeline/schedule")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.Result>>> getScheduleMaterials(@RequestParam("id") Long scheduleId) {
-        List<ScheduleMaterialsDTO.Result> results = scheduleService.findScheduledMaterialsByScheduleId(scheduleId);
+    public ResponseEntity<ApiResponseDTO<List<SCHMaterialDTO>>> getScheduleMaterials(@RequestParam("id") Long confirmId) {
+        List<SCHMaterialDTO> results = scheduleConfirmService.getScheduleMaterialsByConfirmId(confirmId);
 
-        ApiResponseDTO<List<ScheduleMaterialsDTO.Result>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.Result>>builder()
+        ApiResponseDTO<List<SCHMaterialDTO>> response = ApiResponseDTO.<List<SCHMaterialDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)

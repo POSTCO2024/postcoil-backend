@@ -1,11 +1,11 @@
-package com.postco.schedule.service.impl.test;
+package com.postco.schedule.service.impl;
 
-import com.postco.schedule.domain.test.*;
-import com.postco.schedule.domain.test.repo.SCHConfirmRepository;
-import com.postco.schedule.domain.test.repo.SCHHistoryRepository;
-import com.postco.schedule.domain.test.repo.SCHMaterialRepository;
-import com.postco.schedule.domain.test.repo.SCHPlanRepository;
-import com.postco.schedule.presentation.test.SCHForm;
+import com.postco.schedule.domain.*;
+import com.postco.schedule.domain.repository.SCHConfirmRepository;
+import com.postco.schedule.domain.repository.SCHHistoryRepository;
+import com.postco.schedule.domain.repository.SCHMaterialRepository;
+import com.postco.schedule.domain.repository.SCHPlanRepository;
+import com.postco.schedule.presentation.SCHForm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TestPlanAfterWorkServiceImpl {
+public class PlanAfterWorkServiceImpl {
     private final SCHMaterialRepository materialRepository;
     private final SCHHistoryRepository historyRepository;
     private final SCHPlanRepository planRepository;

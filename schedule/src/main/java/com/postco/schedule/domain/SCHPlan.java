@@ -1,4 +1,4 @@
-package com.postco.schedule.domain.test;
+package com.postco.schedule.domain;
 
 import lombok.*;
 

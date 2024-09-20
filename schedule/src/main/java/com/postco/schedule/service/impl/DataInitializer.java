@@ -1,8 +1,8 @@
-package com.postco.schedule.service;
+package com.postco.schedule.service.impl;
 
 import com.postco.core.dto.RedisDataContainer;
 import com.postco.core.dto.RefDataContainer;
-import com.postco.schedule.service.impl.test.TestRegisterServiceImpl;
+import com.postco.schedule.service.ScheduleRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -15,7 +15,7 @@ import reactor.util.function.Tuple2;
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
     private final ScheduleRedisService scheduleRedisService;
-    private final TestRegisterServiceImpl testRegisterService;
+    private final RegisterServiceImpl registerService;
 
     @Override
     public void run(String... args) {
@@ -49,7 +49,7 @@ public class DataInitializer implements CommandLineRunner {
     private Mono<Void> registerScheduleMaterials(Tuple2<RedisDataContainer, RefDataContainer> tuple) {
         RedisDataContainer scheduleData = tuple.getT1();
         RefDataContainer equipmentData = tuple.getT2();
-        return testRegisterService.registerScheduleMaterials(scheduleData, equipmentData)
+        return registerService.registerScheduleMaterials(scheduleData, equipmentData)
                 .then();
     }
 }
