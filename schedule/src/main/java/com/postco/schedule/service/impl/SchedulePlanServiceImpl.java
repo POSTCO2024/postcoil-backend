@@ -1,11 +1,13 @@
-package com.postco.schedule.service.impl.test;
+package com.postco.schedule.service.impl;
 
-import com.postco.schedule.domain.test.SCHMaterial;
-import com.postco.schedule.domain.test.SCHPlan;
-import com.postco.schedule.domain.test.repo.SCHMaterialRepository;
-import com.postco.schedule.domain.test.repo.SCHPlanRepository;
-import com.postco.schedule.presentation.test.SCHPlanDTO;
-import com.postco.schedule.service.SchedulingService;
+import com.postco.core.utils.mapper.MapperUtils;
+import com.postco.schedule.domain.SCHMaterial;
+import com.postco.schedule.domain.SCHPlan;
+import com.postco.schedule.domain.repository.SCHMaterialRepository;
+import com.postco.schedule.domain.repository.SCHPlanRepository;
+import com.postco.schedule.presentation.SCHForm;
+import com.postco.schedule.presentation.dto.SCHMaterialDTO;
+import com.postco.schedule.presentation.dto.SCHPlanDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -25,20 +27,26 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TestSchedulePlanServiceImpl {
+public class SchedulePlanServiceImpl {
     private final SCHMaterialRepository schMaterialRepository;
-    private final SchedulingService schedulingService;
+    private final SchedulingServiceImpl schedulingService;
     private final SCHPlanRepository schPlanRepository;
     private final ModelMapper modelMapper;
+
+    // GET : fs001 Request
+    public List<SCHMaterialDTO> getMaterialsByProcessCode(String processCode) {
+        return MapperUtils.mapList(schMaterialRepository.findBySchPlanIsNullAndSchConfirmIsNullAndCurrProc(processCode), SCHMaterialDTO.class);
+    }
 
     /**
      * 스케줄링 및 저장을 한번에 진행하는 메서드
      * @return List<SCHPlan> - 생성된 스케줄 목록
      */
     @Transactional
-    public List<SCHPlan> executeSchedulingAndSave() {
-        // step 1: 등록된 스케줄 대상재 모두 불러오기
-        List<SCHMaterial> materials = getScheduleMaterials();
+    public List<SCHPlan> executeSchedulingAndSave(List<Long> ids, String processCode) {
+        // step 1: ids에 해당하는 등록된 스케줄 대상재 불러오기
+        // List<SCHMaterial> materials = getScheduleMaterials();
+        List<SCHMaterial> materials = getScheduleMaterialsByIds(ids);
 
         // step 2: 공정별, 롤 단위별로 그룹화 진행
         Map<String, List<SCHMaterial>> groupedMaterials = groupedByProcessAndRollUnit(materials);
@@ -53,6 +61,43 @@ public class TestSchedulePlanServiceImpl {
     // << step 1 메서드 >> : 등록된 스케쥴 대상재 모두 불러오기
     public List<SCHMaterial> getScheduleMaterials() {
         return schMaterialRepository.findAll();
+    }
+
+    // << step 1 메서드 >> : 등록된 스케쥴 대상재 필요한 id들만 불러오기
+    public List<SCHMaterial> getScheduleMaterialsByIds(List<Long> ids) {
+        return schMaterialRepository.findAllById(ids);
+    }
+
+    public List<SCHMaterialDTO> getScheduleMaterialsByPlanId(Long planId) {
+        List<SCHMaterial> schMaterials = schMaterialRepository.findBySchPlanId(planId);
+
+        return schMaterials.stream()
+                .map(material -> {
+                    SCHMaterialDTO dto = new SCHMaterialDTO();
+                    dto.setId(material.getId());
+                    dto.setRollUnit(material.getRollUnit());
+                    dto.setCurrProc(material.getCurrProc());
+                    dto.setTemperature(material.getTemperature());
+                    dto.setWidth(material.getWidth());
+                    dto.setThickness(material.getThickness());
+                    dto.setIsScheduled(material.getIsScheduled());
+                    dto.setSequence(material.getSequence());
+                    dto.setIsRejected(material.getIsRejected());
+                    dto.setExpectedDuration(material.getExpectedDuration());
+                    dto.setWorkStatus(String.valueOf(material.getWorkStatus()));
+                    dto.setGoalWidth(material.getGoalWidth());
+                    dto.setGoalThickness(material.getGoalThickness());
+                    dto.setNextProc(material.getNextProc());
+                    dto.setMaterialNo(material.getMaterialNo());
+
+                    // SCHPlan의 id를 schedulePlanId 필드에 매핑
+                    if (material.getSchPlan() != null) {
+                        dto.setSchedulePlanId(material.getSchPlan().getId());
+                    }
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
     // << step 2 메서드 >> : 공정과 롤 단위 별로 스케쥴 대상재 그룹화
@@ -153,4 +198,25 @@ public class TestSchedulePlanServiceImpl {
                 .map(plan -> modelMapper.map(plan, SCHPlanDTO.View.class))
                 .collect(Collectors.toList());
     }
+
+    // isConfirmed="N" && 지난 하루동안 편성되었던 모든 스케쥴 결과들의 id, no만 조회
+    public List<SCHForm.Info> getAllScheduleNotConfirmedResults(String processCode) {
+        List<SCHPlan> plans = schPlanRepository.findByProcess(processCode);
+
+        // List<SCHForm.Info>로 변환 후 반환
+        return plans.stream()
+                .filter(schedulePlan -> "N".equals(schedulePlan.getIsConfirmed()))
+                .filter(schedulePlan -> {
+                            // planDate가 현재 날짜를 기준으로 하루 전 것부터만 보이게 구현
+                            LocalDateTime today = LocalDateTime.now();
+                            LocalDateTime oneDayAgo = today.minusDays(1); // 하루 전 날짜 계산
+                            LocalDateTime planDate = schedulePlan.getPlanDate();
+                            return planDate != null && (planDate.isAfter(oneDayAgo) || planDate.isEqual(oneDayAgo))
+                                    && (planDate.isBefore(today) || planDate.isEqual(today));
+                        }
+                )
+                .map(plan -> new SCHForm.Info(plan.getId(), plan.getScheduleNo()))
+                .collect(Collectors.toList());
+    }
+
 }

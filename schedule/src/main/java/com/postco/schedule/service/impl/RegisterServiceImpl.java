@@ -1,9 +1,9 @@
-package com.postco.schedule.service.impl.test;
+package com.postco.schedule.service.impl;
 
 import com.postco.core.dto.*;
-import com.postco.schedule.domain.test.SCHMaterial;
-import com.postco.schedule.domain.test.WorkStatus;
-import com.postco.schedule.domain.test.repo.SCHMaterialRepository;
+import com.postco.schedule.domain.SCHMaterial;
+import com.postco.schedule.domain.WorkStatus;
+import com.postco.schedule.domain.repository.SCHMaterialRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TestRegisterServiceImpl {
+public class RegisterServiceImpl {
     private final SCHMaterialRepository schMaterialRepository;
 
     // step1. 받아온 작업대상재 스케쥴 대상재로 등록하기

@@ -2,7 +2,7 @@ package com.postco.schedule.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
 import com.postco.schedule.presentation.dto.ManagementDTO;
-import com.postco.schedule.service.ManagementService;
+import com.postco.schedule.service.impl.ManagementServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:4000", allowCredentials = "true") // test용
 public class ManagementController {
 
-    private final ManagementService managementService;
+    private final ManagementServiceImpl managementService;
 
     @GetMapping("/{processCode}/{rollUnit}")
     public ResponseEntity<ApiResponseDTO<ManagementDTO>> getManagementDataByProcessAndUnit(

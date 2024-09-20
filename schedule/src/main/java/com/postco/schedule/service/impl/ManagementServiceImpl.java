@@ -1,4 +1,4 @@
-package com.postco.schedule.service;
+package com.postco.schedule.service.impl;
 
 import com.postco.schedule.presentation.dto.ConstraintInsertionDTO;
 import com.postco.schedule.presentation.dto.ManagementDTO;
@@ -10,10 +10,10 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ManagementService {
+public class ManagementServiceImpl {
 
-    private final PriorityService priorityService;
-    private final ConstraintInsertionService constraintInsertionService;
+    private final PriorityServiceImpl priorityService;
+    private final ConstraintInsertionServiceImpl constraintInsertionService;
 
     public ManagementDTO findManagementDataByProcessCodeAndRollUnit(String processCode, String rollUnit) {
 
