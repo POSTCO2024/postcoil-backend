@@ -1,46 +1,25 @@
 package com.postco.control.presentation.dto.response;
 
-import com.postco.control.domain.MaterialStatus;
 import com.postco.core.dto.DTO;
 import lombok.*;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString
-public class Fc001aDTO implements DTO {
-    private Long id;
-    private Long materialId;
-    private String materialNo;
-    private String fCode;
 
-    private String type;
-    private String op_code;
-    private MaterialStatus status;
-    private String cur_proc_code;
-    private String progress;
-    private double thickness;
-    private double width;
-    private double weight;
-    private double totalWeight;
-    private String passProc;
-    private String remProc;
-    private String preProc;
-    private String nextProc;
-    private String storageLoc;
-    private String yard;
-
-    // order info
-    private String orderNo;
-    private double goalWidth;
-    private double goalThickness;
-    private double goalLength;
-    private String processPlan;
-    private String dueDate;
-    private String customerName;
-//    private String isError;
-//    private String errorType;
-    private String rollUnit;
-    private String remarks;
+public class Fc001aDTO{
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    public static class Table implements DTO {
+        private String coilTypeCode;
+        private Long totalCnt;
+        private Long proc1CAL;
+        private Long proc2CAL;
+        private Long proc1EGL;
+        private Long proc2EGL;
+        private Long proc1CGL;
+        private Long proc2CGL;
+        private Long proc1Packing;
+        private Long proc2Packing;
+    }
 }
