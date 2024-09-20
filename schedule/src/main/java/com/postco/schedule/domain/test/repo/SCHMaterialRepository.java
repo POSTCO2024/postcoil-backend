@@ -12,4 +12,13 @@ public interface SCHMaterialRepository extends JpaRepository<SCHMaterial, Long> 
     List<SCHMaterial> findBySchPlanIdAndMaterialIds(@Param("planId") Long planId, @Param("materialIds") List<Long> materialIds);
 
     List<SCHMaterial> findBySchConfirmId(Long confirmId);
+
+    // 추가 기능 - SohyunAhn
+    List<SCHMaterial> findBySchPlanId(Long planId);
+    List<SCHMaterial> findByIdIn(List<Long> ids);
+    List<SCHMaterial> findByCurrProc(String currProc);
+    List<SCHMaterial> findAllById(Iterable<Long> ids);
+    List<SCHMaterial> findBySchPlanIsNullAndSchConfirmIsNullAndCurrProc(String currProc);
+    List<SCHMaterial> findBySchPlanIsNotNullAndSchConfirmIsNullAndCurrProc(String currProc);
+
 }

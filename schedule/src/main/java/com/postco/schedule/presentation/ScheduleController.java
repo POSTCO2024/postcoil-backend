@@ -5,10 +5,14 @@ import com.postco.schedule.domain.ScheduleMaterials;
 import com.postco.schedule.presentation.dto.ScheduleMaterialsDTO;
 import com.postco.schedule.presentation.dto.ScheduleResultDTO;
 import com.postco.schedule.service.ScheduleService;
+import com.postco.schedule.service.impl.test.TestPlanAfterWorkServiceImpl;
+import com.postco.schedule.service.impl.test.TestScheduleConfirmServiceImpl;
+import com.postco.schedule.service.impl.test.TestSchedulePlanServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.postco.schedule.presentation.test.SCHMaterialDTO;
 
 import java.util.List;
 
@@ -20,12 +24,16 @@ public class ScheduleController {
 
     private final ScheduleService scheduleService;
 
+    private final TestSchedulePlanServiceImpl schedulePlanService;
+    private final TestPlanAfterWorkServiceImpl testPlanAfterWorkService;
+    private final TestScheduleConfirmServiceImpl testScheduleConfirmService;
+
     // GET : fs001 Request
     @GetMapping("/plan/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<ScheduleMaterialsDTO.View>>> findAllMaterials(@PathVariable String processCode){
-        List<ScheduleMaterialsDTO.View> results = scheduleService.findMaterialsByProcessCode(processCode);
+    public ResponseEntity<ApiResponseDTO<List<SCHMaterialDTO>>> findAllMaterials(@PathVariable String processCode){
+        List<SCHMaterialDTO> results = scheduleService.findMaterialsByProcessCode(processCode);
 
-        ApiResponseDTO<List<ScheduleMaterialsDTO.View>> response = ApiResponseDTO.<List<ScheduleMaterialsDTO.View>>builder()
+        ApiResponseDTO<List<SCHMaterialDTO>> response = ApiResponseDTO.<List<SCHMaterialDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)

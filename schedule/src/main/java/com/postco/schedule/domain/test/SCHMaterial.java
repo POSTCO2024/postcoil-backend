@@ -23,6 +23,9 @@ public class SCHMaterial implements com.postco.core.entity.Entity{
     private Double width;
     private Double thickness;
 
+    // 필요 컬럼 추가2 - Sohyun Ahn 2024-09-19
+    private String materialNo;
+
     // 필요 컬럼 추가 - maxbort 2024-09-19
     private String nextProc;
     private Double goalWidth;

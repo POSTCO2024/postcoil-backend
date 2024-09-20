@@ -74,6 +74,10 @@ public class TestRegisterServiceImpl {
                 .temperature(material.getTemperature())
                 .width(material.getWidth())
                 .thickness(material.getThickness())
+
+                // 필요 컬럼 추가2 Sohyun Ahn 2024-09-19
+                .materialNo(material.getNo())
+
                 // 여기부터
                 .goalWidth(targetMaterial.getGoalWidth())
                 .goalThickness(targetMaterial.getGoalThickness())
