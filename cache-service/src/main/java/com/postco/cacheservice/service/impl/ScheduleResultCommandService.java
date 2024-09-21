@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -41,23 +42,28 @@ public class ScheduleResultCommandService extends AbstractRedisCommandService<Sc
     @Override
     public Mono<Boolean> saveData(ScheduleResultDTO.View data) {
         ReactiveHashOperations<String, String, String> hashOperations = redisTemplate.opsForHash();
-        Map<String, Object> map = objectMapper.convertValue(data, new TypeReference<>() {});
-        Map<String, String> dataMap = new HashMap<>();
 
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            if ("materials".equals(entry.getKey()) && entry.getValue() != null) {
-                try {
-                    dataMap.put(entry.getKey(), objectMapper.writeValueAsString(entry.getValue()));
-                } catch (JsonProcessingException e) {
-                    log.error("Error serializing materials", e);
-                    return Mono.error(e);
-                }
-            } else {
-                dataMap.put(entry.getKey(), String.valueOf(entry.getValue()));
-            }
+        // ObjectMapper를 사용해 data를 Map으로 변환
+        Map<String, Object> rawDataMap = objectMapper.convertValue(data, new TypeReference<>() {
+        });
+
+        // 모든 값을 String으로 변환
+        Map<String, String> dataMap = rawDataMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue() != null ? entry.getValue().toString() : ""
+                ));
+
+        // 'materials'는 따로 처리 (JSON으로 변환)
+        try {
+            String materialsJson = objectMapper.writeValueAsString(data.getMaterials());
+            dataMap.put("materials", materialsJson);
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing materials to JSON", e);
+            return Mono.just(false);
         }
 
-        String id = getIdFromData(data);
+        String id = String.valueOf(data.getId());
         String key = getKeyPrefix() + id;
 
         return hashOperations.putAll(key, dataMap)

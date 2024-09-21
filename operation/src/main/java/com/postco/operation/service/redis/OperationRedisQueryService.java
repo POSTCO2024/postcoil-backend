@@ -1,5 +1,9 @@
 package com.postco.operation.service.redis;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.postco.core.dto.SCHMaterialDTO;
 import com.postco.core.dto.ScheduleResultDTO;
 import com.postco.core.dto.TargetMaterialDTO;
 import com.postco.core.redis.cqrs.query.GenericRedisQueryService;
@@ -15,10 +19,36 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OperationRedisQueryService {
     private final GenericRedisQueryService redisQueryService;
+    private final ObjectMapper objectMapper;
 
     public Mono<List<ScheduleResultDTO.View>> fetchAllConfirmSchedules() {
-        return redisQueryService.fetchAllBySinglePrefix("schedule:", ScheduleResultDTO.View.class)
+        return redisQueryService.fetchAllBySinglePrefixWithJsonField(
+                        "schedule:",
+                        ScheduleResultDTO.View.class,
+                        "materials",
+                        new TypeReference<List<SCHMaterialDTO>>() {})
                 .collectList()
                 .doOnNext(confirm -> log.info("[Redis 성공] 모든 승인된 스케쥴 결과를 Redis 로부터 불러왔습니다. 개수: {}", confirm.size()));
+    }
+
+    public Mono<List<ScheduleResultDTO.View>> fetchAllConfirmScheduleTest() {
+        return redisQueryService.fetchAllBySinglePrefixWithJsonField(
+                        "schedule:",
+                        ScheduleResultDTO.View.class,
+                        "materials",
+                        new TypeReference<List<SCHMaterialDTO>>() {})
+                .doOnNext(schedule -> {
+                    log.debug("Fetched schedule from Redis: {}", schedule);
+                    log.debug("Materials in schedule: {}", schedule.getMaterials());
+                })
+                .collectList()
+                .doOnNext(schedules -> {
+                    log.info("[Redis 성공] 모든 승인된 스케쥴 결과를 Redis 로부터 불러왔습니다. 개수: {}", schedules.size());
+                    schedules.forEach(schedule -> {
+                        log.debug("Schedule: {}", schedule);
+                        log.debug("Materials in schedule: {}", schedule.getMaterials());
+                    });
+                })
+                .doOnError(error -> log.error("Error fetching schedules from Redis", error));
     }
 }

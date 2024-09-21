@@ -1,5 +1,6 @@
 package com.postco.core.redis.cqrs.query;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -107,5 +108,26 @@ public class GenericRedisQueryService implements QueryService {
                         .map(isMember -> Map.entry(id, isMember != null && isMember))
                         .defaultIfEmpty(Map.entry(id, false)))  // Set에 포함되지 않은 경우 false 처리
                 .collectMap(Map.Entry::getKey, Map.Entry::getValue);
+    }
+
+    public <T, U> Flux<T> fetchAllBySinglePrefixWithJsonField(
+            String prefix,
+            Class<T> entityClass,
+            String jsonField,
+            TypeReference<U> jsonFieldType) {
+        return redisTemplate.keys(prefix + "*")
+                .flatMap(key -> redisTemplate.opsForHash().entries(key)
+                        .collectMap(entry -> (String) entry.getKey(), Map.Entry::getValue)
+                        .map(map -> {
+                            String jsonString = (String) map.get(jsonField);
+                            try {
+                                U jsonObject = objectMapper.readValue(jsonString, jsonFieldType);
+                                map.put(jsonField, jsonObject);
+                            } catch (Exception e) {
+                                log.error("Error parsing JSON field: {}", jsonField, e);
+                            }
+                            return objectMapper.convertValue(map, entityClass);
+                        }))
+                .switchIfEmpty(Flux.empty());
     }
 }

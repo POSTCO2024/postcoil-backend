@@ -34,7 +34,6 @@ public class ScheduleResultDTO {
         private int quantity;
         private String confirmedBy;         // 컨펌한 사용자
         private String workStatus;
-        @JsonIgnore
         private List<SCHMaterialDTO> materials;
     }
 }

@@ -22,30 +22,21 @@ public class WorkInstruction implements com.postco.core.entity.Entity, Serializa
     @GeneratedValue
     @Column(name = "work_instruction_id")
     private Long id;
-
-    @Column(name = "work_code", nullable = false)
-    private String workCode;
-
-    @Column(name = "sch_code", nullable = false)
-    private String scheduleCode;
-
-    @Column(name = "expected_duration")
+    private String workNo;
+    private String scheduleId;
+    private String scheduleNo;
+    private String process;
+    private String rollUnit;
+    private int totalQuantity;
     private Long expectedDuration;
-
-    @Column(name = "actual_duration")
-    private Long actualDuration;
-
-    @Column(name = "start_time")
     private LocalDateTime startTime;
-
-    @Column(name = "end_time")
     private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "sch_status", nullable = false)
     private WorkStatus workStatus;
 
-    @OneToMany(mappedBy = "workInstruction")
+    @OneToMany(mappedBy = "workInstruction",cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @JsonManagedReference
     private List<WorkInstructionItem> items = new ArrayList<>();
