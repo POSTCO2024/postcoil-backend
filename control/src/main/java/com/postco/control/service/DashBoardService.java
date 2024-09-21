@@ -30,15 +30,11 @@ public class DashBoardService {
     }
 
     // 에러재/정상재 비율
-    public Map<String, Long> getErrorAndNormalCount(){
+    public Fc004aDTO.ErrorCount getErrorAndNormalCount(){
         long errorCount = targetMaterialRepository.countByIsError("Y");
         long normalCount = targetMaterialRepository.countByIsError("N");
 
-        Map<String, Long> result = new HashMap<>();
-        result.put("error", errorCount);
-        result.put("normal", normalCount);
-
-        return result;
+        return new Fc004aDTO.ErrorCount(errorCount, normalCount);
     }
 
     // 품종 비율

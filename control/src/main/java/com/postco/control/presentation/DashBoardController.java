@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -45,6 +46,27 @@ public class DashBoardController {
                                 .body(ApiResponseDTO.<List<Fc004aDTO.DueDate>>builder()
                                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                         .resultMsg("생산 기한일 조회 중 오류 발생")
+                                        .build())));
+    }
+
+    /**
+     * 에러재/정상재 비율
+     */
+    @GetMapping("/error_count")
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.ErrorCount>>> getErrorCount() {
+        return Mono.just(dashBoardService.getErrorAndNormalCount())
+                .map(result -> ResponseEntity.ok(
+                        ApiResponseDTO.<Fc004aDTO.ErrorCount>builder()
+                                .status(HttpStatus.OK.value())
+                                .resultMsg(HttpStatus.OK.getReasonPhrase())
+                                .result(result)
+                                .build()))
+                .doOnError(e -> log.error("에러재/정상재 비율 조회 중 오류 발생", e))
+                .onErrorResume(e -> Mono.just(
+                        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(ApiResponseDTO.<Fc004aDTO.ErrorCount>builder()
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                        .resultMsg("에러재/정상재 비율 조회 중 오류 발생")
                                         .build())));
     }
 
