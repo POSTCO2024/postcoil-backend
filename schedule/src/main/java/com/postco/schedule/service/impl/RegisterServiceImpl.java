@@ -38,7 +38,16 @@ public class RegisterServiceImpl {
                     return schMaterialRepository.saveAll(schMaterials);
                 })
                 .subscribeOn(Schedulers.boundedElastic())
-                .doOnNext(saved -> log.info("등록된 CAL 공정 스케줄 대상재 수: {}", saved.size()))
+                .doOnNext(saved -> {
+                    // 등록된 CAL 공정 스케줄 대상재 수 로그
+                    log.info("등록된 CAL 공정 스케줄 대상재 수: {}", saved.size());
+
+                    // 등록된 대상재의 ID 리스트 추출 후 로그
+                    List<Long> savedIds = saved.stream()
+                            .map(SCHMaterial::getId) // 각 대상재의 ID 추출
+                            .collect(Collectors.toList());
+                    log.info("등록된 대상재 ID 리스트: {}", savedIds);
+                })
                 .then();
     }
 

@@ -31,6 +31,9 @@ public class SCHMaterial implements com.postco.core.entity.Entity{
     private Double goalWidth;
     private Double goalThickness;
 
+    // 필요 컬럼 추가 - maxbort 2024-09-21
+    private Double totalWeight;
+    private Double goalLength;
 
     private String isScheduled;  // 미편성 여부
     private int sequence;        // 순서

@@ -50,20 +50,21 @@ public class ScheduleController {
     public ResponseEntity<ApiResponseDTO<List<SCHPlanDTO.View>>> executeAndSaveSchedule(@PathVariable String processCode, @RequestBody List<Long> materialIds) {
         // 스케줄링 실행 후 결과 받기
         List<SCHPlan> savedPlans = schedulePlanService.executeSchedulingAndSave(materialIds, processCode);
-
+        log.info("{}", savedPlans);
         // 저장된 스케줄 Plan을 DTO로 변환
         List<SCHPlanDTO.View> scheduleResults = savedPlans.stream()
                 .map(plan -> new SCHPlanDTO.View(plan.getId(), plan.getScheduleNo(), plan.getProcess(),
                         plan.getRollUnit(), plan.getPlanDate(), plan.getScExpectedDuration(),
                         plan.getQuantity(), plan.getIsConfirmed(), null))  // 재료 리스트는 필요시 추가
                 .collect(Collectors.toList());
+        log.info("Scheduling Results: {}", scheduleResults);
 
         ApiResponseDTO<List<SCHPlanDTO.View>> response = ApiResponseDTO.<List<SCHPlanDTO.View>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(scheduleResults)
                 .build();
-
+        log.info("dodododoodod");
         return ResponseEntity.ok(response);
     }
 

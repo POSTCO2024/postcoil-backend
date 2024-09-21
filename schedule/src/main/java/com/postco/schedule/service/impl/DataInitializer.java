@@ -42,6 +42,11 @@ public class DataInitializer implements CommandLineRunner {
                     log.info("[Redis 성공] 작업대상재 총 개수: {} 로드 완료", tuple.getT1().getTargetMaterials().size());
                     log.info("[Redis 성공] 재료 총 개수: {} 로드 완료", tuple.getT1().getMaterials().size());
                     log.info("[Redis 성공] 설비 관련 데이터 총 개수: {} 로드 완료", tuple.getT2().getEquipmentInfo().size());
+
+                    tuple.getT1().getTargetMaterials().forEach(targetMaterial ->
+                            log.info("불러온 작업대상재: {}", targetMaterial)
+                    );
+
                 });
     }
 
