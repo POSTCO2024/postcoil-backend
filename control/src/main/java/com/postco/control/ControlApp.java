@@ -12,6 +12,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
+@EnableDiscoveryClient
 @OpenAPIDefinition(info = @Info(title = "Control API", version = "1.0", description = "Control Service API"))
 @EntityScan(basePackages = "com.postco.control.domain")
 @ComponentScan(basePackages = {"com.postco.control", "com.postco.core"})

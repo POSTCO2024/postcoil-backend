@@ -1,0 +1,48 @@
+plugins {
+	id 'org.hidetake.swagger.generator'
+}
+
+bootJar {
+	enabled = false
+	dependsOn 'copySwaggerUI'
+}
+
+jar {
+	enabled = true
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+	// websocket
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// swagger
+	swaggerUI "org.webjars:swagger-ui:${swaggerUiVersion}"
+
+}
+
+// OpenAPI 스펙 생성 설정
+openapi3 {
+	server = "http://localhost:${project.findProperty('server.port')}"
+	title = "${project.name} API Documentation"
+	description = "API Documentation for ${project.name} with Spring Rest Docs and Swagger UI"
+	version = "${project.version}"
+	format = "yaml"
+	outputDirectory = 'src/main/resources/static/docs'
+}
+
+tasks.withType(GenerateSwaggerUI).configureEach {
+	dependsOn 'openapi3'
+}
+
+tasks.register('copySwaggerUI', Copy) {
+	dependsOn 'generateSwaggerUI'
+	from("${tasks.generateSwaggerUI.outputs}")
+	into("${layout.buildDirectory.dir('resources/main/static/docs')}")
+}
+// prepareKotlinBuildScriptModel 오류 방지
+tasks.register("prepareKotlinBuildScriptModel") {}
+

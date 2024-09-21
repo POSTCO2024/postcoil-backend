@@ -16,7 +16,7 @@ public class SCHMaterialDTO implements DTO {
     private Double temperature;
     private Double width;
     private Double thickness;
-    private Long schedulePlanId;
+    private Long planId;
     private String isScheduled;
     private int sequence;
     private String isRejected;

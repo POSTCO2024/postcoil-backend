@@ -26,7 +26,7 @@ repositories {
 }
 
 ext {
-    set('springCloudVersion', "2021.0.5")
+    set('springCloudVersion', "2021.0.9")
 }
 
 dependencies {
@@ -38,6 +38,12 @@ dependencies {
     // lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    // Eureka
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+    // 상태 체크
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 

@@ -24,6 +24,6 @@ public class MaterialQueryService extends AbstractRedisQueryService<MaterialDTO.
 
     @Override
     public int getRedisDatabase() {
-        return 0; // Assuming control service uses database 0
+        return 0;
     }
 }

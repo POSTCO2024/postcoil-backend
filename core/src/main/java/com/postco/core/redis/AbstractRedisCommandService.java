@@ -77,7 +77,7 @@ public abstract class AbstractRedisCommandService<T> implements CommandService<T
         return redisTemplate.delete(getKeyPrefix() + id).map(result -> result > 0);
     }
 
-    private String getIdFromData(T data) {
+    protected String getIdFromData(T data) {
         try {
             Method getIdMethod = getEntityClass().getMethod("getId");
             Long id = (Long) getIdMethod.invoke(data);
