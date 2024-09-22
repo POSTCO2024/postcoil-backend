@@ -1,20 +1,16 @@
 package com.postco.control.presentation;
 
 import com.postco.control.presentation.dto.response.Fc004aDTO;
-import com.postco.control.presentation.dto.response.MaterialDTO;
+import com.postco.control.service.OrderService;
 import com.postco.core.dto.ApiResponseDTO;
 import com.postco.control.service.DashBoardService;
-import com.postco.control.service.TargetMaterialService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.util.List;
 import java.util.Map;
@@ -25,7 +21,9 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4000")
 @RequiredArgsConstructor
 public class DashBoardController {
-    private final DashBoardService dashBoardService;
+    private final DashBoardService dashBoardService;    // Materials
+    private final OrderService orderService;
+
 
     /**
      * 생산 마감일
@@ -67,7 +65,61 @@ public class DashBoardController {
                                 .body(ApiResponseDTO.<Fc004aDTO.ErrorCount>builder()
                                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                         .resultMsg("에러재/정상재 비율 조회 중 오류 발생")
-                                        .build())));
+                                        .build()
+                                )
+                ));
+    }
+
+
+
+    // 품종
+    @GetMapping("/coil_type")
+    public Mono<Map<String, Long>> getCoilTypeCount() {   // @PathVariable String currProc
+        return orderService.getCoilTypesByCurrProc("1PCM");
+    }
+
+    // 고객사
+    @GetMapping("/customer_name")
+    public Mono<Map<String, Long>> getCustomerCount() {
+        return orderService.getCustomerCount();     // To do: 공정 받도록 수정
+    }
+
+    /**
+     * 품종/고객사
+     * @return
+     */
+    @GetMapping("/order")
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.Order>>> getOrder() {
+        Mono<Map<String, Long>> customerCountMono = orderService.getCustomerCount();
+        Mono<Map<String, Long>> coilTypeCountMono = orderService.getCoilTypesByCurrProc("1PCM");
+
+        return Mono.zip(customerCountMono, coilTypeCountMono)
+                .flatMap(this::buildOrderResponse)  // 빌드된 응답을 반환
+                .onErrorResume(e -> {
+                    log.error("Order 정보 조회 중 오류 발생", e);
+                    return Mono.just(
+                            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .body(ApiResponseDTO.<Fc004aDTO.Order>builder()
+                                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                            .resultMsg("Order 정보 조회 중 오류 발생")
+                                            .build()));
+                });
+    }
+
+    private Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.Order>>> buildOrderResponse(Tuple2<Map<String, Long>, Map<String, Long>> tuple) {
+        Fc004aDTO.Order order = Fc004aDTO.Order.builder()
+                .customerName(tuple.getT1())  // customerCount를 매핑
+                .coilType(tuple.getT2())      // coilType을 매핑
+                .build();
+
+        ApiResponseDTO<Fc004aDTO.Order> apiResponse = ApiResponseDTO.<Fc004aDTO.Order>builder()
+                .status(HttpStatus.OK.value())
+                .resultMsg(HttpStatus.OK.getReasonPhrase())
+                .result(order)
+                .build();
+
+        return Mono.just(ResponseEntity.ok(apiResponse));
     }
 
 }
+

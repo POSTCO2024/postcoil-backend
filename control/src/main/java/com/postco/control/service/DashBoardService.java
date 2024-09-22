@@ -3,9 +3,12 @@ package com.postco.control.service;
 import com.postco.control.domain.TargetMaterial;
 import com.postco.control.domain.repository.TargetMaterialRepository;
 import com.postco.control.presentation.dto.response.Fc004aDTO;
+import com.postco.control.service.impl.redis.ControlRedisQueryService;
+import com.postco.core.dto.MaterialDTO;
 import com.postco.core.dto.TargetMaterialDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import javax.swing.plaf.PanelUI;
 import java.time.LocalDateTime;
@@ -35,16 +38,6 @@ public class DashBoardService {
         long normalCount = targetMaterialRepository.countByIsError("N");
 
         return new Fc004aDTO.ErrorCount(errorCount, normalCount);
-    }
-
-    // 품종 비율
-//    public List<Object[]> getCoilTypeCount(){
-//        return targetMaterialRepository.countByCoilTypeCode();
-//    }
-
-    // 고객사 비율
-    public List<Object[]> getCustomerCount(){
-        return targetMaterialRepository.countByCustomerName();
     }
 
 }

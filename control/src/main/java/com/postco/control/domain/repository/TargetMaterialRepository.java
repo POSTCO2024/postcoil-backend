@@ -29,7 +29,6 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     @Query("UPDATE TargetMaterial tm SET tm.isError = 'N' WHERE tm.materialId IN :errorMaterialIds")
     int updateisError(@Param("errorMaterialIds") List<Long> errorMaterialIds);
 
-//    List<TargetMaterial> findByIsErrorAndCriteria(String isError, String criteria);
 
     // 생산 기한일
     @Query("SELECT tm.materialNo, tm.dueDate FROM TargetMaterial tm ORDER BY tm.dueDate ASC")
@@ -38,9 +37,6 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     // 에러재/정상재 비율
     long countByIsError(String isError);
 
-    // 품종
-//    @Query("SELECT t.coilTypeCode, COUNT(t) FROM TargetMaterial t GROUP BY t.coilTypeCode")
-//    List<Object[]> countByCoilTypeCode();
 
     // 고객사
     @Query("SELECT t.customerName, COUNT(t) FROM TargetMaterial t GROUP BY t.customerName")
