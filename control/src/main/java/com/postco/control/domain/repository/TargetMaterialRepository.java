@@ -31,16 +31,15 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
 
 
     // 생산 기한일
-    @Query("SELECT tm.materialNo, tm.dueDate FROM TargetMaterial tm ORDER BY tm.dueDate ASC")
-    List<Object[]> findMaterialNoAndDueDate();
+    @Query("SELECT tm.materialNo, tm.dueDate FROM TargetMaterial tm WHERE tm.id IN :materialIds ORDER BY tm.dueDate ASC")
+    List<Object[]> findMaterialNoAndDueDateByMaterialIds(@Param("materialIds") List<Long> materialIds);
 
     // 에러재/정상재 비율
-    long countByIsError(String isError);
-
+    long countByMaterialIdInAndIsError(List<Long> materialIds, String isError);
 
     // 고객사
-    @Query("SELECT t.customerName, COUNT(t) FROM TargetMaterial t GROUP BY t.customerName")
-    List<Object[]> countByCustomerName();
+    @Query("SELECT t.customerName, COUNT(t) FROM TargetMaterial t WHERE t.id IN :materialIds GROUP BY t.customerName")
+    List<Object[]> countByMaterialIdIn(@Param("materialIds") List<Long> materialIds);
 
 }
 

@@ -24,9 +24,6 @@ public class OrderService {
 
 
     // 품종 비율
-//    public List<Object[]> getCoilTypeCount(){
-//        return targetMaterialRepository.countByCoilTypeCode();
-//    }
     public Mono<Map<String, Long>> getCoilTypesByCurrProc(String currProc) {
         return controlRedisQueryService.getRedisData()
             .map(container -> {
@@ -49,16 +46,24 @@ public class OrderService {
 
 
     // 고객사 비율
-    public Mono<Map<String, Long>> getCustomerCount() {
-        return Mono.fromSupplier(() -> {
-            List<Object[]> results = targetMaterialRepository.countByCustomerName();
-            return results.stream()
-                    .collect(Collectors.toMap(
-                            result -> (String) result[0], // 고객사 이름
-                            result -> (Long) result[1]    // 고객사 카운트
-                    ));
-        });
+    public Mono<Map<String, Long>> getCustomerCountByProc(String currProc) {
+        return controlRedisQueryService.getRedisData()
+                .flatMap(container -> {
+                    // Redis에서 공정에 맞는 materialId 추출
+                    List<Long> materialIds = container.getMaterials().stream()
+                            .filter(material -> currProc.equals(material.getCurrProc())) // 공정 필터링
+                            .map(MaterialDTO.View::getId) // materialId 추출
+                            .collect(Collectors.toList());
+
+                    // DB에서 해당 materialIds에 해당하는 고객사 비율 조회
+                    return Mono.fromSupplier(() -> {
+                        List<Object[]> results = targetMaterialRepository.countByMaterialIdIn(materialIds); // 필터링된 ID로 고객사 조회
+                        return results.stream()
+                                .collect(Collectors.toMap(
+                                        result -> (String) result[0], // 고객사 이름
+                                        result -> (Long) result[1]    // 고객사 카운트
+                                ));
+                    });
+                });
     }
-
-
 }

@@ -31,11 +31,11 @@ public class DashBoardController {
      */
     @GetMapping("/dueDate")
     public Mono<ResponseEntity<ApiResponseDTO<List<Fc004aDTO.DueDate>>>> getDueDate() {
-        return Mono.just(dashBoardService.getDueDateInfo())
+        return dashBoardService.getDueDateInfo("1PCM")
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<List<Fc004aDTO.DueDate>>builder()
                                 .status(HttpStatus.OK.value())
-                                .resultMsg(HttpStatus.OK.getReasonPhrase())
+                                .resultMsg("생산 기한일 조회 성공")
                                 .result(result)
                                 .build()))
                 .doOnError(e -> log.error("생산 기한일 조회 중 오류 발생", e))
@@ -51,14 +51,17 @@ public class DashBoardController {
      * 에러재/정상재 비율
      */
     @GetMapping("/error_count")
-    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.ErrorCount>>> getErrorCount() {
-        return Mono.just(dashBoardService.getErrorAndNormalCount())
-                .map(result -> ResponseEntity.ok(
-                        ApiResponseDTO.<Fc004aDTO.ErrorCount>builder()
-                                .status(HttpStatus.OK.value())
-                                .resultMsg(HttpStatus.OK.getReasonPhrase())
-                                .result(result)
-                                .build()))
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.ErrorCount>>> getErrorCount() {     // To do: 공정 받기
+        return dashBoardService.getErrorAndNormalCount("1CAL")
+                .flatMap(result -> Mono.just(
+                        ResponseEntity.ok(
+                                ApiResponseDTO.<Fc004aDTO.ErrorCount>builder()
+                                        .status(HttpStatus.OK.value())
+                                        .resultMsg("에러재/정상재 비율 조회 성공")
+                                        .result(result)
+                                        .build()
+                        )
+                ))
                 .doOnError(e -> log.error("에러재/정상재 비율 조회 중 오류 발생", e))
                 .onErrorResume(e -> Mono.just(
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -81,7 +84,7 @@ public class DashBoardController {
     // 고객사
     @GetMapping("/customer_name")
     public Mono<Map<String, Long>> getCustomerCount() {
-        return orderService.getCustomerCount();     // To do: 공정 받도록 수정
+        return orderService.getCustomerCountByProc("1PCM");     // To do: 공정 받도록 수정
     }
 
     /**
@@ -90,7 +93,7 @@ public class DashBoardController {
      */
     @GetMapping("/order")
     public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.Order>>> getOrder() {
-        Mono<Map<String, Long>> customerCountMono = orderService.getCustomerCount();
+        Mono<Map<String, Long>> customerCountMono = orderService.getCustomerCountByProc("1PCM");
         Mono<Map<String, Long>> coilTypeCountMono = orderService.getCoilTypesByCurrProc("1PCM");
 
         return Mono.zip(customerCountMono, coilTypeCountMono)
@@ -114,7 +117,7 @@ public class DashBoardController {
 
         ApiResponseDTO<Fc004aDTO.Order> apiResponse = ApiResponseDTO.<Fc004aDTO.Order>builder()
                 .status(HttpStatus.OK.value())
-                .resultMsg(HttpStatus.OK.getReasonPhrase())
+                .resultMsg("품종 및 고객사 비율 조회 성공")
                 .result(order)
                 .build();
 
