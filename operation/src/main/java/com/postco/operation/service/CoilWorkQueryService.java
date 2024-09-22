@@ -1,4 +1,4 @@
-package com.postco.operation.service.impl;
+package com.postco.operation.service;
 
 public class CoilWorkQueryService {
 }
