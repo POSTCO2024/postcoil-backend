@@ -68,8 +68,7 @@ public class Fc004aDTO {
     @AllArgsConstructor
     @ToString
     public static class WidthThicknessCount implements DTO {
-        private int widthRange;
-        private int thicknessRange;
-        private long count;
+        private Map<Integer, Long> widthDistribution; // 폭 분포
+        private Map<Double, Long> thicknessDistribution; // 두께 분포
     }
 }

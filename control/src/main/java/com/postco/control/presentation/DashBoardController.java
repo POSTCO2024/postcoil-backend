@@ -124,5 +124,27 @@ public class DashBoardController {
         return Mono.just(ResponseEntity.ok(apiResponse));
     }
 
+
+    /**
+     * 재료정보(폭,두께 분포)
+     */
+    @GetMapping("/distribution")
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.WidthThicknessCount>>> getMaterialDistribution() {
+        return dashBoardService.getWidthAndThicknessDistribution()
+                .map(result -> ResponseEntity.ok(
+                        ApiResponseDTO.<Fc004aDTO.WidthThicknessCount>builder()
+                                .status(HttpStatus.OK.value())
+                                .resultMsg("폭 및 두께 분포 데이터 조회 성공")
+                                .result(result)
+                                .build()))
+                .doOnError(e -> log.error("폭 및 두께 분포 조회 중 오류 발생"))
+                .onErrorResume(e -> Mono.just(
+                        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(ApiResponseDTO.<Fc004aDTO.WidthThicknessCount>builder()
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                        .resultMsg("폭 및 두께 분포 조회 중 오류 발생")
+                                        .build())));
+    }
+
 }
 

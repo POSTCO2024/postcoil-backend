@@ -65,4 +65,28 @@ public class DashBoardService {
                     return Mono.just(new Fc004aDTO.ErrorCount(errorCount, normalCount));
                 });
     }
+
+    public Mono<Fc004aDTO.WidthThicknessCount> getWidthAndThicknessDistribution() {
+        return controlRedisQueryService.getRedisData()
+                .map(container -> {
+                    List<MaterialDTO.View> materials = container.getMaterials();
+
+                    // 폭과 두께에 따른 분포 계산
+                    Map<Integer, Long> widthDistribution = new HashMap<>();
+                    Map<Double, Long> thicknessDistribution = new HashMap<>();
+
+                    for (MaterialDTO.View material : materials) {
+                        // 폭(width)을 100mm 단위로 나누어 카운팅
+                        int widthRange = (int) (material.getWidth() / 100) * 100;
+                        widthDistribution.put(widthRange, widthDistribution.getOrDefault(widthRange, 0L) + 1);
+
+                        // 두께(thickness)를 0.5mm 단위로 나누어 카운팅
+                        double thicknessRange = Math.floor(material.getThickness() / 0.5) * 0.5;
+                        thicknessDistribution.put(thicknessRange, thicknessDistribution.getOrDefault(thicknessRange, 0L) + 1);
+                    }
+
+                    // DistributionDTO 객체로 변환하여 결과 반환
+                    return new Fc004aDTO.WidthThicknessCount(widthDistribution, thicknessDistribution);
+                });
+    }
 }
