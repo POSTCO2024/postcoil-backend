@@ -1,5 +1,6 @@
 package com.postco.operation.domain.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
@@ -24,7 +25,7 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     private Long id;
 
     @ManyToOne(fetch = LAZY)
-    @JsonManagedReference
+    @JsonBackReference
     @JoinColumn(name = "work_instruction_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private WorkInstruction workInstruction;
 
@@ -88,5 +89,13 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     public void finishWork() {
         this.endTime = LocalDateTime.now();
         this.workItemStatus = WorkStatus.COMPLETED;
+    }
+
+    // 리젝트된 코일 처리 -> Y 로 변경
+    public void updateReject() {
+        if(this.workItemStatus == WorkStatus.PENDING) {
+            // 진행중이 아닌 코일에 대해서만 가능
+            this.isRejected = "Y";
+        }
     }
 }

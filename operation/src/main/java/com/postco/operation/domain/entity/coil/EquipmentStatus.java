@@ -40,4 +40,7 @@ public class EquipmentStatus implements com.postco.core.entity.Entity{
 
     @Column(name = "cumulative_amount", nullable = false)
     private Integer cumulativeAmount;
+
+    // ==== 연관관계 메서드 ====
+
 }

@@ -23,7 +23,6 @@ import reactor.util.retry.Retry;
 
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -128,15 +127,6 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
         ).subscribeOn(Schedulers.boundedElastic());
     }
 
-    @Override
-    public Mono<List<WorkInstructionDTO.View>> getWorkInstructions() {
-        return Mono.fromCallable(() ->
-                workInstructionRepository.findAll().stream()
-                        .map(WorkInstructionMapper::mapToDTO)
-                        .collect(Collectors.toList())
-        ).subscribeOn(Schedulers.boundedElastic());
-    }
-
     // 랜덤 no 생성 함수 -> 작업지시서의 no 에 넣으면 됨.
     private String generateWorkNo(String processCode, String rollUnit) {
         Long lastId = workInstructionRepository.findLastSavedId();
@@ -148,5 +138,20 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
                 .toString();
         String truncatedProcessCode = processCode.length() >= 2 ? processCode.substring(0, 2) : processCode;
         return String.format("W%s%s%s%s", truncatedProcessCode, sequence, randomChars, rollUnit);
+    }
+
+
+    // ============= 조회 부분 (cqrs 패턴에 따라 분리해야함.. 나중에 리팩토링.. )
+    @Override
+    public Mono<List<WorkInstructionDTO.View>> getWorkInstructions(String process, String rollUnit) {
+        return Mono.fromCallable(() -> {
+            log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process, rollUnit);
+            List<WorkInstruction> workInstructions = workInstructionRepository.findByProcessAndRollUnit(process, rollUnit);
+            List<WorkInstructionDTO.View> dtos = workInstructions.stream()
+                    .map(WorkInstructionMapper::mapToDto)
+                    .collect(Collectors.toList());
+            log.info("작업 지시서 조회 완료. 조회된 작업 지시서 수: {}", dtos.size());
+            return dtos;
+        }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
     }
 }

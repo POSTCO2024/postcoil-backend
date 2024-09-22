@@ -100,9 +100,21 @@ public class WorkInstructionMapper {
     }
 
     // WorkInstruction 엔티티 -> WorkInstructionDTO.View 매핑
-    public static WorkInstructionDTO.View mapToDTO(WorkInstruction entity) {
-        return modelMapper.map(entity, WorkInstructionDTO.View.class);
+    public static WorkInstructionDTO.View mapToDto(WorkInstruction entity) {
+        WorkInstructionDTO.View dto = modelMapper.map(entity, WorkInstructionDTO.View.class);
+        if (entity.getItems() != null) {
+            dto.setItems(entity.getItems().stream()
+                    .map(WorkInstructionMapper::mapToItemDto)
+                    .collect(Collectors.toList()));
+        }
+        return dto;
     }
+
+    // WorkInstructionItem 엔티티 -> WorkInstructionItemDTO.View 매핑
+    private static WorkInstructionItemDTO.View mapToItemDto(WorkInstructionItem item) {
+        return modelMapper.map(item, WorkInstructionItemDTO.View.class);
+    }
+
 
     private static WorkStatus safeValueOf(String status) {
         try {

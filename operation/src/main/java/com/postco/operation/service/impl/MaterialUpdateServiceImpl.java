@@ -28,8 +28,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MaterialUpdateServiceImpl implements MaterialUpdateService {
     private final MaterialRepository materialRepository;
-    private final OrderRepository orderRepository;
-    private final WorkItemRepository workItemRepository;
     private final MaterialsProducer materialsProducer;
     private final OrderProducer orderProducer;
 
@@ -39,58 +37,5 @@ public class MaterialUpdateServiceImpl implements MaterialUpdateService {
                 .orElseThrow(() -> new EntityNotFoundException("Material not found"));
         material.updateProgress(newProgress);
         materialRepository.save(material);
-    }
-
-    @Override
-    public void startWork(Long workItemId) {
-        WorkInstructionItem item = workItemRepository.findById(workItemId)
-                .orElseThrow(() -> new EntityNotFoundException("Work instruction item not found"));
-        item.startWork();
-        workItemRepository.save(item);
-    }
-
-    @Override
-    public void finishWork(Long workItemId) {
-        WorkInstructionItem item = workItemRepository.findById(workItemId)
-                .orElseThrow(() -> new EntityNotFoundException("Work instruction item not found"));
-
-        LocalDateTime expectedEndTime = item.getStartTime().plusSeconds(item.getExpectedItemDuration());
-        if(LocalDateTime.now().isAfter(expectedEndTime)) {
-            item.finishWork();
-            updateMaterialProgress(item.getMaterial().getId(), MaterialProgress.H);
-            workItemRepository.save(item);
-        }
-    }
-
-    @Override
-    public void requestTransfer(Long materialId) {
-        Materials material = materialRepository.findById(materialId)
-                .orElseThrow(() -> new EntityNotFoundException("Material not found"));
-
-        if(material.getProgress() == MaterialProgress.H) {
-            updateMaterialProgress(materialId, MaterialProgress.J);
-        }
-    }
-
-    @Override
-    public boolean checkTransferCompletion(Long materialId, Duration transferDuration) {
-        Materials material = materialRepository.findById(materialId)
-                .orElseThrow(() -> new EntityNotFoundException("Material not found"));
-
-        if(isTransferCompleted()) {
-            material.updateProgress(MaterialProgress.D);
-            materialRepository.save(material);
-            return true;
-        }
-        return false;
-    }
-
-
-    private boolean isTransferCompleted() {
-        LocalDateTime startTime = LocalDateTime.now();
-        // 50초 뒤로 설정
-        Duration duration = Duration.ofSeconds(50);
-
-        return LocalDateTime.now().isAfter(startTime.plus(duration));
     }
 }

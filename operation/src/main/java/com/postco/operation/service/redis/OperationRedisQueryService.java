@@ -41,12 +41,13 @@ public class OperationRedisQueryService {
                 })
                 .collectList()
                 .doOnNext(schedules -> {
-                    log.info("[Redis 성공] 모든 승인된 스케쥴 결과를 Redis 로부터 불러왔습니다. 개수: {}", schedules.size());
+                    log.info("[Redis 성공] 스케쥴 결과를 Redis 로부터 불러왔습니다. 개수: {}", schedules.size());
                     schedules.forEach(schedule -> {
                         log.debug("Schedule: {}", schedule);
-                        log.debug("Materials in schedule: {}", schedule.getMaterials());
+                        log.debug("스케쥴 대상재 : {}", schedule.getMaterials());
                     });
                 })
                 .doOnError(error -> log.error("Error fetching schedules from Redis", error));
     }
+
 }
