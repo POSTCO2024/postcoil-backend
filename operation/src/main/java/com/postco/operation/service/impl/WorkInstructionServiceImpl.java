@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.dto.ScheduleResultDTO;
 import com.postco.operation.domain.entity.WorkInstruction;
+import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
 import com.postco.operation.presentation.dto.WorkInstructionMapper;
@@ -33,6 +34,7 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     private final OperationRedisQueryService redisQueryService;
     private final ScheduleServiceClient serviceClient;
     private final WorkInstructionRepository workInstructionRepository;
+    private final MaterialRepository materialRepository;
     private final TransactionTemplate transactionTemplate;
     private final ObjectMapper objectMapper;
 
@@ -118,7 +120,7 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
         return Mono.fromCallable(() ->
                 transactionTemplate.execute(status -> {
                     List<WorkInstruction> entities = workInstructions.stream()
-                            .map(WorkInstructionMapper::mapToEntity)
+                            .map(dto -> WorkInstructionMapper.mapToEntity(dto, materialRepository))
                             .collect(Collectors.toList());
                     workInstructionRepository.saveAll(entities);
                     return true;

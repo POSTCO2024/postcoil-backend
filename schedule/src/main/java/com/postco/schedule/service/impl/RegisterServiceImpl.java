@@ -83,6 +83,10 @@ public class RegisterServiceImpl {
                 .width(material.getWidth())
                 .thickness(material.getThickness())
 
+                // 추가 yerim kim 2024-09-22
+                .targetId(targetMaterial.getId())
+                .materialId(material.getId())
+
                 // 필요 컬럼 추가2 Sohyun Ahn 2024-09-19
                 .materialNo(material.getNo())
 

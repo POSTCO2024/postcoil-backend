@@ -31,4 +31,8 @@ public class SCHMaterialDTO implements DTO {
 
     // 추가 필드 - Sohyun Ahn 2024-09-19
     private String materialNo;
+
+    // 추가 필드 -yerim kim 2024-09-22
+    private Long materialId;
+    private Long targetId;
 }

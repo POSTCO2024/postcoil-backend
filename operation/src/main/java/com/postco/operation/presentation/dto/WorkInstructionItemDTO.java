@@ -16,6 +16,7 @@ public class WorkInstructionItemDTO {
     @Builder
     public static class Create implements DTO {
         private Long materialId;
+        private Long targetId;
         private WorkStatus workItemStatus;
         private int sequence;
         private String isRejected;
@@ -29,6 +30,7 @@ public class WorkInstructionItemDTO {
     public static class View implements DTO {
         private Long id;
         private Long materialId;
+        private Long targetId;
         private String workItemStatus;
         private int sequence;
         private String isRejected;

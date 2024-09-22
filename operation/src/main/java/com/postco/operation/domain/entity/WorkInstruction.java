@@ -42,12 +42,15 @@ public class WorkInstruction implements com.postco.core.entity.Entity, Serializa
     private List<WorkInstructionItem> items = new ArrayList<>();
 
     public void addItem(WorkInstructionItem item) {
-        items.add(item);
-        item.setWorkInstruction(this);
+        if (item != null && !this.items.contains(item)) {
+            this.items.add(item);
+            item.setWorkInstruction(this);
+        }
     }
 
     public void removeItem(WorkInstructionItem item) {
-        items.remove(item);
-        item.setWorkInstruction(null);
+        if (this.items.remove(item)) {
+            item.setWorkInstruction(null);
+        }
     }
 }

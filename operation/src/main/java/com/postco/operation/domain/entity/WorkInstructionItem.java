@@ -6,6 +6,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import static javax.persistence.FetchType.LAZY;
 
@@ -31,6 +32,8 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     @JoinColumn(name = "material_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private Materials material;
 
+    private Long targetId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "work_item_status", nullable = false)
     private WorkStatus workItemStatus;
@@ -50,10 +53,30 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     @Column(name = "end_time")
     private LocalDateTime endTime; // 종료 작업 시간
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WorkInstructionItem)) return false;
+        WorkInstructionItem that = (WorkInstructionItem) o;
+        return Objects.equals(getMaterial().getId(), that.getMaterial().getId()) &&
+                Objects.equals(getTargetId(), that.getTargetId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getMaterial().getId(), getTargetId());
+    }
+
     public void setWorkInstruction(WorkInstruction workInstruction) {
-        this.workInstruction = workInstruction;
-        if (workInstruction != null && !workInstruction.getItems().contains(this)) {
-            workInstruction.getItems().add(this);
+        if (this.workInstruction != workInstruction) {
+            WorkInstruction oldWorkInstruction = this.workInstruction;
+            this.workInstruction = workInstruction;
+            if (oldWorkInstruction != null) {
+                oldWorkInstruction.getItems().remove(this);
+            }
+            if (workInstruction != null && !workInstruction.getItems().contains(this)) {
+                workInstruction.getItems().add(this);
+            }
         }
     }
 
