@@ -1,6 +1,5 @@
 package com.postco.control.service;
 
-import com.postco.control.domain.TargetMaterial;
 import com.postco.control.domain.repository.TargetMaterialRepository;
 import com.postco.control.presentation.dto.response.Fc004aDTO;
 import com.postco.control.service.impl.WidthThicknessCounter;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class DashBoardService {
+public class DashBoardMaterialService {
     private final ControlRedisQueryService controlRedisQueryService;
     private final TargetMaterialRepository targetMaterialRepository;
 

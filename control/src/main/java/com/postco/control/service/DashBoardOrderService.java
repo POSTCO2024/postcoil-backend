@@ -1,7 +1,6 @@
 package com.postco.control.service;
 
 import com.postco.control.domain.repository.TargetMaterialRepository;
-import com.postco.control.presentation.dto.response.Fc004aDTO;
 import com.postco.control.service.impl.redis.ControlRedisQueryService;
 import com.postco.core.dto.MaterialDTO;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +16,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class OrderService {
+public class DashBoardOrderService {
     private final ControlRedisQueryService controlRedisQueryService;
     private final TargetMaterialRepository targetMaterialRepository;
 

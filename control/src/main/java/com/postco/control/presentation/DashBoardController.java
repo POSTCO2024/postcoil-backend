@@ -1,9 +1,9 @@
 package com.postco.control.presentation;
 
 import com.postco.control.presentation.dto.response.Fc004aDTO;
-import com.postco.control.service.OrderService;
+import com.postco.control.service.DashBoardOrderService;
 import com.postco.core.dto.ApiResponseDTO;
-import com.postco.control.service.DashBoardService;
+import com.postco.control.service.DashBoardMaterialService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,8 +21,8 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:4000")
 @RequiredArgsConstructor
 public class DashBoardController {
-    private final DashBoardService dashBoardService;    // Materials
-    private final OrderService orderService;
+    private final DashBoardMaterialService dashBoardMaterialService;    // Materials
+    private final DashBoardOrderService dashBoardOrderService;
 
 
     /**
@@ -31,7 +31,7 @@ public class DashBoardController {
      */
     @GetMapping("/dueDate")
     public Mono<ResponseEntity<ApiResponseDTO<List<Fc004aDTO.DueDate>>>> getDueDate(@RequestParam String currProc) {
-        return dashBoardService.getDueDateInfo(currProc)
+        return dashBoardMaterialService.getDueDateInfo(currProc)
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<List<Fc004aDTO.DueDate>>builder()
                                 .status(HttpStatus.OK.value())
@@ -53,7 +53,7 @@ public class DashBoardController {
      */
     @GetMapping("/error_count")
     public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.ErrorCount>>> getErrorCount(@RequestParam String currProc) {
-        return dashBoardService.getErrorAndNormalCount(currProc)
+        return dashBoardMaterialService.getErrorAndNormalCount(currProc)
                 .flatMap(result -> Mono.just(
                         ResponseEntity.ok(
                                 ApiResponseDTO.<Fc004aDTO.ErrorCount>builder()
@@ -79,13 +79,13 @@ public class DashBoardController {
     // 품종
     @GetMapping("/coil_type")
     public Mono<Map<String, Long>> getCoilTypeCount(@RequestParam String currProc) {
-        return orderService.getCoilTypesByCurrProc(currProc);
+        return dashBoardOrderService.getCoilTypesByCurrProc(currProc);
     }
 
     // 고객사
     @GetMapping("/customer_name")
     public Mono<Map<String, Long>> getCustomerCount(@RequestParam String currProc) {
-        return orderService.getCustomerCountByProc(currProc);
+        return dashBoardOrderService.getCustomerCountByProc(currProc);
     }
 
     /**
@@ -94,8 +94,8 @@ public class DashBoardController {
      */
     @GetMapping("/order")
     public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.Order>>> getOrder(@RequestParam String currProc) {
-        Mono<Map<String, Long>> customerCountMono = orderService.getCustomerCountByProc(currProc);
-        Mono<Map<String, Long>> coilTypeCountMono = orderService.getCoilTypesByCurrProc(currProc);
+        Mono<Map<String, Long>> customerCountMono = dashBoardOrderService.getCustomerCountByProc(currProc);
+        Mono<Map<String, Long>> coilTypeCountMono = dashBoardOrderService.getCoilTypesByCurrProc(currProc);
 
         return Mono.zip(customerCountMono, coilTypeCountMono)
                 .flatMap(this::buildOrderResponse)  // 빌드된 응답을 반환
@@ -132,7 +132,7 @@ public class DashBoardController {
      */
     @GetMapping("/distribution")
     public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.WidthThicknessCount>>> getMaterialDistribution(@RequestParam String currProc) {
-        return dashBoardService.getWidthAndThicknessDistribution(currProc)
+        return dashBoardMaterialService.getWidthAndThicknessDistribution(currProc)
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<Fc004aDTO.WidthThicknessCount>builder()
                                 .status(HttpStatus.OK.value())
