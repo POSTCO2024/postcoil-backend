@@ -1,6 +1,5 @@
 package com.postco.control.service.impl;
 
-import com.postco.control.domain.TargetMaterial;
 import com.postco.control.domain.repository.TargetMaterialRepository;
 import com.postco.control.presentation.dto.TargetViewDTO;
 import com.postco.control.service.TargetMaterialQueryService;
@@ -99,4 +98,20 @@ public class TargetMaterialQueryServiceImpl implements TargetMaterialQueryServic
                             .collect(Collectors.toList());
                 });
     }
+
+    // 페이징 실패
+//    public Mono<Page<TargetMaterialDTO.View>> getNormalTargetMaterialsByPage(int page, String currProc) {
+//        int pageSize = 10;
+//        Pageable pageable = PageRequest.of(page, pageSize);
+//        Page<TargetMaterial> targetMaterialPage = targetMaterialRepository.findByIsErrorIsN(pageable);
+//        List<TargetMaterialDTO.View> targetMaterialDTOViews = targetMaterialPage.getContent().stream()
+//                .map(tm -> modelMapper.map(tm, TargetMaterialDTO.View.class))
+//                .collect(Collectors.toList());
+//
+//        getTargetViewDTOs(targetMaterialDTOViews).map(targetViews -> targetViews.stream()
+//                .filter(view -> currProc.equals(view.getMaterial().getCurrProc()))
+//                .collect(Collectors.toList()));
+//
+//        return new PageImpl<>(targetMaterialDTOViews, pageable, targetMaterialPage.getTotalElements());
+//    }
 }

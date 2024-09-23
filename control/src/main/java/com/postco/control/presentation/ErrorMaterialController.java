@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:4000")
+@CrossOrigin(origins = {"http://localhost:4000", "http://localhost:8081"})
 @RequestMapping("/api/v1/target-materials")
 @RequiredArgsConstructor
 public class ErrorMaterialController {
@@ -25,10 +25,28 @@ public class ErrorMaterialController {
     private final ErrorPassService errorPassService;
 
     /**
-     *  공정 별 에러재 조회
+     * 공정 별 에러재 조회
+     *
      * @param currProc
      * @return 공정 별 에러재 리스트
      */
+//    @GetMapping("/related-data")
+//    public Mono<ResponseEntity<ApiResponseDTO<List<TargetViewDTO>>>> getTargetMaterialsWithRelatedData() {
+//        return errorMaterialQueryService.mapToTargetViewDTOs()
+//                .map(result -> ResponseEntity.ok(
+//                        ApiResponseDTO.<List<TargetViewDTO>>builder()
+//                                .status(HttpStatus.OK.value())
+//                                .resultMsg(HttpStatus.OK.getReasonPhrase())
+//                                .result(result)
+//                                .build()))
+//                .doOnError(e -> log.error("작업대상재 조회 중 오류 발생", e))
+//                .onErrorResume(e -> Mono.just(
+//                        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//                                .body(ApiResponseDTO.<List<TargetViewDTO>>builder()
+//                                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+//                                        .resultMsg("작업대상재 조회 중 오류 발생")
+//                                        .build())));
+//    }
     @GetMapping("/error-by-curr-proc")
     public Mono<ResponseEntity<ApiResponseDTO<List<TargetViewDTO>>>> getNormalTargetMaterialsByCurrProc(
             @RequestParam String currProc) {
@@ -53,18 +71,26 @@ public class ErrorMaterialController {
      * 에러 여부(isError)는 업데이트 되며 에러이유(errorType)은 그대로 둔다.
      * 다시 에러재로 추출될 경우, 에러이유는 업데이트 된다.
      *
-     * @Param 에러패스 할 재료(material_id)
      * @return
+     * @Param 에러패스 할 재료(material_id)
      */
     @PutMapping("/errorpass")
-    public ResponseEntity<ApiResponseDTO<Map<String, Long>>> errorPass(@RequestBody List<Long> error_material_ids) {
+    public ResponseEntity<ApiResponseDTO<Map<String, Long>>> ErrorPass(@RequestBody List<Long> error_material_ids) {
         log.info("에러패스를 진행합니다. " + error_material_ids);
         errorPassService.errorPass(error_material_ids);
 
         Map<String, Long> result = ErrorMaterialMapper.errorPassIds(error_material_ids);
-        ApiResponseDTO<Map<String, Long>> response = new ApiResponseDTO<>(200,"Success",result);
-
+        ApiResponseDTO<Map<String, Long>> response = new ApiResponseDTO<>(200, "Success", result);
         return ResponseEntity.ok(response);
     }
 
+
+    @PostMapping("/comment/{id}")
+    public ResponseEntity<ApiResponseDTO<String>> errorComment(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        String comment = request.get("comment");
+        System.out.println(comment);
+        errorPassService.errorComment(id, comment);
+        ApiResponseDTO<String> response = new ApiResponseDTO<>(200, "에러재 코멘트 성공", "true");
+        return ResponseEntity.ok(response);
+    }
 }
