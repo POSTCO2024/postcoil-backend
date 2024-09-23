@@ -27,7 +27,7 @@ public class DashBoardController {
 
     /**
      * 생산 마감일
-     * @return
+     * @return 공정 별 생산 마감일이 적게 남은 재료 리스트 반환
      */
     @GetMapping("/dueDate")
     public Mono<ResponseEntity<ApiResponseDTO<List<Fc004aDTO.DueDate>>>> getDueDate() {
@@ -49,6 +49,7 @@ public class DashBoardController {
 
     /**
      * 에러재/정상재 비율
+     * @return 공정 별 에러재/정상재 개수 반환
      */
     @GetMapping("/error_count")
     public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.ErrorCount>>> getErrorCount() {     // To do: 공정 받기
@@ -89,7 +90,7 @@ public class DashBoardController {
 
     /**
      * 품종/고객사
-     * @return
+     * @return 공정 별 품종 및 고객사 개수
      */
     @GetMapping("/order")
     public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.Order>>> getOrder() {
@@ -127,10 +128,11 @@ public class DashBoardController {
 
     /**
      * 재료정보(폭,두께 분포)
+     * @return 공정 별 작업대상재의 폭, 두께 분포
      */
     @GetMapping("/distribution")
     public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.WidthThicknessCount>>> getMaterialDistribution() {
-        return dashBoardService.getWidthAndThicknessDistribution()
+        return dashBoardService.getWidthAndThicknessDistribution("1PCM")
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<Fc004aDTO.WidthThicknessCount>builder()
                                 .status(HttpStatus.OK.value())

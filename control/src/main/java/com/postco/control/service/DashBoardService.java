@@ -61,21 +61,27 @@ public class DashBoardService {
                     long errorCount = targetMaterialRepository.countByMaterialIdInAndIsError(materialIds, "Y");
                     long normalCount = targetMaterialRepository.countByMaterialIdInAndIsError(materialIds, "N");
 
-                    // 에러재/정상재 개수 반환
                     return Mono.just(new Fc004aDTO.ErrorCount(errorCount, normalCount));
                 });
     }
 
-    public Mono<Fc004aDTO.WidthThicknessCount> getWidthAndThicknessDistribution() {
+
+    // 폭/두께 분포
+    public Mono<Fc004aDTO.WidthThicknessCount> getWidthAndThicknessDistribution(String currProc) {
         return controlRedisQueryService.getRedisData()
                 .map(container -> {
                     List<MaterialDTO.View> materials = container.getMaterials();
+
+                    // 공정(currProc)으로 필터링된 자료 리스트 생성
+                    List<MaterialDTO.View> filteredMaterials = materials.stream()
+                            .filter(material -> material.getCurrProc().equals(currProc)) // 공정으로 필터링
+                            .collect(Collectors.toList());
 
                     // 폭과 두께에 따른 분포 계산
                     Map<Integer, Long> widthDistribution = new HashMap<>();
                     Map<Double, Long> thicknessDistribution = new HashMap<>();
 
-                    for (MaterialDTO.View material : materials) {
+                    for (MaterialDTO.View material : filteredMaterials) {
                         // 폭(width)을 100mm 단위로 나누어 카운팅
                         int widthRange = (int) (material.getWidth() / 100) * 100;
                         widthDistribution.put(widthRange, widthDistribution.getOrDefault(widthRange, 0L) + 1);
@@ -85,7 +91,6 @@ public class DashBoardService {
                         thicknessDistribution.put(thicknessRange, thicknessDistribution.getOrDefault(thicknessRange, 0L) + 1);
                     }
 
-                    // DistributionDTO 객체로 변환하여 결과 반환
                     return new Fc004aDTO.WidthThicknessCount(widthDistribution, thicknessDistribution);
                 });
     }
