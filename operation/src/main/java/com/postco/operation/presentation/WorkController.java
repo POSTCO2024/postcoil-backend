@@ -28,11 +28,11 @@ public class WorkController {
     public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> requestSupply(
             @PathVariable Long workInstructionId,
             @RequestParam int supplyCount) {
+
         log.info("보급 요청. 작업 지시서 ID: {}, 보급 수량: {}", workInstructionId, supplyCount);
 
         return coilWorkCommandService.requestSupply(workInstructionId, supplyCount)
-                .map(success -> createResponse(success,
-                        success ? "보급 요청 성공" : "보급 요청 실패"))
+                .map(success -> createResponse(success, success ? "보급 요청 성공" : "보급 요청 실패"))
                 .onErrorResume(e -> handleError("보급 요청 중 오류 발생", e));
     }
 
@@ -41,7 +41,9 @@ public class WorkController {
     public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> rejectWorkItem(
             @PathVariable Long workInstructionId,
             @PathVariable Long itemId) {
+
         log.debug("리젝 요청. 작업 지시서 ID: {}, 작업 아이템 ID: {}", workInstructionId, itemId);
+
         return Mono.fromCallable(() -> {
                     boolean coilUpdateResult = coilSupplyService.updateRejectCount(workInstructionId);
                     boolean workItemUpdateResult = workItemService.rejectWorkItem(itemId);
@@ -57,10 +59,7 @@ public class WorkController {
                 .onErrorResume(e -> handleError("리젝 처리 중 오류 발생", e));
     }
 
-    // 긴급 정지 API
-
-
-
+    // 공통 응답 생성 메서드
     private ResponseEntity<ApiResponseDTO<Boolean>> createResponse(boolean success, String message) {
         return ResponseEntity.ok(ApiResponseDTO.<Boolean>builder()
                 .status(HttpStatus.OK.value())
@@ -69,8 +68,9 @@ public class WorkController {
                 .build());
     }
 
+    // 공통 에러 핸들링 메서드
     private <T> Mono<ResponseEntity<ApiResponseDTO<T>>> handleError(String operation, Throwable e) {
-        log.error("{} 중 오류 발생", operation, e);
+        log.error("{} 중 오류 발생 : {}", operation, e.getMessage());
         return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponseDTO.<T>builder()
                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())

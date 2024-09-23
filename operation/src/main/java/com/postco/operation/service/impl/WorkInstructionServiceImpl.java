@@ -3,9 +3,11 @@ package com.postco.operation.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.dto.ScheduleResultDTO;
+import com.postco.operation.domain.entity.CoilSupply;
 import com.postco.operation.domain.entity.MaterialProgress;
 import com.postco.operation.domain.entity.WorkInstruction;
 import com.postco.operation.domain.entity.WorkInstructionItem;
+import com.postco.operation.domain.repository.CoilSupplyRepository;
 import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
@@ -39,6 +41,7 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     private final MaterialUpdateServiceImpl materialUpdateService;
     private final MaterialRepository materialRepository;
     private final TransactionTemplate transactionTemplate;
+    private final CoilSupplyRepository coilSupplyRepository;
     private final ObjectMapper objectMapper;
 
     private static final Duration INITIAL_DELAY = Duration.ofSeconds(5);
@@ -125,6 +128,19 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
                     List<WorkInstruction> savedInstructions = workInstructions.stream()
                             .map(dto -> WorkInstructionMapper.mapToEntity(dto, materialRepository))
                             .collect(Collectors.collectingAndThen(Collectors.toList(), workInstructionRepository::saveAll));
+
+                    // 코일 보급 현황 저장
+                    savedInstructions.forEach(instruction -> {
+                        if (coilSupplyRepository.findByWorkInstruction(instruction).isEmpty()) {
+                            CoilSupply coilSupply = new CoilSupply();
+                            coilSupply.setWorkInstruction(instruction);
+                            coilSupply.setTotalCoils(instruction.getTotalQuantity());
+                            coilSupply.setSuppliedCoils(0);
+                            coilSupply.setTotalProgressed(0);
+                            coilSupply.setTotalRejects(0);
+                            coilSupplyRepository.save(coilSupply);
+                        }
+                    });
 
                     // 재료 상태 E 로 변경
                     savedInstructions.stream()

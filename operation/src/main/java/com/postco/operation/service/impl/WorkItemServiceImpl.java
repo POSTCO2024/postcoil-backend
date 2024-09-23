@@ -17,7 +17,6 @@ import reactor.core.scheduler.Schedulers;
 @Slf4j
 public class WorkItemServiceImpl implements WorkItemService {
     private final WorkItemRepository workItemRepository;
-    private final TransactionalOperator transactionalOperator;
 
     @Override
     @Transactional
