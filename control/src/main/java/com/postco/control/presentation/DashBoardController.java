@@ -30,8 +30,8 @@ public class DashBoardController {
      * @return 공정 별 생산 마감일이 적게 남은 재료 리스트 반환
      */
     @GetMapping("/dueDate")
-    public Mono<ResponseEntity<ApiResponseDTO<List<Fc004aDTO.DueDate>>>> getDueDate() {
-        return dashBoardService.getDueDateInfo("1PCM")
+    public Mono<ResponseEntity<ApiResponseDTO<List<Fc004aDTO.DueDate>>>> getDueDate(@RequestParam String currProc) {
+        return dashBoardService.getDueDateInfo(currProc)
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<List<Fc004aDTO.DueDate>>builder()
                                 .status(HttpStatus.OK.value())
@@ -52,8 +52,8 @@ public class DashBoardController {
      * @return 공정 별 에러재/정상재 개수 반환
      */
     @GetMapping("/error_count")
-    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.ErrorCount>>> getErrorCount() {     // To do: 공정 받기
-        return dashBoardService.getErrorAndNormalCount("1CAL")
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.ErrorCount>>> getErrorCount(@RequestParam String currProc) {
+        return dashBoardService.getErrorAndNormalCount(currProc)
                 .flatMap(result -> Mono.just(
                         ResponseEntity.ok(
                                 ApiResponseDTO.<Fc004aDTO.ErrorCount>builder()
@@ -78,14 +78,14 @@ public class DashBoardController {
 
     // 품종
     @GetMapping("/coil_type")
-    public Mono<Map<String, Long>> getCoilTypeCount() {   // @PathVariable String currProc
-        return orderService.getCoilTypesByCurrProc("1PCM");
+    public Mono<Map<String, Long>> getCoilTypeCount(@RequestParam String currProc) {
+        return orderService.getCoilTypesByCurrProc(currProc);
     }
 
     // 고객사
     @GetMapping("/customer_name")
-    public Mono<Map<String, Long>> getCustomerCount() {
-        return orderService.getCustomerCountByProc("1PCM");     // To do: 공정 받도록 수정
+    public Mono<Map<String, Long>> getCustomerCount(@RequestParam String currProc) {
+        return orderService.getCustomerCountByProc(currProc);
     }
 
     /**
@@ -93,9 +93,9 @@ public class DashBoardController {
      * @return 공정 별 품종 및 고객사 개수
      */
     @GetMapping("/order")
-    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.Order>>> getOrder() {
-        Mono<Map<String, Long>> customerCountMono = orderService.getCustomerCountByProc("1PCM");
-        Mono<Map<String, Long>> coilTypeCountMono = orderService.getCoilTypesByCurrProc("1PCM");
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.Order>>> getOrder(@RequestParam String currProc) {
+        Mono<Map<String, Long>> customerCountMono = orderService.getCustomerCountByProc(currProc);
+        Mono<Map<String, Long>> coilTypeCountMono = orderService.getCoilTypesByCurrProc(currProc);
 
         return Mono.zip(customerCountMono, coilTypeCountMono)
                 .flatMap(this::buildOrderResponse)  // 빌드된 응답을 반환
@@ -131,8 +131,8 @@ public class DashBoardController {
      * @return 공정 별 작업대상재의 폭, 두께 분포
      */
     @GetMapping("/distribution")
-    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.WidthThicknessCount>>> getMaterialDistribution() {
-        return dashBoardService.getWidthAndThicknessDistribution("1PCM")
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.WidthThicknessCount>>> getMaterialDistribution(@RequestParam String currProc) {
+        return dashBoardService.getWidthAndThicknessDistribution(currProc)
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<Fc004aDTO.WidthThicknessCount>builder()
                                 .status(HttpStatus.OK.value())
