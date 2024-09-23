@@ -18,14 +18,15 @@ import java.util.Map;
 @Slf4j
 @RestController
 @CrossOrigin(origins = "http://localhost:4000")
-@RequestMapping("/api/v1/target-materials")
+@RequestMapping("/api/v1/error-materials")
 @RequiredArgsConstructor
 public class ErrorMaterialController {
     private final ErrorMaterialQueryServiceImpl errorMaterialQueryService;
     private final ErrorPassService errorPassService;
 
     /**
-     *  공정 별 에러재 조회
+     * 공정 별 에러재 조회
+     *
      * @param currProc
      * @return 공정 별 에러재 리스트
      */
@@ -53,8 +54,8 @@ public class ErrorMaterialController {
      * 에러 여부(isError)는 업데이트 되며 에러이유(errorType)은 그대로 둔다.
      * 다시 에러재로 추출될 경우, 에러이유는 업데이트 된다.
      *
-     * @Param 에러패스 할 재료(material_id)
      * @return
+     * @Param 에러패스 할 재료(material_id)
      */
     @PutMapping("/errorpass")
     public ResponseEntity<ApiResponseDTO<Map<String, Long>>> errorPass(@RequestBody List<Long> error_material_ids) {
@@ -62,7 +63,7 @@ public class ErrorMaterialController {
         errorPassService.errorPass(error_material_ids);
 
         Map<String, Long> result = ErrorMaterialMapper.errorPassIds(error_material_ids);
-        ApiResponseDTO<Map<String, Long>> response = new ApiResponseDTO<>(200,"Success",result);
+        ApiResponseDTO<Map<String, Long>> response = new ApiResponseDTO<>(200, "Success", result);
 
         return ResponseEntity.ok(response);
     }
