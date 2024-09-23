@@ -25,23 +25,26 @@ public class OrderService {
 
     // 품종 비율
     public Mono<Map<String, Long>> getCoilTypesByCurrProc(String currProc) {
+        // DB에서 isError = 'N'인 materialIds를 조회
+        List<Long> normalMaterialIds = targetMaterialRepository.findNormalMaterialIds();
+
         return controlRedisQueryService.getRedisData()
-            .map(container -> {
-                List<MaterialDTO.View> materials = container.getMaterials();
+                .map(container -> {
+                    Map<String, Long> customerCounts = new HashMap<>();
 
-                // currProc에 해당하는 품종별 카운트를 저장할 Map
-                Map<String, Long> coilTypeCounts = new HashMap<>();
+                    // Redis에서 가져온 데이터를 필터링하여 고객 카운트를 계산
+                    List<MaterialDTO.View> materials = container.getMaterials();
 
-                for (MaterialDTO.View material : materials) {
-                    // currProc이 일치하는지 확인
-                    if (material.getCurrProc().equals(currProc)) {
-                        String coilTypeCode = material.getCoilTypeCode();
-                        coilTypeCounts.put(coilTypeCode, coilTypeCounts.getOrDefault(coilTypeCode, 0L) + 1);
-                    }
-                }
+                    materials.stream()
+                            .filter(material -> material.getCurrProc().equals(currProc)) // 공정(currProc) 필터링
+                            .filter(material -> normalMaterialIds.contains(material.getId())) // 정상재 필터링
+                            .forEach(material -> {
+                                String coilTypeCode = material.getCoilTypeCode();
+                                customerCounts.put(coilTypeCode, customerCounts.getOrDefault(coilTypeCode, 0L) + 1);
+                            });
 
-                return coilTypeCounts; // 품종별 카운트 반환
-            });
+                    return customerCounts; // 고객별 카운트 반환
+                });
     }
 
 

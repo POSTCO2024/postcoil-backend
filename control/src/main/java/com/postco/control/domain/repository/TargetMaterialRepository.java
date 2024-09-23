@@ -4,8 +4,6 @@ import com.postco.control.domain.TargetMaterial;
 import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
-import com.postco.control.presentation.dto.response.Fc004aDTO;
-import com.postco.core.dto.TargetMaterialDTO;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,9 +14,6 @@ import java.util.Optional;
 @Repository
 public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, Long> {
     Optional<TargetMaterial> findByMaterialIdAndMaterialNo(Long materialId, String materialNo);
-
-    // 공정 별 작업대상재/에러재 조회
-    // List<TargetMaterial> findByIsErrorAndCriteria(String isError, String criteria);
 
     // 정상재만 가져오기
     List<TargetMaterial> findByIsError(String isError);
@@ -31,15 +26,18 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
 
 
     // 생산 기한일
-    @Query("SELECT tm.materialNo, tm.dueDate FROM TargetMaterial tm WHERE tm.id IN :materialIds ORDER BY tm.dueDate ASC")
+    @Query("SELECT tm.materialNo, tm.dueDate FROM TargetMaterial tm WHERE tm.id IN :materialIds AND tm.isError = 'N' ORDER BY tm.dueDate ASC")
     List<Object[]> findMaterialNoAndDueDateByMaterialIds(@Param("materialIds") List<Long> materialIds);
 
     // 에러재/정상재 비율
     long countByMaterialIdInAndIsError(List<Long> materialIds, String isError);
 
     // 고객사
-    @Query("SELECT t.customerName, COUNT(t) FROM TargetMaterial t WHERE t.id IN :materialIds GROUP BY t.customerName")
+    @Query("SELECT tm.customerName, COUNT(tm) FROM TargetMaterial tm WHERE tm.id IN :materialIds AND tm.isError = 'N' GROUP BY tm.customerName")
     List<Object[]> countByMaterialIdIn(@Param("materialIds") List<Long> materialIds);
 
+    // 품종 & 재료(폭, 두께)
+    @Query("SELECT tm.id FROM TargetMaterial tm WHERE tm.isError = 'N'")
+    List<Long> findNormalMaterialIds();
 }
 
