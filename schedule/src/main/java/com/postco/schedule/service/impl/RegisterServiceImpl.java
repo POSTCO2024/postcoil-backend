@@ -63,7 +63,6 @@ public class RegisterServiceImpl {
         if (material == null) {
             throw new RuntimeException("해당 재료 정보를 찾을 수 없습니다: " + targetMaterial.getMaterialId());
         }
-
         log.info("goalWidth: {}, goalThickness: {}, nextProc: {}", targetMaterial.getGoalWidth(), targetMaterial.getGoalThickness(), material.getNextProc());
 
         // 재료의 현공정 값 가져오기 (currProc)

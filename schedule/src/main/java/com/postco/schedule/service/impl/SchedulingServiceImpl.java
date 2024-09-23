@@ -30,14 +30,10 @@ public class SchedulingServiceImpl {
 
     //* 스케줄링로직~! */
     public List<SCHMaterial> planSchedule(List<SCHMaterial> materials, String processCode) {
-        // TODO: Redis Cache-server에서 List<ScheduleMaterialsDTO.Target>로 materialIds에 해당하는 재료들 불러오기
-        //  scheduleMaterialsRepository.findAllById(materialIds) -> (cache에서 가져 온) materials로 변경
 
-
-       // List<SCHMaterial> materials = MapperUtils.mapList(scheduleMaterialsRepository.findAllById(materialIds), SCHMaterial.class); // 나중에 삭제하기
-        List<PriorityDTO> priorities = priorityService.findAllByProcessCode(processCode);
-        // TODO: Constraints 추가하기
-        List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findByProcessCode("1CAL");
+        String rollUnit =  materials.get(0).getRollUnit();
+        List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode,rollUnit);
+        List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode,rollUnit);
 
         log.info("Here is constraintList=================================");
         log.info(constraintInsertionList.toString());
@@ -46,12 +42,11 @@ public class SchedulingServiceImpl {
         // 우선순위 적용
         List<SCHMaterial> sortedMaterials = applyPriorities(materials, priorities);
 
-//        // priorityOrder 설정
-//        for (int i = 0; i < sortedMaterials.size(); i++) {
-//            sortedMaterials.get(i).setSequence(Collections.singletonList(i + 1));
-//        }
+        // priorityOrder 설정
+        for (int i = 0; i < sortedMaterials.size(); i++) {
+            sortedMaterials.get(i).setSequence(i + 1);
+        }
 
-        // 제약 조건 적용 후 미편성 처리
         List<SCHMaterial> filteredCoils = applyConstraintToCoils(sortedMaterials, constraintInsertionList);
 
 
@@ -92,15 +87,15 @@ public class SchedulingServiceImpl {
             }
         }
         coilGroups.add(currentCoilGroup);
-//
-//        for(List<SCHMaterial> value : coilGroups) {
-//            // 각 그룹의 goalWidth 값을 추출하여 출력
-//            String goalWidths = value.stream()
-//                    .map(coil -> String.valueOf(coil.getGoalWidth()))  // 각 View 객체에서 goalWidth 추출
-//                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-//
-//
-//        }
+
+        for(List<SCHMaterial> value : coilGroups) {
+            // 각 그룹의 goalWidth 값을 추출하여 출력
+            String goalWidths = value.stream()
+                    .map(coil -> String.valueOf(coil.getGoalWidth()))  // 각 View 객체에서 goalWidth 추출
+                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+
+
+        }
 
         return coilGroups;
     }
@@ -116,76 +111,149 @@ public class SchedulingServiceImpl {
                         .sorted(Comparator.comparingDouble(SCHMaterial::getThickness))
                         .collect(Collectors.toList())
                 ).collect(Collectors.toList());
-//
-//        for(List<SCHMaterial> value : result) {
-//            // 각 그룹의 goalWidth 값을 추출하여 출력
-//            String goalWidths = value.stream()
-//                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
-//                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-//
-//
-//        }
 
-
+        for(List<SCHMaterial> value : result) {
+            // 각 그룹의 thickness 값을 추출하여 출력
+            String goalWidths = value.stream()
+                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
+                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
+        }
         return result;
     }
 
-    // 각 그룹들 sin 그래프로 배치
-    private List<List<SCHMaterial>> applySineCurveToGroups
-    (List<List<SCHMaterial>> groupCoils){
-
+    private List<List<SCHMaterial>> applySineCurveToGroups(List<List<SCHMaterial>> groupCoils) {
         List<List<SCHMaterial>> optimizedGroups = new ArrayList<>();
         List<Double> prevGroupLastThickness = new ArrayList<>();
         prevGroupLastThickness.add(0.0); // 초기값 설정
 
-        for(List<SCHMaterial> group : groupCoils){
-            if (prevGroupLastThickness.get(0) != 0.0) {
-                group = group.stream()
-                        .sorted(Comparator.comparingDouble(coil -> Math.abs(coil.getThickness() - prevGroupLastThickness.get(0))))
-                        .collect(Collectors.toList());
+        for (List<SCHMaterial> group : groupCoils) {
+            // i) 이전 그룹의 마지막 코일 두께와 두께 제약 조건이 맞는 코일 우선
+            double previousEndThickness = prevGroupLastThickness.get(0);
+
+            // 두께가 증가하는 코일과 감소하는 코일을 구분
+            List<SCHMaterial> increasingCoils = group.stream()
+                    .filter(coil -> coil.getThickness() >= previousEndThickness)
+                    .collect(Collectors.toList());
+
+            List<SCHMaterial> decreasingCoils = group.stream()
+                    .filter(coil -> coil.getThickness() < previousEndThickness)
+                    .collect(Collectors.toList());
+
+            // ii) 감소하거나 증가하는 진행방향을 지키는 코일 우선 배치
+            List<SCHMaterial> sortedGroup = new ArrayList<>();
+
+            // 이전 그룹 End 값보다 작은 코일 먼저 배치 (감소 방향)
+            decreasingCoils.sort(Comparator.comparingDouble(coil -> Math.abs(coil.getThickness() - previousEndThickness)));
+            sortedGroup.addAll(decreasingCoils);
+
+            // 이전 그룹 End 값보다 큰 코일을 나중에 배치 (증가 방향)
+            increasingCoils.sort(Comparator.comparingDouble(coil -> Math.abs(coil.getThickness() - previousEndThickness)));
+            sortedGroup.addAll(increasingCoils);
+
+            // 여러 sin 곡선을 생성하여 최적화 시도
+            List<SCHMaterial> bestOptimizedGroup = null;
+            double minThicknessDifferenceSum = Double.MAX_VALUE;
+
+            for (int waveType = 1; waveType <= 3; waveType++) {
+                // 여러 종류의 사인 곡선을 시도 (여기서 waveType은 다양한 곡선 타입을 시뮬레이션)
+                double[] sineWave = generatedSineWave(group.size(), waveType);
+                List<Integer> sineIndices = new ArrayList<>();
+                for (int i = 0; i < sineWave.length; i++) {
+                    sineIndices.add(i);
+                }
+
+                // sin 곡선에 맞게 두께의 변화가 적도록 배치
+                sineIndices.sort(Comparator.comparing(i -> sineWave[i]));
+
+                // 현재 그룹을 sin 곡선에 따라 재배치
+                List<SCHMaterial> optimizedGroup = new ArrayList<>();
+                for (int i = 0; i < sortedGroup.size(); i++) {
+                    optimizedGroup.add(sortedGroup.get(sineIndices.get(i)));
+                }
+
+                // iii) 앞뒤 코일들의 두께 차이가 가장 적은지 확인 (최적화)
+                double thicknessDifferenceSum = 0;
+                for (int i = 0; i < optimizedGroup.size() - 1; i++) {
+                    thicknessDifferenceSum += Math.abs(optimizedGroup.get(i).getThickness() - optimizedGroup.get(i + 1).getThickness());
+                }
+
+                // 두께 차이의 총합이 가장 작은 배열을 선택
+                if (thicknessDifferenceSum < minThicknessDifferenceSum) {
+                    minThicknessDifferenceSum = thicknessDifferenceSum;
+                    bestOptimizedGroup = optimizedGroup;
+                }
             }
 
-            // sin 곡선 값 생성
-            double[] sineWave = generatedSineWave(group.size());
-            List<Integer> sineIndices = new ArrayList<>();
-            for (int i = 0; i < sineWave.length; i++) {
-                sineIndices.add(i);
-            }
+            // 마지막 코일 두께를 업데이트
+            prevGroupLastThickness.set(0, bestOptimizedGroup.get(bestOptimizedGroup.size() - 1).getThickness());
 
-            // sin 곡선에 따라 배치
-            sineIndices.sort(Comparator.comparing(i -> sineWave[i]));
-            List<SCHMaterial> optimizedGroup = new ArrayList<>();
-            for (int i = 0; i < group.size(); i++) {
-                optimizedGroup.add(group.get(sineIndices.get(i)));
-            }
-
-            // 마지막 코일 두께를 리스트로 업데이트
-            prevGroupLastThickness.set(0, optimizedGroup.get(optimizedGroup.size() - 1).getThickness());
-
-            optimizedGroups.add(optimizedGroup);
+            // 최적화된 그룹 추가
+            optimizedGroups.add(bestOptimizedGroup);
+//
+//            // 그룹 두께 정보 출력 (옵션)
+//            String thicknessValues = bestOptimizedGroup.stream()
+//                    .map(coil -> String.valueOf(coil.getThickness()))
+//                    .collect(Collectors.joining(", "));
+//            log.info("Optimized group thickness values: {}", thicknessValues);
         }
-//
-//        for(List<SCHMaterial> value : optimizedGroups) {
-//            // 각 그룹의 goalWidth 값을 추출하여 출력
-//            String goalWidths = value.stream()
-//                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
-//                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-//
-//        }
-
-//        for(List<SCHMaterial> value : optimizedGroups) {
-//            // 각 그룹의 goalWidth 값을 추출하여 출력
-//            String goalWidths = value.stream()
-//                    .map(coil -> String.valueOf(coil.getGoalThickness()))  // 각 View 객체에서 goalWidth 추출
-//                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-//
-//            log.info("The Group goalWidths: {}", goalWidths);
-//            log.info("======================================");
-//        }
-
 
         return optimizedGroups;
     }
+
+    public double[] generatedSineWave(int size, int waveType) {
+        double[] sineWave = new double[size];
+
+        switch (waveType) {
+            case 1:
+                // 기본적인 sin 곡선 (0에서 π까지의 값을 사용)
+                for (int i = 0; i < size; i++) {
+                    sineWave[i] = Math.sin(Math.PI * i / (size - 1));
+                }
+                break;
+
+            case 2:
+                // 2π 범위의 sin 곡선 (0에서 2π까지의 값을 사용)
+                for (int i = 0; i < size; i++) {
+                    sineWave[i] = Math.sin(2 * Math.PI * i / (size - 1));
+                }
+                break;
+
+            case 3:
+                // 좀 더 급격하게 변화하는 sin 곡선 (0에서 π/2까지의 값을 사용)
+                for (int i = 0; i < size; i++) {
+                    sineWave[i] = Math.sin(Math.PI / 2 * i / (size - 1));
+                }
+                break;
+
+            case 4:
+                // sin 곡선의 음수 (내려갔다가 올라가는 형태, 0에서 π까지)
+                for (int i = 0; i < size; i++) {
+                    sineWave[i] = -Math.sin(Math.PI * i / (size - 1));
+                }
+                break;
+
+            case 5:
+                // cos 곡선 사용 (내려갔다가 올라가는 형태)
+                for (int i = 0; i < size; i++) {
+                    sineWave[i] = Math.cos(Math.PI * i / (size - 1));
+                }
+                break;
+
+            default:
+                // 기본적으로 sin(0에서 π까지) 사용
+                for (int i = 0; i < size; i++) {
+                    sineWave[i] = Math.sin(Math.PI * i / (size - 1));
+                }
+                break;
+        }
+
+        return sineWave;
+    }
+
+
+
+
+
 
     // 제약조건에 맞춰 미편성 처리
     private List<SCHMaterial> applyConstraintToCoils(List<SCHMaterial> coils, List<ConstraintInsertionDTO> constraintInsertionList) {
@@ -252,15 +320,6 @@ public class SchedulingServiceImpl {
         List<SCHMaterial> sortedMaterials = new ArrayList<>();
         List<List<SCHMaterial>> groupedMaterials = new ArrayList<>();
         for (PriorityDTO priority : priorities) {
-            // 구현되면 삭제하기!
-            if(priority.getId() == 5) {
-                prioritizedMaterials = groupedMaterials.stream()
-                        .flatMap(List::stream)
-                        .collect(Collectors.toList());
-                printCurrentState(prioritizedMaterials, "After applying priority: " + priority.getPriorityOrder());
-                return prioritizedMaterials;
-            }
-
             PriorityApplyMethod method = PriorityApplyMethod.valueOf(priority.getApplyMethod());
             String target = priority.getTargetColumn();
             Method getterMethod;
@@ -272,27 +331,30 @@ public class SchedulingServiceImpl {
             }
 
             switch (method) {
-                case ASC:
-                    groupedMaterials = sortEachGroupByThicknessAsc(groupedMaterials);
-                    break;
-
-                case DESC:
+                case DESC_GOALWIDTH:
                     sortedMaterials = sortedWidthDesc(materials);
                     break;
 
-                case GROUPING:
+                case GROUPING_BY_GOALWIDTH:
                     groupedMaterials = groupByWidth(sortedMaterials);
                     break;
 
-                case CONSTRAINT:
+                case ASC_THICKNESS:
+                    groupedMaterials = sortEachGroupByThicknessAsc(groupedMaterials);
                     break;
 
-                case ETC:
+                case APPLY_SIN:
                     groupedMaterials = applySineCurveToGroups(groupedMaterials);
                     break;
 
                 default:
-                    throw new IllegalArgumentException("Unknown PriorityApplyMethod: " + method);
+                    prioritizedMaterials = groupedMaterials.stream()
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList());
+                    printCurrentState(prioritizedMaterials, " After applying priority: " + priority.getPriorityOrder());
+
+                    return prioritizedMaterials;
+                    //throw new IllegalArgumentException("Unknown PriorityApplyMethod: " + method);
             }
 
             // Print the current state after applying the priority
@@ -325,13 +387,7 @@ public class SchedulingServiceImpl {
         return result;
     }
 
-    private double[] generatedSineWave(int size) {
-        double[] sineWave = new double[size];
-        for(int i = 0; i < size; i++){
-            sineWave[i] = 0.5 * Math.sin((2*Math.PI * i)/size);
-        }
-        return sineWave;
-    }
+
 
 
 
@@ -366,7 +422,6 @@ public class SchedulingServiceImpl {
         }
     }
 
-    // TODO : Cache-Server 에서 설비 가져오기!
     public List<SCHMaterial> insertMaterialsWithWorkTime(List<SCHMaterial> materials) {
 
         for (SCHMaterial material : materials) {
@@ -380,7 +435,6 @@ public class SchedulingServiceImpl {
     }
 
     // 작업 시간 계산 메서드
-    // TODO: TH 설비로 계산하기
     private Long calculateWorkTime(double goalLength, double goalThickness, double goalWidth, double totalWeight) {
         return  (long) ((goalLength * goalThickness * goalWidth) / totalWeight);
     }
@@ -388,7 +442,7 @@ public class SchedulingServiceImpl {
         log.info(message);
         for (SCHMaterial material : materials) {
             log.info("ID: {}, Goal Width: {}, Thickness: {}, Temperature: {}, RollUnit: {}",
-                    material.getId(), material.getGoalWidth(), material.getGoalThickness(), material.getTemperature(), material.getRollUnit());
+                    material.getId(), material.getGoalWidth(), material.getThickness(), material.getTemperature(), material.getRollUnit());
 
         }
     }

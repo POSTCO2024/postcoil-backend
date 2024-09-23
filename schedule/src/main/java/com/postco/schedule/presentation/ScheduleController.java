@@ -64,7 +64,6 @@ public class ScheduleController {
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(scheduleResults)
                 .build();
-        log.info("dodododoodod");
         return ResponseEntity.ok(response);
     }
 
