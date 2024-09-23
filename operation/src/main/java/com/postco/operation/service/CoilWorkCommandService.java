@@ -9,13 +9,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.reactive.TransactionalOperator;
+import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.util.Comparator;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,29 +35,32 @@ public class CoilWorkCommandService {
     private final CoilSupplyService coilSupplyService;
     private final MaterialUpdateService materialUpdateService;
     private final ReactiveRedisTemplate<String, Object> redisTemplate;
-    private final TransactionalOperator transactionalOperator;
+    private final TransactionTemplate transactionTemplate;
 
     // 작업 지시서에서 보급 요청 시 관련 작업 수행
     // 1) 코일 보급 처리
     // 2) 코일 작업 시작 및 종료
+    @Transactional
     public Mono<Boolean> requestSupply(Long workInstructionId, int supplyCount) {
-        return Mono.fromCallable(() -> workInstructionRepository.findById(workInstructionId))
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(optionalWorkInstruction -> optionalWorkInstruction
-                        .map(Mono::just)
-                        .orElse(Mono.error(new IllegalArgumentException("Invalid workInstructionId"))))
-                .flatMap(workInstruction -> Mono.fromCallable(() -> coilSupplyRepository.findByWorkInstruction(workInstruction))
-                        .subscribeOn(Schedulers.boundedElastic())
-                        .flatMap(optionalCoilSupply -> optionalCoilSupply
-                                .map(Mono::just)
-                                .orElse(Mono.error(new IllegalArgumentException("No CoilSupply found for the work instruction")))))
+        return Mono.fromCallable(() -> transactionTemplate.execute(status -> {
+                    Optional<WorkInstruction> optionalWorkInstruction = workInstructionRepository.findById(workInstructionId);
+                    if (optionalWorkInstruction.isEmpty()) {
+                        throw new IllegalArgumentException("Invalid workInstructionId");
+                    }
+                    WorkInstruction workInstruction = optionalWorkInstruction.get();
+
+                    Optional<CoilSupply> optionalCoilSupply = coilSupplyRepository.findByWorkInstruction(workInstruction);
+                    if (optionalCoilSupply.isEmpty()) {
+                        throw new IllegalArgumentException("No CoilSupply found for the work instruction");
+                    }
+                    return optionalCoilSupply.get();
+                })).subscribeOn(Schedulers.boundedElastic())
                 .flatMap(coilSupply -> {
                     log.info("작업 지시서 ID: {}, 보급 요청 수량: {}", workInstructionId, supplyCount);
                     return addItemsToQueue(coilSupply.getWorkInstruction(), supplyCount)
-                            .then(completeSupplyAfterDelay(coilSupply, supplyCount));
-                })
-                .thenReturn(true)
-                .as(transactionalOperator::transactional);
+                            .then(completeSupplyAfterDelay(coilSupply, supplyCount))
+                            .thenReturn(true);
+                });
     }
 
     // 작업 아이템을 sequence 순서대로 큐에 추가
