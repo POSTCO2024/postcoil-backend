@@ -12,6 +12,7 @@ public class ScheduleProducer {
     private final KafkaProducer genericProducer;
 
     public void sendConfirmedSchedule(SCHConfirmDTO.View confirmView) {
-        genericProducer.sendData(TOPIC, confirmView);
+        String key = String.valueOf(confirmView.getId());
+        genericProducer.sendData(TOPIC, key, confirmView);
     }
 }

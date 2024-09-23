@@ -42,13 +42,28 @@ public class WorkInstruction implements com.postco.core.entity.Entity, Serializa
     private List<WorkInstructionItem> items = new ArrayList<>();
 
     // ============= 연관관계 메서드 ============
+    public void updateStatus() {
+        boolean allCompleted = items.stream().allMatch(item -> item.getWorkItemStatus() == WorkStatus.COMPLETED);
+        boolean anyInProgress = items.stream().anyMatch(item -> item.getWorkItemStatus() == WorkStatus.IN_PROGRESS);
+
+        if (allCompleted) {
+            completeInstruction();
+        } else if (anyInProgress) {
+            startInstruction();
+        }
+    }
+
     public void startInstruction() {
-        this.workStatus = WorkStatus.IN_PROGRESS;
-        this.startTime = LocalDateTime.now();
+        if (this.workStatus != WorkStatus.IN_PROGRESS) {
+            this.workStatus = WorkStatus.IN_PROGRESS;
+            this.startTime = LocalDateTime.now();
+        }
     }
 
     public void completeInstruction() {
-        this.workStatus = WorkStatus.COMPLETED;
-        this.endTime = LocalDateTime.now();
+        if (this.workStatus != WorkStatus.COMPLETED) {
+            this.workStatus = WorkStatus.COMPLETED;
+            this.endTime = LocalDateTime.now();
+        }
     }
 }

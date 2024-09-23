@@ -32,7 +32,7 @@ public class WorkController {
         log.info("보급 요청. 작업 지시서 ID: {}, 보급 수량: {}", workInstructionId, supplyCount);
 
         return coilWorkCommandService.requestSupply(workInstructionId, supplyCount)
-                .map(success -> createResponse(success, success ? "보급 요청 성공" : "보급 요청 실패"))
+                .map(success -> createResponse(success, success ? "보급 요청이 성공적으로 큐에 추가되었습니다." : "보급 요청 처리 중 오류가 발생했습니다."))
                 .onErrorResume(e -> handleError("보급 요청 중 오류 발생", e));
     }
 

@@ -1,6 +1,7 @@
 package com.postco.operation.service.impl;
 
 import com.postco.operation.domain.entity.WorkInstructionItem;
+import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
 import com.postco.operation.service.WorkItemService;
 import com.postco.operation.service.util.WorkSimulationUtil;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.reactive.TransactionalOperator;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -17,6 +17,7 @@ import reactor.core.scheduler.Schedulers;
 @Slf4j
 public class WorkItemServiceImpl implements WorkItemService {
     private final WorkItemRepository workItemRepository;
+    private final WorkInstructionRepository workInstructionRepository;
 
     @Override
     @Transactional
@@ -37,14 +38,18 @@ public class WorkItemServiceImpl implements WorkItemService {
     }
 
     @Override
+    @Transactional
     public Mono<Boolean> startWorkItem(Long itemId) {
-        return Mono.defer(() -> Mono.fromCallable(() -> workItemRepository.findById(itemId)
+        return Mono.defer(() -> Mono.fromCallable(() -> workItemRepository.findByIdWithWorkInstruction(itemId)
                         .orElseThrow(() -> new IllegalArgumentException("작업 아이템을 찾을 수 없습니다.")))
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(item -> {
                     item.startWork();
-                    return Mono.fromCallable(() -> workItemRepository.save(item))
-                            .subscribeOn(Schedulers.boundedElastic());
+                    return Mono.fromCallable(() -> {
+                        workItemRepository.save(item);
+                        workInstructionRepository.save(item.getWorkInstruction());
+                        return item;
+                    }).subscribeOn(Schedulers.boundedElastic());
                 })
                 .flatMap(this::scheduleWorkCompletion)
                 .thenReturn(true)
@@ -69,8 +74,11 @@ public class WorkItemServiceImpl implements WorkItemService {
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(item -> {
                     item.finishWork();
-                    return Mono.fromCallable(() -> workItemRepository.save(item))
-                            .subscribeOn(Schedulers.boundedElastic());
+                    return Mono.fromCallable(() -> {
+                        workItemRepository.save(item);
+                        workInstructionRepository.save(item.getWorkInstruction());
+                        return item;
+                    }).subscribeOn(Schedulers.boundedElastic());
                 })
                 .thenReturn(true)
                 .doOnSuccess(result -> log.info("ID: {} 코일 작업 종료", itemId))
@@ -79,6 +87,4 @@ public class WorkItemServiceImpl implements WorkItemService {
                     return Mono.just(false);
                 }));
     }
-
-
 }

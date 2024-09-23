@@ -12,6 +12,7 @@ public class OrderProducer {
     private final KafkaProducer genericProducer;
 
     public void sendOrders(OrderDTO.View orders) {
-        genericProducer.sendData(TOPIC, orders);
+        String key = String.valueOf(orders.getId());
+        genericProducer.sendData(TOPIC, key, orders);
     }
 }

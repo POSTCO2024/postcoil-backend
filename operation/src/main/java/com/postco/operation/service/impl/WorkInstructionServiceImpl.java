@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -51,6 +52,7 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     private final AsyncTaskExecutor taskExecutor;
 
     @KafkaListener(topics = "schedule-confirm-data", groupId = "operation")
+    @Transactional
     public void handleScheduleResultMessage(String message) {
         log.info("[Kafka 수신] 카프카 메시지 수신 성공: {}", message);
         taskExecutor.execute(() -> processMessage(message));

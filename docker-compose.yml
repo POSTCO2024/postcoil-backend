@@ -19,6 +19,8 @@ volumes:
     driver: local
   redis_data:
     driver: local
+  mysql_data:
+    driver: local
 
 services:
   #MYSQL
@@ -37,7 +39,8 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
     volumes:
-      - /var/lib/mysql
+      - my.cnf:/etc/mysql/conf.d/my.cnf
+      - mysql_data:/var/lib/mysql
     networks:
       - postcoil-net
 

@@ -82,13 +82,23 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     }
 
     public void startWork() {
-        this.startTime = LocalDateTime.now();
-        this.workItemStatus = WorkStatus.IN_PROGRESS;
+        if (this.workItemStatus != WorkStatus.IN_PROGRESS) {
+            this.startTime = LocalDateTime.now();
+            this.workItemStatus = WorkStatus.IN_PROGRESS;
+            if (this.workInstruction != null) {
+                this.workInstruction.updateStatus();
+            }
+        }
     }
 
     public void finishWork() {
-        this.endTime = LocalDateTime.now();
-        this.workItemStatus = WorkStatus.COMPLETED;
+        if (this.workItemStatus != WorkStatus.COMPLETED) {
+            this.endTime = LocalDateTime.now();
+            this.workItemStatus = WorkStatus.COMPLETED;
+            if (this.workInstruction != null) {
+                this.workInstruction.updateStatus();
+            }
+        }
     }
 
     // 리젝트된 코일 처리 -> Y 로 변경

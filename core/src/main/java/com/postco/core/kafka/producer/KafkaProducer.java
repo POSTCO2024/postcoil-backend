@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.exception.KafkaSendException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -26,7 +27,7 @@ public class KafkaProducer {
     @Value("${feature-flags.kafka.enabled}")
     private boolean kafkaEnabled;
 
-    public <T> void sendData(String topic, T data) {
+    public <T> void sendData(String topic, String key, T data) {
         if (!kafkaEnabled) {
             log.warn("[Kafka OFF] 카프카가 비활성화 되었습니다. 데이터를 보내지 않습니다.");
             return;
@@ -34,34 +35,36 @@ public class KafkaProducer {
 
         try {
             String jsonData = objectMapper.writeValueAsString(data);
-            ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(topic, jsonData);
+            ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, jsonData);
+
+            ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(record);
 
             future.addCallback(new ListenableFutureCallback<>() {
                 @Override
                 public void onSuccess(SendResult<String, String> result) {
-                    log.info("[Kafka 전송 성공] 토픽 {}로 데이터를 전송했습니다. 오프셋: {}", topic, result.getRecordMetadata().offset());
+                    log.info("[Kafka 전송 성공] 토픽 {}로 데이터를 전송했습니다. 키: {}, 오프셋: {}", topic, key, result.getRecordMetadata().offset());
                 }
 
                 @Override
                 public void onFailure(Throwable ex) {
-                    log.error("[Kafka 전송 실패] 토픽 {}로 데이터 전송을 실패했습니다. 예외: {}", topic, ex.getMessage());
-                    handleFailure(topic, jsonData, ex);
+                    log.error("[Kafka 전송 실패] 토픽 {}로 데이터 전송을 실패했습니다. 키: {}, 예외: {}", topic, key, ex.getMessage());
+                    handleFailure(topic, key, jsonData, ex);
                 }
             });
         } catch (Exception e) {
-            log.error("[Kafka 직렬화 실패] 토픽 {}에 대한 데이터 직렬화를 실패했습니다.", topic, e);
-            handleSerializationFailure(topic, data, e);
+            log.error("[Kafka 직렬화 실패] 토픽 {}에 대한 데이터 직렬화를 실패했습니다. 키: {}", topic, key, e);
+            handleSerializationFailure(topic, key, data, e);
         }
     }
 
-    private void handleFailure(String topic, String jsonData, Throwable ex) {
-        RetryMessage retryMessage = new RetryMessage(topic, jsonData);
+    private void handleFailure(String topic, String key, String jsonData, Throwable ex) {
+        RetryMessage retryMessage = new RetryMessage(topic, key, jsonData);
         retryQueue.offer(retryMessage);
-        log.warn("[Kafka 재시도 큐] 실패한 메시지를 재시도 큐에 추가했습니다. 토픽: {}, 데이터: {}", topic, jsonData);
+        log.warn("[Kafka 재시도 큐] 실패한 메시지를 재시도 큐에 추가했습니다. 토픽: {}, 키: {}, 데이터: {}", topic, key, jsonData);
     }
 
-    private void handleSerializationFailure(String topic, Object data, Exception e) {
-        log.error("[Kafka 직렬화 실패 처리] 토픽 {}에 대한 데이터 직렬화 실패를 처리합니다.", topic, e);
+    private void handleSerializationFailure(String topic, String key, Object data, Exception e) {
+        log.error("[Kafka 직렬화 실패 처리] 토픽 {}에 대한 데이터 직렬화 실패를 처리합니다. 키: {}", topic, key, e);
         // 직렬화 실패에 대한 처리 로직 추가 가능
     }
 
@@ -70,10 +73,11 @@ public class KafkaProducer {
         RetryMessage retryMessage;
         while ((retryMessage = retryQueue.poll()) != null) {
             try {
-                kafkaTemplate.send(retryMessage.getTopic(), retryMessage.getData());
-                log.info("[Kafka 재시도 성공] 토픽 {}로 데이터를 재전송했습니다.", retryMessage.getTopic());
+                ProducerRecord<String, String> record = new ProducerRecord<>(retryMessage.getTopic(), retryMessage.getKey(), retryMessage.getData());
+                kafkaTemplate.send(record);
+                log.info("[Kafka 재시도 성공] 토픽 {}로 데이터를 재전송했습니다. 키: {}", retryMessage.getTopic(), retryMessage.getKey());
             } catch (Exception e) {
-                log.error("[Kafka 재시도 실패] 토픽 {}로 데이터 재전송을 실패했습니다. 예외: {}", retryMessage.getTopic(), e.getMessage());
+                log.error("[Kafka 재시도 실패] 토픽 {}로 데이터 재전송을 실패했습니다. 키: {}, 예외: {}", retryMessage.getTopic(), retryMessage.getKey(), e.getMessage());
                 retryQueue.offer(retryMessage); // 재시도 실패 시 다시 큐에 넣음
             }
         }
