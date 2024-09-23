@@ -3,7 +3,9 @@ package com.postco.operation.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.dto.ScheduleResultDTO;
+import com.postco.operation.domain.entity.MaterialProgress;
 import com.postco.operation.domain.entity.WorkInstruction;
+import com.postco.operation.domain.entity.WorkInstructionItem;
 import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
@@ -24,6 +26,7 @@ import reactor.util.retry.Retry;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +36,7 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     private final OperationRedisQueryService redisQueryService;
     private final ScheduleServiceClient serviceClient;
     private final WorkInstructionRepository workInstructionRepository;
+    private final MaterialUpdateServiceImpl materialUpdateService;
     private final MaterialRepository materialRepository;
     private final TransactionTemplate transactionTemplate;
     private final ObjectMapper objectMapper;
@@ -118,14 +122,23 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     public Mono<Boolean> saveWorkInstructions(List<WorkInstructionDTO.Create> workInstructions) {
         return Mono.fromCallable(() ->
                 transactionTemplate.execute(status -> {
-                    List<WorkInstruction> entities = workInstructions.stream()
+                    List<WorkInstruction> savedInstructions = workInstructions.stream()
                             .map(dto -> WorkInstructionMapper.mapToEntity(dto, materialRepository))
-                            .collect(Collectors.toList());
-                    workInstructionRepository.saveAll(entities);
+                            .collect(Collectors.collectingAndThen(Collectors.toList(), workInstructionRepository::saveAll));
+
+                    // 재료 상태 E 로 변경
+                    savedInstructions.stream()
+                            .flatMap(instruction -> instruction.getItems().stream())
+                            .map(WorkInstructionItem::getMaterial)
+                            .filter(Objects::nonNull)
+                            .forEach(material -> {
+                                materialUpdateService.updateMaterialProgress(material.getId(), MaterialProgress.E);
+                            });
                     return true;
                 })
         ).subscribeOn(Schedulers.boundedElastic());
     }
+
 
     // 랜덤 no 생성 함수 -> 작업지시서의 no 에 넣으면 됨.
     private String generateWorkNo(String processCode, String rollUnit) {

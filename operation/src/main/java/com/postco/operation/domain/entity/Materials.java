@@ -101,4 +101,23 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
     public void updateProgress(MaterialProgress newProgress) {
         this.progress = newProgress;
     }
+
+    public void updateThickAndWidth(double reduceThickValue, double reduceWidthValue) {
+        this.thickness -= reduceThickValue;
+        this.width -= reduceWidthValue;
+    }
+
+    public void updateMaterialProgress() {
+        // 1. 통과 공정 업데이트
+        this.passProc = (this.passProc == null) ? this.currProc : this.passProc + this.currProc;
+
+        // 2. 잔공정 업데이트
+        if (this.remProc != null && this.remProc.startsWith(this.currProc)) {
+            this.remProc = this.remProc.substring(this.currProc.length());
+        }
+    }
+
+    public void updateYardAfterWork(String workValue) {
+        this.yard = this.yard.substring(0, this.yard.length() - 1) + workValue;
+    }
 }

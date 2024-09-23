@@ -23,6 +23,7 @@ public class WorkController {
     private final CoilSupplyService coilSupplyService;
     private final WorkItemService workItemService;
 
+    // 보급 요구 API
     @PostMapping("/request-supply/{workInstructionId}")
     public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> requestSupply(
             @PathVariable Long workInstructionId,
@@ -35,6 +36,7 @@ public class WorkController {
                 .onErrorResume(e -> handleError("보급 요청 중 오류 발생", e));
     }
 
+    // 코일 Reject API
     @PostMapping("/reject/{workInstructionId}/{itemId}")
     public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> rejectWorkItem(
             @PathVariable Long workInstructionId,
@@ -54,6 +56,10 @@ public class WorkController {
                                         ? "코일 Reject 성공" : "코일 Reject 실패", workInstructionId, itemId))
                 .onErrorResume(e -> handleError("리젝 처리 중 오류 발생", e));
     }
+
+    // 긴급 정지 API
+
+
 
     private ResponseEntity<ApiResponseDTO<Boolean>> createResponse(boolean success, String message) {
         return ResponseEntity.ok(ApiResponseDTO.<Boolean>builder()

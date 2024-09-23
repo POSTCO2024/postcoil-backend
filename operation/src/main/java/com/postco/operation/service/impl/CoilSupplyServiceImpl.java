@@ -44,10 +44,26 @@ public class CoilSupplyServiceImpl implements CoilSupplyService {
             log.info("Reject 코일 수 업데이트 완료. 총 리젝트 수: {}", coilSupply.getTotalRejects());
             return true;
         } catch (Exception e) {
-            log.info("리젝 업데이트 중 오류 발생", e);
+            log.info("리젝 업데이트 중 오류 발생 : {}", e.getMessage());
             return false;
         }
     }
 
+    @Override
+    @Transactional
+    public boolean updateFinishCount(Long workInstructionId) {
+        try {
+            CoilSupply coilSupply = coilSupplyRepository.findByWorkInstructionId(workInstructionId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid workInstructionId"));
+
+            coilSupply.updateProgressed();
+            coilSupplyRepository.save(coilSupply);
+            log.info("완료 코일 수 업데이트 성공. 총 완료 코일 : {}", coilSupply.getTotalRejects());
+            return true;
+        } catch (Exception e) {
+            log.info("완료 코일 업데이트 중 오류 발생 : {} ", e.getMessage());
+            return false;
+        }
+    }
 
 }
