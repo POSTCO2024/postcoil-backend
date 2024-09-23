@@ -21,7 +21,7 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     // 에러패스
     @Modifying
     @Transactional
-    @Query("UPDATE TargetMaterial tm SET tm.isError = 'N' WHERE tm.materialId IN :errorMaterialIds")
+    @Query("UPDATE TargetMaterial tm SET tm.isError = 'N' WHERE tm.id IN :errorMaterialIds")
     int updateisError(@Param("errorMaterialIds") List<Long> errorMaterialIds);
 
 
