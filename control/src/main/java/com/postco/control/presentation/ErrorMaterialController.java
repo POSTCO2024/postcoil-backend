@@ -81,6 +81,7 @@ public class ErrorMaterialController {
 
         Map<String, Long> result = ErrorMaterialMapper.errorPassIds(error_material_ids);
         ApiResponseDTO<Map<String, Long>> response = new ApiResponseDTO<>(200, "Success", result);
+
         return ResponseEntity.ok(response);
     }
 

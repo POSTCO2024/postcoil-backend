@@ -1,10 +1,14 @@
 package com.postco.control.service;
 
-import com.postco.control.domain.ErrorCriteria;
 import com.postco.control.domain.ErrorCriteriaMapper;
+import com.postco.control.domain.ExtractionCriteria;
+import com.postco.control.domain.ExtractionCriteriaMapper;
 import com.postco.control.domain.repository.ErrorCriteriaDetailRepository;
 import com.postco.control.domain.repository.ErrorCriteriaRepository;
+import com.postco.control.domain.repository.ExtractionCriteriaDetailRepository;
+import com.postco.control.domain.repository.ExtractionCriteriaRepository;
 import com.postco.control.presentation.dto.response.ErrorStandardDTO;
+import com.postco.control.presentation.dto.response.ExtractionStandardDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,63 +20,43 @@ import java.util.List;
 public class ManagementService {
     private final ErrorCriteriaDetailRepository errorCriteriaDetailRepository;
     private final ErrorCriteriaRepository errorCriteriaRepository;
+    private final ExtractionCriteriaRepository extractionCriteriaRepository;
+    private final ExtractionCriteriaDetailRepository extractionCriteriaDetailRepository;
 
     @Transactional
     public void updateErrorStandard(ErrorStandardDTO errorStandardDTO, String processcode) {
         ErrorCriteriaMapper mapper = errorCriteriaRepository.findByProcessCode(processcode)
                 .orElseThrow(() -> new IllegalStateException("no such code"));
 
-        List<ErrorCriteria> errorCriteriaList = mapper.getErrorCriteria();
-        for (ErrorCriteria errorCriteria : errorCriteriaList) {
-            String columnName = errorCriteria.getColumnName();
+        mapper.updateErrorCriteria(errorStandardDTO);
+        errorCriteriaRepository.save(mapper);
+
+    }
+
+    @Transactional
+    public void updateExtractStandard(ExtractionStandardDTO extractionStandardDTO, String processCode) {
+        ExtractionCriteriaMapper mapper = extractionCriteriaRepository.findByProcessCode(processCode)
+                .orElseThrow(() -> new IllegalStateException("no such code"));
+
+        List<ExtractionCriteria> extractionCriteriaList = mapper.getExtractionCriteria();
+        System.out.println(extractionStandardDTO);
+        for (ExtractionCriteria criteria : extractionCriteriaList) {
+            String columnName = criteria.getColumnName();
             switch (columnName) {
-                case "min_thickness":
-                    if (errorStandardDTO.getMinThickness() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getMinThickness());
-                    }
-                    break;
-                case "max_thickness":
-                    if (errorStandardDTO.getMaxThickness() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getMaxThickness());
-                    }
-                    break;
-                case "min_width":
-                    if (errorStandardDTO.getMinWidth() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getMinWidth());
-                    }
-                    break;
-                case "max_width":
-                    if (errorStandardDTO.getMaxWidth() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getMaxWidth());
-                    }
-                    break;
-                case "coil_type_code":
-                    if (errorStandardDTO.getCoilTypeCode() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getCoilTypeCode());
-                    }
-                    break;
                 case "factory_code":
-                    if (errorStandardDTO.getFactoryCode() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getFactoryCode());
-                    }
+                    criteria.setColumnValue(extractionStandardDTO.getFactoryCode());
                     break;
-                case "order_no":
-                    if (errorStandardDTO.getOrderNo() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getOrderNo());
-                    }
+                case "material_status":
+                    criteria.setColumnValue(extractionStandardDTO.getMaterialStatus());
                     break;
-                case "rem_proc":
-                    if (errorStandardDTO.getRemProc() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getRemProc());
-                    }
+                case "progress":
+                    criteria.setColumnValue(extractionStandardDTO.getProgress());
                     break;
-                case "roll_unit":
-                    if (errorStandardDTO.getRollUnit() != null) {
-                        errorCriteria.setColumnValue(errorStandardDTO.getRollUnit());
-                    }
+                case "curr_proc":
+                    criteria.setColumnValue(extractionStandardDTO.getCurrProc());
                     break;
             }
-            errorCriteriaDetailRepository.save(errorCriteria);
+            extractionCriteriaDetailRepository.save(criteria);
         }
     }
 }
