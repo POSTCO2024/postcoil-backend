@@ -2,7 +2,6 @@ package com.postco.operation.domain.entity;
 
 import com.postco.core.entity.BaseEntity;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -16,7 +15,7 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = {"order"})
-public class Materials extends BaseEntity implements com.postco.core.entity.Entity, Serializable  {
+public class Materials extends BaseEntity implements com.postco.core.entity.Entity, Serializable {
     @Id
     @GeneratedValue
     @Column(name = "material_id")
@@ -56,7 +55,8 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
 
     private double weight;
 
-    @Column(name = "temperature", columnDefinition = "double default 0") // temparture nullable 피하기 위해 default 값 추가 - maxbort 2024-09-19
+    @Column(name = "temperature", columnDefinition = "double default 0")
+    // temparture nullable 피하기 위해 default 값 추가 - maxbort 2024-09-19
     private double temperature;
 
     @Column(name = "total_weight")
@@ -81,6 +81,9 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
 
     @Column(name = "coil_type_code")
     private String coilTypeCode;
+
+    @Column(name = "remarks")
+    private String remarks;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
