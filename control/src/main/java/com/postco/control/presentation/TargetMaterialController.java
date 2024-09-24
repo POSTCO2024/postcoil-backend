@@ -3,6 +3,7 @@ package com.postco.control.presentation;
 import com.postco.control.presentation.dto.TargetViewDTO;
 import com.postco.control.presentation.dto.response.Fc001aDTO;
 import com.postco.control.service.NextProcessQueryService;
+import com.postco.control.service.SearchMaterialService;
 import com.postco.control.service.impl.TargetMaterialQueryServiceImpl;
 import com.postco.core.dto.ApiResponseDTO;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.List;
 public class TargetMaterialController {
     private final TargetMaterialQueryServiceImpl targetMaterialQueryService;
     private final NextProcessQueryService nextProcessQueryService;
+    private final SearchMaterialService searchMaterialService;
 
     @GetMapping("/related-data")
     public Mono<ResponseEntity<ApiResponseDTO<List<TargetViewDTO>>>> getTargetMaterialsWithRelatedData() {
@@ -87,6 +89,37 @@ public class TargetMaterialController {
                                         .resultMsg("Material Table 조회 중 오류 발생")
                                         .build())
                 ));
+    }
+
+    /**
+     * 검색
+     * @param currProc
+     * @param searchCriteria
+     * @param searchValue
+     * @return
+     */
+    @GetMapping("/normal-by-curr-proc/search")
+    public Mono<ResponseEntity<ApiResponseDTO<List<TargetViewDTO>>>> searchTargetMaterials(
+            @RequestParam String currProc,
+            @RequestParam(required = false) String searchCriteria, // 검색 조건
+            @RequestParam(required = true) String searchValue) {  // 검색 값
+
+        System.out.println("******");
+        System.out.println(currProc + " " + searchCriteria + " " + searchValue);
+        return searchMaterialService.searchMaterialsByCurrProc(currProc, searchCriteria, searchValue, "N")
+                .map(result -> ResponseEntity.ok(
+                        ApiResponseDTO.<List<TargetViewDTO>>builder()
+                                .status(HttpStatus.OK.value())
+                                .resultMsg("키워드 검색 완료")
+                                .result(result)
+                                .build()))
+                .doOnError(e -> log.error("검색 중 오류 발생", e))
+                .onErrorResume(e -> Mono.just(
+                        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(ApiResponseDTO.<List<TargetViewDTO>>builder()
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                        .resultMsg("검색 중 오류 발생")
+                                        .build())));
     }
 
 }

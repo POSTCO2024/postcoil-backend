@@ -55,6 +55,7 @@ public class TargetMaterialDTO {
         private String isError;
         private String errorType;
         private String isErrorPassed;
+        private String coilTypeCode;
     }
 
 
