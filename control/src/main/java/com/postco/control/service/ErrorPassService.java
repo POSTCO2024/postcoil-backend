@@ -4,13 +4,17 @@ import com.postco.control.domain.TargetMaterial;
 import com.postco.control.domain.repository.TargetMaterialRepository;
 import com.postco.core.dto.TargetMaterialDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ErrorPassService {
     private final TargetMaterialRepository targetMaterialRepository;
@@ -22,8 +26,14 @@ public class ErrorPassService {
      *
      * @param errorMaterialIds
      */
+    @Transactional
     public void errorPass(List<Long> errorMaterialIds) {
-        targetMaterialRepository.updateisError(errorMaterialIds);
+        int updatedCount = targetMaterialRepository.updateisError(errorMaterialIds);
+        System.out.println(updatedCount);
+        if (updatedCount == 0) {
+            // 업데이트된 행이 없을 경우 로그 출력 (디버깅용)
+            log.warn("업데이트된 행이 없습니다. errorMaterialIds: {}", errorMaterialIds);
+        }
     }
 
     public TargetMaterialDTO errorComment(Long id, String comment) {

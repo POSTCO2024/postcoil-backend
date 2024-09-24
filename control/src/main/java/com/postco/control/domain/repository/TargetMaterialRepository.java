@@ -15,9 +15,6 @@ import java.util.Optional;
 public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, Long> {
     Optional<TargetMaterial> findByMaterialIdAndMaterialNo(Long materialId, String materialNo);
 
-    // 공정 별 작업대상재/에러재 조회
-    // List<TargetMaterial> findByIsErrorAndCriteria(String isError, String criteria);
-
     // 정상재만 가져오기
     List<TargetMaterial> findByIsError(String isError);
 
@@ -27,7 +24,23 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     // 에러패스
     @Modifying
     @Transactional
-    @Query("UPDATE TargetMaterial tm SET tm.isError = 'N' WHERE tm.materialId IN :errorMaterialIds")
+    @Query("UPDATE TargetMaterial tm SET tm.isError = 'N' WHERE tm.id IN :errorMaterialIds")
     int updateisError(@Param("errorMaterialIds") List<Long> errorMaterialIds);
+
+
+    // 생산 기한일
+    @Query("SELECT tm.materialNo, tm.dueDate FROM TargetMaterial tm WHERE tm.id IN :materialIds AND tm.isError = 'N' ORDER BY tm.dueDate ASC")
+    List<Object[]> findMaterialNoAndDueDateByMaterialIds(@Param("materialIds") List<Long> materialIds);
+
+    // 에러재/정상재 비율
+    long countByMaterialIdInAndIsError(List<Long> materialIds, String isError);
+
+    // 고객사
+    @Query("SELECT tm.customerName, COUNT(tm) FROM TargetMaterial tm WHERE tm.id IN :materialIds AND tm.isError = 'N' GROUP BY tm.customerName")
+    List<Object[]> countByMaterialIdIn(@Param("materialIds") List<Long> materialIds);
+
+    // 품종 & 재료(폭, 두께)
+    @Query("SELECT tm.id FROM TargetMaterial tm WHERE tm.isError = 'N'")
+    List<Long> findNormalMaterialIds();
 }
 
