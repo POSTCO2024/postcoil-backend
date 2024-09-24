@@ -35,10 +35,6 @@ public class SchedulingServiceImpl {
         List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode,rollUnit);
         List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode,rollUnit);
 
-        log.info("Here is constraintList=================================");
-        log.info(constraintInsertionList.toString());
-
-
         // 우선순위 적용
         List<SCHMaterial> sortedMaterials = applyPriorities(materials, priorities);
 
@@ -122,6 +118,7 @@ public class SchedulingServiceImpl {
     }
 
     private List<List<SCHMaterial>> applySineCurveToGroups(List<List<SCHMaterial>> groupCoils) {
+
         List<List<SCHMaterial>> optimizedGroups = new ArrayList<>();
         List<Double> prevGroupLastThickness = new ArrayList<>();
         prevGroupLastThickness.add(0.0); // 초기값 설정
@@ -304,7 +301,7 @@ public class SchedulingServiceImpl {
         // 미편성된 코일 리스트와 필터된 코일 리스트를 로그로 출력 (원하는 형식으로 출력 가능)
         System.out.println("미편성된 코일:");
         for (SCHMaterial coil : unassignedCoils) {
-            System.out.println("ID: " + coil.getId() + ", Thickness: " + coil.getGoalThickness());
+            System.out.println("ID: " + coil.getId() + ", Thickness: " + coil.getGoalThickness() + ", Width: " + coil.getWidth());
         }
 
         // 필요한 경우 미편성된 코일을 반환하거나 다른 처리 수행 가능
@@ -319,6 +316,8 @@ public class SchedulingServiceImpl {
         List<SCHMaterial> prioritizedMaterials = new ArrayList<>();
         List<SCHMaterial> sortedMaterials = new ArrayList<>();
         List<List<SCHMaterial>> groupedMaterials = new ArrayList<>();
+
+
         for (PriorityDTO priority : priorities) {
             PriorityApplyMethod method = PriorityApplyMethod.valueOf(priority.getApplyMethod());
             String target = priority.getTargetColumn();
@@ -364,28 +363,28 @@ public class SchedulingServiceImpl {
         return prioritizedMaterials;
     }
 
-    private List<SCHMaterial> groupByAndApplyNextPriority(List<SCHMaterial> materials, Method getterMethod, List<PriorityDTO> remainingPriorities) {
-        // 원래 순서대로 그룹핑
-        Map<Object, List<SCHMaterial>> groupedMaterials = new LinkedHashMap<>();
-        for (SCHMaterial material : materials) {
-            Object key = invokeGetter(material, getterMethod);
-            groupedMaterials.computeIfAbsent(key, k -> new ArrayList<>()).add(material);
-        }
-
-        // 각 그룹 내에서 우선순위 적용
-        List<SCHMaterial> result = new ArrayList<>();
-
-        for (Map.Entry<Object, List<SCHMaterial>> entry : groupedMaterials.entrySet()) {
-            List<SCHMaterial> group = entry.getValue();
-            if(remainingPriorities.isEmpty()){
-                return group;
-            }
-            List<SCHMaterial> sortedGroup = applyPriorities(group, remainingPriorities);
-            result.addAll(sortedGroup);
-        }
-
-        return result;
-    }
+//    private List<SCHMaterial> groupByAndApplyNextPriority(List<SCHMaterial> materials, Method getterMethod, List<PriorityDTO> remainingPriorities) {
+//        // 원래 순서대로 그룹핑
+//        Map<Object, List<SCHMaterial>> groupedMaterials = new LinkedHashMap<>();
+//        for (SCHMaterial material : materials) {
+//            Object key = invokeGetter(material, getterMethod);
+//            groupedMaterials.computeIfAbsent(key, k -> new ArrayList<>()).add(material);
+//        }
+//
+//        // 각 그룹 내에서 우선순위 적용
+//        List<SCHMaterial> result = new ArrayList<>();
+//
+//        for (Map.Entry<Object, List<SCHMaterial>> entry : groupedMaterials.entrySet()) {
+//            List<SCHMaterial> group = entry.getValue();
+//            if(remainingPriorities.isEmpty()){
+//                return group;
+//            }
+//            List<SCHMaterial> sortedGroup = applyPriorities(group, remainingPriorities);
+//            result.addAll(sortedGroup);
+//        }
+//
+//        return result;
+//    }
 
 
 
