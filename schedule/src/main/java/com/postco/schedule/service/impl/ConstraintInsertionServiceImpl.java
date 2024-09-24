@@ -21,4 +21,5 @@ public class ConstraintInsertionServiceImpl implements ConstraintInsertionServic
     public List<ConstraintInsertionDTO> findByProcessCode(String processCode){
         return MapperUtils.mapList(constraintInsertionRepository.findByProcessCode(processCode), ConstraintInsertionDTO.class);
     }
+
 }

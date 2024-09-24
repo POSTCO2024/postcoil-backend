@@ -46,14 +46,17 @@ public class SchedulePlanServiceImpl {
     public List<SCHPlan> executeSchedulingAndSave(List<Long> ids, String processCode) {
         // step 1: ids에 해당하는 등록된 스케줄 대상재 불러오기
         // List<SCHMaterial> materials = getScheduleMaterials();
+        log.info("불러온 id들 : {}", ids);
         List<SCHMaterial> materials = getScheduleMaterialsByIds(ids);
-
+        log.info("불러온 스케쥴 대상재들 : {}", materials);
         // step 2: 공정별, 롤 단위별로 그룹화 진행
         Map<String, List<SCHMaterial>> groupedMaterials = groupedByProcessAndRollUnit(materials);
-
+        groupedMaterials.forEach((key, value) ->
+                log.info("그룹화 된 리스트: {}, Materials: {}", key, value)
+        );
         // step 3: 그룹별로 스케줄링을 수행
         List<SCHMaterial> scheduledMaterials = applySchedulingByProcess(groupedMaterials);
-
+        log.info("스케쥴링 된 후 확인 : {}", scheduledMaterials);
         // step 4: 스케줄링 완료 후 저장 진행
         return saveAllSchedules(scheduledMaterials);
     }
@@ -114,7 +117,7 @@ public class SchedulePlanServiceImpl {
             log.info("그룹 키: {}, 공정 코드: {}, 재료 수: {}", groupKey, processCode, materials.size());
 
             // 외부 스케쥴링 서비스 호출 -> 기존의 schedulingService 활용하면 됨.
-            List<SCHMaterial> scheduledProcessMaterials = schedulingService.testPlanSchedule(materials, processCode);
+            List<SCHMaterial> scheduledProcessMaterials = schedulingService.planSchedule(materials, processCode);
             scheduledMaterials.addAll(scheduledProcessMaterials);
         });
         return scheduledMaterials;

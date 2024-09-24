@@ -18,6 +18,9 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     // 정상재만 가져오기
     List<TargetMaterial> findByIsError(String isError);
 
+    // 페이징된 정상재
+//    Page<TargetMaterial> findByIsErrorIsN(Pageable pageable);
+
     // 에러패스
     @Modifying
     @Transactional
