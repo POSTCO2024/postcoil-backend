@@ -107,7 +107,7 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
         this.width -= reduceWidthValue;
     }
 
-    public void updateMaterialProgress() {
+    public void updateEntireProgress() {
         // 1. 통과 공정 업데이트
         this.passProc = (this.passProc == null) ? this.currProc : this.passProc + this.currProc;
 
@@ -118,6 +118,22 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
     }
 
     public void updateYardAfterWork(String workValue) {
-        this.yard = this.yard.substring(0, this.yard.length() - 1) + workValue;
+        this.yard = this.currProc + workValue;
     }
+
+    public void finishDelivery() {
+        // 잔공정 업테이트
+        this.preProc = this.currProc;
+        // 현공정 업데이트
+        this.currProc = this.nextProc;
+
+        // 차공정 업데이트
+        if (this.remProc != null && this.remProc.startsWith(this.currProc)) {
+            this.nextProc = this.remProc.substring(this.currProc.length());
+            if (this.currProc.matches("\\d{3}")) {
+                this.nextProc = "FINAL";
+            }
+        }
+    }
+
 }

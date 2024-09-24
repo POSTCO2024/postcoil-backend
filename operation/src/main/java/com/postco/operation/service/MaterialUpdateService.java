@@ -20,5 +20,8 @@ public interface MaterialUpdateService {
     boolean updateProcess(Long materialId);
 
     // 야드 업데이트
-    boolean updateYard(Long materialId);
+    boolean updateYard(Long materialId, String workValue);
+
+    // 배송 후 업데이트
+    boolean updateAfterDelivery(Long materialId);
 }

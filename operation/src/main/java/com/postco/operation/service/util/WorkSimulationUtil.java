@@ -12,36 +12,30 @@ public class WorkSimulationUtil {
 
     public static long convertToPresentationDuration(int expectedDurationMinutes) {
         long durationSeconds = expectedDurationMinutes * 2L;
-        return Math.min(Math.max(durationSeconds, 20), 25);
+        return Math.min(Math.max(durationSeconds, 10), 15);      // 계산이 10 ~ 15초 안에 나오도록 함
     }
 
+    // 작업 종료 시뮬레이션
     public static Mono<Void> simulateWorkCompletion(long durationSeconds) {
-        long delayMillis = (durationSeconds + random.nextInt(6) - 3) * 1000;
+        long delayMillis = (durationSeconds + random.nextInt(5) - 2) * 1000;
         log.info("작업 시뮬레이션 시작. 예상 소요 시간: {}초", delayMillis / 1000.0);
 
-        return Mono.delay(Duration.ofMillis(delayMillis))
-                .flatMap(v -> logProgress(delayMillis))
+        return Mono.delay(Duration.ofMillis(delayMillis - 3000)) // 3초 전에 로그 찍기 시작
+                .doOnNext(v -> log.info("작업 완료 3초 전..."))
+                .then(Mono.delay(Duration.ofSeconds(3)))
+                .doOnSuccess(v -> log.info("[작업 종료] 코일 작업 시뮬레이션 종료."))
                 .then();
     }
 
-    private static Mono<Void> logProgress(long totalMillis) {
-        return Mono.defer(() -> {
-            long startTime = System.currentTimeMillis();
-            return Mono.delay(Duration.ofSeconds(1))
-                    .repeat()
-                    .takeUntil(v -> System.currentTimeMillis() - startTime >= totalMillis - 3000)
-                    .doOnNext(v -> logRemainingTime(startTime, totalMillis))
-                    .then(Mono.delay(Duration.ofSeconds(3)))
-                    .doOnSuccess(v -> log.info("[작업 종료] 코일 작업 시뮬레이션 종료."))
-                    .then();
-        });
-    }
+    // 이송 종료 시뮬레이션
+    public static Mono<Void> simulateDelivery() {
+        long delayMillis = 10000; // 10초
+        log.info("이송 시뮬레이션 시작. 예상 소요 시간: 10초");
 
-    private static void logRemainingTime(long startTime, long totalMillis) {
-        long elapsedMillis = System.currentTimeMillis() - startTime;
-        long remainingMillis = totalMillis - elapsedMillis;
-        if (remainingMillis > 0) {
-            log.debug("남은 작업 시간: {}초", remainingMillis / 1000.0);
-        }
+        return Mono.delay(Duration.ofMillis(delayMillis - 1000))
+                .doOnNext(v -> log.info("이송 완료 1초 전..."))
+                .then(Mono.delay(Duration.ofSeconds(1)))
+                .doOnSuccess(v -> log.info("[이송 종료] 코일 이송 시뮬레이션 종료."))
+                .then();
     }
 }

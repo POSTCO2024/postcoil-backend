@@ -1,30 +1,17 @@
 package com.postco.operation.service.impl;
 
-import com.postco.core.dto.MaterialDTO;
-import com.postco.core.dto.OrderDTO;
-import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.operation.domain.entity.MaterialProgress;
 import com.postco.operation.domain.entity.Materials;
-import com.postco.operation.domain.entity.Order;
-import com.postco.operation.domain.entity.WorkInstructionItem;
 import com.postco.operation.domain.entity.coil.ColdStandardReduction;
 import com.postco.operation.domain.repository.ColdStandardReductionRepository;
 import com.postco.operation.domain.repository.MaterialRepository;
-import com.postco.operation.domain.repository.OrderRepository;
-import com.postco.operation.domain.repository.WorkItemRepository;
-import com.postco.operation.infra.kafka.MaterialsProducer;
-import com.postco.operation.infra.kafka.OrderProducer;
 import com.postco.operation.service.MaterialUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.PropertyMap;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @Transactional
@@ -88,7 +75,7 @@ public class MaterialUpdateServiceImpl implements MaterialUpdateService {
             Materials material = materialRepository.findById(materialId)
                     .orElseThrow(() -> new EntityNotFoundException("Material not found"));
 
-            material.updateMaterialProgress();
+            material.updateEntireProgress();
             materialRepository.save(material);
             log.info("재료 ID:  {} , 공정 업데이트 완료", materialId);
             return true;
@@ -100,17 +87,34 @@ public class MaterialUpdateServiceImpl implements MaterialUpdateService {
 
     @Override
     @Transactional
-    public boolean updateYard(Long materialId) {
+    public boolean updateYard(Long materialId, String workValue) {
         try {
             Materials material = materialRepository.findById(materialId)
                     .orElseThrow(() -> new EntityNotFoundException("Material not found"));
 
-            material.updateYardAfterWork("B");
+            material.updateYardAfterWork(workValue);
             materialRepository.save(material);
             log.info("재료 ID:  {} , 야드 업데이트 완료", materialId);
             return true;
         } catch (Exception e) {
             log.error("야드 위치 업데이트 중 오류 발생. Material ID: {}", materialId, e);
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean updateAfterDelivery(Long materialId) {
+        try {
+            Materials material = materialRepository.findById(materialId)
+                    .orElseThrow(() -> new EntityNotFoundException("Material not found"));
+
+            material.finishDelivery();
+            materialRepository.save(material);
+            log.info("재료 ID:  {} , 배송 완료 후 코일 업데이트 완료", materialId);
+            return true;
+        } catch (Exception e) {
+            log.error("배송 후 재료 업데이트 중 오류 발생. Material ID: {}", materialId, e);
             return false;
         }
     }

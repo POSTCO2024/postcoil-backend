@@ -149,7 +149,7 @@ public class CoilWorkCommandService {
                         Mono.fromCallable(() -> materialUpdateService.updateMaterialProgress(materialId, MaterialProgress.H)),
                         Mono.fromCallable(() -> materialUpdateService.reduceThickAndWidth(materialId)),
                         Mono.fromCallable(() -> materialUpdateService.updateProcess(materialId)),
-                        Mono.fromCallable(() -> materialUpdateService.updateYard(materialId))
+                        Mono.fromCallable(() -> materialUpdateService.updateYard(materialId, "B"))
                 )
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMap(tuple -> {
