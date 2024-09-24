@@ -1,6 +1,5 @@
 package com.postco.control.service;
 
-
 import com.postco.control.domain.TargetMaterial;
 import com.postco.control.domain.repository.TargetMaterialRepository;
 import com.postco.control.presentation.dto.TargetViewDTO;
@@ -14,7 +13,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -25,7 +23,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SearchMaterialService {
-    private final TargetMaterialQueryService targetMaterialQueryService;
     private final TargetMaterialRepository targetMaterialRepository;
     private final ControlRedisQueryService controlRedisQueryService;
     private final ModelMapper modelMapper;
