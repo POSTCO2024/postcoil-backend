@@ -4,11 +4,7 @@ import com.postco.control.domain.TargetMaterial;
 import com.postco.control.domain.repository.TargetMaterialRepository;
 import com.postco.core.dto.TargetMaterialDTO;
 import lombok.RequiredArgsConstructor;
-<<<<<<< HEAD
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-=======
->>>>>>> c6b813b (Feat: 에러재 댓글 추가ê¸ °기능 구현)
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +36,7 @@ public class ErrorPassService {
     }
 
     public TargetMaterialDTO errorComment(Long id, String comment) {
-        TargetMaterial targetMaterial = targetMaterialRepository.findById(id)
+        TargetMaterial targetMaterial = targetMaterialRepository.findByMaterialId(id)
                 .orElseThrow(() -> new EntityNotFoundException("다음과 같은 작업대상재가 존재하지 않습니다. " + id));
         targetMaterial.setRemarks(comment);
         return modelMapper.map(targetMaterialRepository.save(targetMaterial), TargetMaterialDTO.class);
