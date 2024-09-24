@@ -2,7 +2,7 @@ package com.postco.operation.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
 import com.postco.operation.service.CoilSupplyService;
-import com.postco.operation.service.CoilWorkCommandService;
+import com.postco.operation.service.impl.work.CoilWorkCommandService;
 import com.postco.operation.service.WorkItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

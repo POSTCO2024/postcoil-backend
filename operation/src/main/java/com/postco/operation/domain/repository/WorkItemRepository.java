@@ -10,6 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface WorkItemRepository extends JpaRepository<WorkInstructionItem, Long> {
-    @Query("SELECT i FROM WorkInstructionItem i JOIN FETCH i.workInstruction WHERE i.id = :id")
-    Optional<WorkInstructionItem> findByIdWithWorkInstruction(@Param("id") Long id);
+    @Query("SELECT wi FROM WorkInstructionItem wi JOIN FETCH wi.workInstruction w JOIN FETCH w.items WHERE wi.id = :itemId")
+    Optional<WorkInstructionItem> findByIdWithWorkInstruction(@Param("itemId") Long itemId);
 }

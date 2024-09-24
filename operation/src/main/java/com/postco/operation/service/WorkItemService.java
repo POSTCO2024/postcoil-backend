@@ -1,5 +1,6 @@
 package com.postco.operation.service;
 
+import com.postco.operation.domain.entity.WorkInstructionItem;
 import reactor.core.publisher.Mono;
 
 public interface WorkItemService {
@@ -7,7 +8,7 @@ public interface WorkItemService {
     boolean rejectWorkItem(Long itemId);
 
     // 작업 시작 업데이트
-    Mono<Boolean> startWorkItem(Long itemId);
+    Mono<WorkInstructionItem> startWorkItem(Long itemId);
 
     // 작업 종료 업데이트
     Mono<Boolean> finishWorkItem(Long itemId);

@@ -13,10 +13,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-
-import javax.persistence.EntityManagerFactory;
 
 @SpringBootApplication
 @EnableDiscoveryClient

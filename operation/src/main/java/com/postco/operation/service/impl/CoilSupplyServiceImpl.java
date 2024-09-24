@@ -58,7 +58,7 @@ public class CoilSupplyServiceImpl implements CoilSupplyService {
 
             coilSupply.updateProgressed();
             coilSupplyRepository.save(coilSupply);
-            log.info("완료 코일 수 업데이트 성공. 총 완료 코일 : {}", coilSupply.getTotalRejects());
+            log.info("완료 코일 수 업데이트 성공. 총 완료 코일 : {}", coilSupply.getTotalProgressed());
             return true;
         } catch (Exception e) {
             log.info("완료 코일 업데이트 중 오류 발생 : {} ", e.getMessage());
