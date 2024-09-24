@@ -7,12 +7,8 @@ import java.util.Map;
 
 public class ProcessCounter {
     public static void countNextProc(MaterialDTO.View view, Map<String, Fc001aDTO.Table> resultMap) {
-        System.out.println("==========");
-        System.out.println(view);
-
         String coilTypeCode = view.getCoilTypeCode();
         String nextProc = view.getNextProc();
-
 
         // 기존에 있던 테이블을 가져오거나 새로 생성
         Fc001aDTO.Table table = resultMap.getOrDefault(coilTypeCode, new Fc001aDTO.Table(coilTypeCode, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L));

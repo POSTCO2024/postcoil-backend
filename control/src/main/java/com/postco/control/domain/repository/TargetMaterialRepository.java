@@ -15,7 +15,7 @@ import java.util.Optional;
 public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, Long> {
     Optional<TargetMaterial> findByMaterialIdAndMaterialNo(Long materialId, String materialNo);
 
-    // 정상재만 가져오기
+    // 정상재/에러재
     List<TargetMaterial> findByIsError(String isError);
 
     // 페이징된 정상재

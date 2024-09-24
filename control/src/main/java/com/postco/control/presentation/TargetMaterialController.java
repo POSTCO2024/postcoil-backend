@@ -102,10 +102,10 @@ public class TargetMaterialController {
     public Mono<ResponseEntity<ApiResponseDTO<List<TargetViewDTO>>>> searchTargetMaterials(
             @RequestParam String currProc,
             @RequestParam(required = false) String searchCriteria, // 검색 조건
-            @RequestParam(required = true) String searchValue) {  // 검색 값
+            @RequestParam(required = false) String searchValue) {  // 검색 값
 
-        System.out.println("******");
-        System.out.println(currProc + " " + searchCriteria + " " + searchValue);
+        
+        log.debug("[검색정보] 선택 공정: "+ currProc + "  검색 기준: " + searchCriteria + "  키워드: " + searchValue);
         return searchMaterialService.searchMaterialsByCurrProc(currProc, searchCriteria, searchValue, "N")
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<List<TargetViewDTO>>builder()
