@@ -85,10 +85,10 @@ public class RegisterServiceImpl {
 
                 // 추가 yerim kim 2024-09-22
                 .targetId(targetMaterial.getId())
-                .materialId(material.getId())
+                .materialId(material.getMaterialId())
 
                 // 필요 컬럼 추가2 Sohyun Ahn 2024-09-19
-                .materialNo(material.getNo())
+                .materialNo(material.getMaterialNo())
 
                 // 여기부터
                 .goalWidth(targetMaterial.getGoalWidth())
@@ -109,7 +109,7 @@ public class RegisterServiceImpl {
         // 1. 재료 정보를 캐싱하여, materialId 기준으로 빠르게 검색할 수 있도록 Map<Long, MaterialDTO.View> 형태로 변환.
         //    이제 material.getId()를 그대로 사용하여 Long 타입의 키를 유지합니다.
         Map<Long, MaterialDTO.View> materialMap = container.getMaterials().stream()
-                .collect(Collectors.toMap(MaterialDTO.View::getId, material -> material));
+                .collect(Collectors.toMap(MaterialDTO.View::getMaterialId, material -> material));
 
 
         // 2. 설비 정보를 캐싱하여 eqCode 기준으로 빠르게 검색할 수 있도록 Map<String, EquipmentInfoDTO.View>로 변환.

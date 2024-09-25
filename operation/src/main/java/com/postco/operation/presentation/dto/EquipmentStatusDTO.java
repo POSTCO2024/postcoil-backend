@@ -1,5 +1,6 @@
 package com.postco.operation.presentation.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.postco.core.dto.DTO;
 import com.postco.operation.domain.entity.coil.EquipmentStatusType;
 import lombok.AllArgsConstructor;
@@ -12,8 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EquipmentStatusDTO implements DTO {
-    private Long id;
+    private Long equipmentStatus;
     private Long equipmentId;
     private String eqStatus;   // 상태 코드 (enum to string)
     private String isOperational;

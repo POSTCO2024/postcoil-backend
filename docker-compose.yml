@@ -39,7 +39,6 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
     volumes:
-      - my.cnf:/etc/mysql/conf.d/my.cnf
       - mysql_data:/var/lib/mysql
     networks:
       - postcoil-net

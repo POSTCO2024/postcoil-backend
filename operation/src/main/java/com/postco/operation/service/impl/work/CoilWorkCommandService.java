@@ -5,6 +5,7 @@ import com.postco.operation.domain.repository.CoilSupplyRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
 import com.postco.operation.service.CoilSupplyService;
+import com.postco.operation.service.EquipmentStatusService;
 import com.postco.operation.service.MaterialUpdateService;
 import com.postco.operation.service.WorkItemService;
 import com.postco.operation.service.impl.SupplyQueueManager;
@@ -35,7 +36,7 @@ public class CoilWorkCommandService {
     private final SupplyQueueManager supplyQueueManager;
 
     // 작업 지시서에서 보급 요청 시 관련 작업 수행
-    // 1) 코일 보급 처리
+    // 1) 코일 보급 처리 -> 업데이트
     // 2) 코일 작업 시작 및 종료
     public Mono<Boolean> requestSupply(Long workInstructionId, int supplyCount) {
         return Mono.fromCallable(() ->
@@ -46,19 +47,21 @@ public class CoilWorkCommandService {
                             CoilSupply coilSupply = coilSupplyRepository.findByWorkInstruction(workInstruction)
                                     .orElseThrow(() -> new IllegalArgumentException("No CoilSupply found for the work instruction"));
 
-                            log.info("작업 지시서 ID: {}, 보급 요청 수량: {}", workInstructionId, supplyCount);
+                            String equipmentCode = workInstruction.getProcess(); // 공정 코드를 설비 코드로 사용
+                            log.info("작업 지시서 ID: {}, 설비 코드: {}, 보급 요청 수량: {}", workInstructionId, equipmentCode, supplyCount);
 
                             List<WorkInstructionItem> itemsToQueue = prepareItemsForQueue(workInstruction, supplyCount);
 
-                            return Tuples.of(itemsToQueue, coilSupply);
+                            return Tuples.of(itemsToQueue, coilSupply, equipmentCode);
                         })
                 ).subscribeOn(Schedulers.boundedElastic())
                 .flatMap(result -> {
                     List<WorkInstructionItem> itemsToQueue = result.getT1();
                     CoilSupply coilSupply = result.getT2();
-                    return supplyQueueManager.addItemsToQueue(itemsToQueue, this::startWorkOnItem)
-                            .doOnSuccess(v -> supplyQueueManager.processSupplyInBackground(coilSupply, itemsToQueue.size(),
-                                    this::startWorkOnItem))
+                    String equipmentCode = result.getT3();
+                    return supplyQueueManager.addItemsToQueue(equipmentCode, workInstructionId, itemsToQueue)
+                            .then(supplyQueueManager.processSupplyInBackground(equipmentCode, coilSupply,
+                                    itemsToQueue.size(), this::startWorkOnItem))
                             .thenReturn(true);
                 })
                 .onErrorResume(this::handleSupplyRequestError);
@@ -84,6 +87,7 @@ public class CoilWorkCommandService {
         return Mono.just(false);
     }
 
+    // 작업 아이템 작업 시작 -> 업데이트
     public Mono<Long> startWorkOnItem(Long itemId) {
         return Mono.fromCallable(() -> workItemRepository.findById(itemId))
                 .subscribeOn(Schedulers.boundedElastic())
@@ -143,7 +147,6 @@ public class CoilWorkCommandService {
 
     // 재료 아이디를 넘겨야함
     // 작업지시서 아이템에 material_id 존재
-
     private Mono<Void> updateMaterialStates(Long materialId) {
         return Mono.zip(
                         Mono.fromCallable(() -> materialUpdateService.updateMaterialProgress(materialId, MaterialProgress.H)),

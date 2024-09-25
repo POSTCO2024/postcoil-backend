@@ -10,6 +10,7 @@ import com.postco.operation.domain.repository.MaterialRepository;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.modelmapper.convention.MatchingStrategies;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Component
 public class WorkInstructionMapper {
     private static final ModelMapper modelMapper = new ModelMapper();
 
@@ -111,7 +113,7 @@ public class WorkInstructionMapper {
     }
 
     // WorkInstructionItem 엔티티 -> WorkInstructionItemDTO.View 매핑
-    private static WorkInstructionItemDTO.View mapToItemDto(WorkInstructionItem item) {
+    public static WorkInstructionItemDTO.View mapToItemDto(WorkInstructionItem item) {
         return modelMapper.map(item, WorkInstructionItemDTO.View.class);
     }
 

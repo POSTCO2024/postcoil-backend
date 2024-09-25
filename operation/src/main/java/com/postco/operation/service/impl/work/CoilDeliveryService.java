@@ -26,14 +26,14 @@ public class CoilDeliveryService {
     private final MaterialUpdateService materialUpdateService;
     private final TransactionTemplate transactionTemplate;
 
-    @PostConstruct
-    public void init() {
-        // 서비스 시작 시 즉시 실행
-        processCompletedWorkItems()
-                .doOnSuccess(v -> log.info("서비스 시작 시 완료된 작업 아이템 처리 완료"))
-                .doOnError(e -> log.error("서비스 시작 시 완료된 작업 아이템 처리 중 오류 발생", e))
-                .subscribe();
-    }
+//    @PostConstruct
+//    public void init() {
+//        // 서비스 시작 시 즉시 실행
+//        processCompletedWorkItems()
+//                .doOnSuccess(v -> log.info("서비스 시작 시 완료된 작업 아이템 처리 완료"))
+//                .doOnError(e -> log.error("서비스 시작 시 완료된 작업 아이템 처리 중 오류 발생", e))
+//                .subscribe();
+//    }
 
     @Scheduled(fixedDelay = 60000, initialDelay = 30000)
     public void scheduleCompletedWorkItemsProcessing() {

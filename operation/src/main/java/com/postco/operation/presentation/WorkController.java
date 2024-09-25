@@ -59,6 +59,14 @@ public class WorkController {
                 .onErrorResume(e -> handleError("리젝 처리 중 오류 발생", e));
     }
 
+    // 긴급 정지 API
+    @PostMapping
+
+
+
+
+
+
     // 공통 응답 생성 메서드
     private ResponseEntity<ApiResponseDTO<Boolean>> createResponse(boolean success, String message) {
         return ResponseEntity.ok(ApiResponseDTO.<Boolean>builder()
