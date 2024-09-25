@@ -13,7 +13,7 @@ public class MaterialsProducer {
     private final KafkaProducer genericProducer;
 
     public void sendMaterials(MaterialDTO.View materials) {
-        String key = String.valueOf(materials.getId());
+        String key = String.valueOf(materials.getMaterialId());
         genericProducer.sendData(TOPIC, key, materials);
     }
 }
