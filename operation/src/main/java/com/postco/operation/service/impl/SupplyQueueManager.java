@@ -62,7 +62,6 @@ public class SupplyQueueManager {
 
     private void startWorkInstructionProcessing(String equipmentCode, Function<Long, Mono<Long>> startWorkOnItem) {
         processNextWorkInstruction(equipmentCode, startWorkOnItem)
-                .repeat()
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)))
                 .subscribeOn(Schedulers.boundedElastic())
                 .subscribe(
@@ -72,21 +71,21 @@ public class SupplyQueueManager {
                 );
     }
 
-    private Mono<Void> processNextWorkInstruction(String equipmentCode, Function<Long, Mono<Long>> startWorkOnItem) {
+    private Mono<Boolean> processNextWorkInstruction(String equipmentCode, Function<Long, Mono<Long>> startWorkOnItem) {
         String equipmentQueueKey = EQUIPMENT_QUEUE_KEY_PREFIX + equipmentCode;
         return redisTemplate.opsForList().leftPop(equipmentQueueKey)
                 .flatMap(workInstructionId -> {
                     String workInstructionQueueKey = WORK_INSTRUCTION_QUEUE_KEY_PREFIX + equipmentCode + ":" + workInstructionId;
                     return processWorkInstructionItems(equipmentCode, workInstructionQueueKey, startWorkOnItem)
-                            .then(checkAndProcessRemainingItems(equipmentQueueKey, workInstructionQueueKey, workInstructionId));
+                            .then(checkAndProcessRemainingItems(equipmentQueueKey, workInstructionQueueKey, workInstructionId))
+                            .thenReturn(true);
                 })
-                .defaultIfEmpty(logNoMoreWorkInstructions(equipmentCode))
-                .then();
-    }
-
-    private Void logNoMoreWorkInstructions(String equipmentCode) {
-        log.info("설비 {}: 처리할 작업 지시가 더 이상 없습니다.", equipmentCode);
-        return null;
+                .defaultIfEmpty(false)
+                .doOnNext(hasMore -> {
+                    if (!hasMore) {
+                        log.info("설비 {}: 처리할 작업 지시가 더 이상 없습니다.", equipmentCode);
+                    }
+                });
     }
 
     private Mono<Void> checkAndProcessRemainingItems(String equipmentQueueKey, String workInstructionQueueKey, String workInstructionId) {

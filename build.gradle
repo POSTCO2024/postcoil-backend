@@ -102,6 +102,7 @@ subprojects {
         // test
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
         testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+        testImplementation 'org.springframework:spring-messaging'
         testImplementation 'org.springframework.restdocs:spring-restdocs-restassured'
         testImplementation 'io.rest-assured:rest-assured'
 

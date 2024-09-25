@@ -36,7 +36,7 @@ public class MaterialConsumer extends GenericKafkaConsumer<MaterialDTO.View> {
 
     @Override
     protected String getDataId(MaterialDTO.View data) {
-        return String.valueOf(data.getMaterialId());
+        return String.valueOf(data.getId());
     }
 
     @Override

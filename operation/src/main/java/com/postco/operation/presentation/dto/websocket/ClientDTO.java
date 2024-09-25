@@ -22,7 +22,7 @@ public class ClientDTO {
     private List<WorkInstructionDTO.View> workInstructions;
     private List<WorkInstructionItemDTO.View> workItem;
     private List<EquipmentStatusDTO> equipmentStatus;
-    private List<MaterialDTO.View> materials;
+    private List<MaterialDTO.Message> materials;
     private Map<String, Integer> coilTypeCount;
     private String totalWorkTime;
 }
