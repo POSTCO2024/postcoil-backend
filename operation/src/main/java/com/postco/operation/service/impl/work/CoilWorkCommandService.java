@@ -4,6 +4,7 @@ import com.postco.operation.domain.entity.*;
 import com.postco.operation.domain.repository.CoilSupplyRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
+import com.postco.operation.presentation.dto.websocket.WebSocketMessageType;
 import com.postco.operation.service.CoilSupplyService;
 import com.postco.operation.service.MaterialUpdateService;
 import com.postco.operation.service.WorkItemService;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuples;
 
+import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,7 +98,6 @@ public class CoilWorkCommandService {
                         .map(item -> workItemService.startWorkItem(item.getId())
                                 .flatMap(updatedItem -> {
                                     if (updatedItem != null) {
-                                        operationWebSocketService.sendRealTimeUpdate(updatedItem.getWorkInstruction());
                                         return scheduleWorkCompletion(updatedItem)
                                                 .thenReturn(itemId);
                                     }
@@ -122,7 +123,9 @@ public class CoilWorkCommandService {
     // 3) 재료 상태 업데이트 -> updateMaterialProgress, reduceThickAndWidth , updateProcess, updateYard
     public Mono<Void> completeWorkAfterDuration(Long itemId, Long materialId, long expectedDurationMinutes) {
         long presentationDuration = WorkSimulationUtil.convertToPresentationDuration((int) expectedDurationMinutes);
-        return WorkSimulationUtil.simulateWorkCompletion(presentationDuration)
+        log.info("작업 완료 예정 - 아이템 ID: {}, 예상 소요 시간: {} ms", itemId, presentationDuration);
+        return Mono.delay(Duration.ofMillis(presentationDuration))
+                .doOnNext(v -> log.info("작업 완료 지연 종료 - 아이템 ID: {}", itemId))
                 .then(finishWorkUpdates(itemId, materialId))
                 .doOnSuccess(v -> log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId))
                 .doOnError(error -> log.error("작업 완료 처리 실패 - 아이템 ID: {}, 에러: {}", itemId, error.getMessage()));
@@ -130,21 +133,15 @@ public class CoilWorkCommandService {
 
     private Mono<Void> finishWorkUpdates(Long itemId, Long materialId) {
         return workItemService.finishWorkItem(itemId)
+                .doOnSuccess(success -> log.info("작업 아이템 종료 업데이트 결과 - 아이템 ID: {}, 성공: {}", itemId, success))
                 .flatMap(success -> {
-                    if (success) {
-                        return updateCoilSupplyAndMaterial(itemId, materialId)
-                                .doOnSuccess(v -> {
-                                    WorkInstructionItem item = workItemRepository.findById(itemId).orElse(null);
-                                    if (item != null) {
-                                        operationWebSocketService.sendRealTimeUpdate(item.getWorkInstruction());
-                                    }
-                                });
-                    } else {
+                    if (!success) {
                         return Mono.error(new RuntimeException("작업 아이템 종료 업데이트 실패"));
                     }
+                    return updateCoilSupplyAndMaterial(itemId, materialId);
                 })
                 .doOnSuccess(v -> log.info("작업 아이템 업데이트 완료. ID: {}", itemId))
-                .doOnError(e -> log.error("작업 아이템 종료 업데이트 실패. ID: {}", itemId));
+                .doOnError(e -> log.error("작업 아이템 종료 업데이트 실패. ID: {}", itemId, e));
     }
 
     private Mono<Void> updateCoilSupplyAndMaterial(Long itemId, Long materialId) {

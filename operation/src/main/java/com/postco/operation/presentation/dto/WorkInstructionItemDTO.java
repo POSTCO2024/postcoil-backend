@@ -32,6 +32,23 @@ public class WorkInstructionItemDTO {
     @Builder
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class View implements DTO {
+        private Long id;
+        private Long materialId;
+        private Long targetId;
+        private String workItemStatus;
+        private int sequence;
+        private String isRejected;
+        private Long expectedItemDuration;
+        private LocalDateTime startTime;
+        private LocalDateTime endTime;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Message implements DTO {
         private Long workItemId;
         private Long materialId;
         private Long targetId;
@@ -44,4 +61,6 @@ public class WorkInstructionItemDTO {
         @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         private LocalDateTime endTime;
     }
+
+
 }

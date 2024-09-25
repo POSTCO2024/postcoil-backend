@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.Mapping;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 
 @Component
 public class WorkInstructionMapper {
@@ -48,6 +50,13 @@ public class WorkInstructionMapper {
                 map().setWorkItemStatus(safeValueOf(source.getWorkStatus()));
                 map().setIsRejected(source.getIsRejected());
                 map().setExpectedItemDuration(source.getExpectedDuration());
+            }
+        });
+
+        modelMapper.addMappings(new PropertyMap<WorkInstruction, WorkInstructionDTO.Message>() {
+            @Override
+            protected void configure() {
+                map(source.getId(), destination.getWorkInstructionId());
             }
         });
     }
@@ -89,6 +98,7 @@ public class WorkInstructionMapper {
         return workInstruction;
     }
 
+
     // WorkInstructionItemDTO.Create -> WorkInstructionItem 엔티티 매핑
     private static WorkInstructionItem mapToItemEntity(WorkInstructionItemDTO.Create itemDto, MaterialRepository materialRepository) {
         WorkInstructionItem item = modelMapper.map(itemDto, WorkInstructionItem.class);
@@ -101,7 +111,7 @@ public class WorkInstructionMapper {
         return item;
     }
 
-    // WorkInstruction 엔티티 -> WorkInstructionDTO.View 매핑
+    // WorkInstruction 엔티티 -> WorkInstructionDTO.Message 매핑
     public static WorkInstructionDTO.View mapToDto(WorkInstruction entity) {
         WorkInstructionDTO.View dto = modelMapper.map(entity, WorkInstructionDTO.View.class);
         if (entity.getItems() != null) {
@@ -112,9 +122,24 @@ public class WorkInstructionMapper {
         return dto;
     }
 
+    public static WorkInstructionDTO.Message mapToMessageDto(WorkInstruction entity) {
+        WorkInstructionDTO.Message dto = modelMapper.map(entity, WorkInstructionDTO.Message.class);
+        if (entity.getItems() != null) {
+            dto.setItems(entity.getItems().stream()
+                    .map(WorkInstructionMapper::mapToItemMessageDto)
+                    .collect(Collectors.toList()));
+        }
+        return dto;
+    }
+
+
     // WorkInstructionItem 엔티티 -> WorkInstructionItemDTO.View 매핑
     public static WorkInstructionItemDTO.View mapToItemDto(WorkInstructionItem item) {
         return modelMapper.map(item, WorkInstructionItemDTO.View.class);
+    }
+
+    public static WorkInstructionItemDTO.Message mapToItemMessageDto(WorkInstructionItem item) {
+        return modelMapper.map(item, WorkInstructionItemDTO.Message.class);
     }
 
 

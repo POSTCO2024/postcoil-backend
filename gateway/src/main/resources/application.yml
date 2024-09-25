@@ -3,6 +3,9 @@ spring:
     name: gateway
 
 ---
+spring:
+  main:
+    web-application-type: reactive
 server:
   port: 8080
 
@@ -17,7 +20,21 @@ eureka:
 spring:
   cloud:
     gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:6050"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
       default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - name: GlobalFilter
           args:
             baseMessage: Spring Cloud Gateway Global Filter
@@ -76,6 +93,45 @@ spring:
           filters:
             - RewritePath=/v3/api-docs/schedule, /v3/api-docs
 
+        - id: operation_websocket_route
+          uri: lb:ws://OPERATION
+          predicates:
+            - Path=/ws/operation/**
+        - id: control_websocket_route
+          uri: lb:ws://CONTROL
+          predicates:
+            - Path=/ws/control/**
+        - id: schedule_websocket_route
+          uri: lb:ws://SCHEDULE
+          predicates:
+            - Path=/ws/schedule/**
+        - id: operation_sockjs_info
+          uri: lb://OPERATION
+          predicates:
+            - Path=/ws/operation/info/**
+        - id: control_sockjs_info
+          uri: lb://CONTROL
+          predicates:
+            - Path=/ws/control/info/**
+        - id: schedule_sockjs_info
+          uri: lb://SCHEDULE
+          predicates:
+            - Path=/ws/schedule/info/**
+
+      httpclient:
+        websocket:
+          max-frame-payload-length: 65536
+          max-initial-line-length: 65536
+          max-header-size: 65536
+          proxy:
+            connect-timeout: 60000
+            read-timeout: 60000
+          write-timeout: 60000
+      global-filter:
+        websocket-routing:
+          enabled: true
+
+
 
 springdoc:
   swagger-ui:
@@ -95,3 +151,4 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     reactor.netty: DEBUG
+    org.springframework.web.socket: DEBUG

@@ -50,6 +50,22 @@ public class CoilDeliveryService {
                 .then();
     }
 
+    public boolean startDeliveryForItem(WorkInstructionItem item) {
+        try {
+            return Boolean.TRUE.equals(transactionTemplate.execute(status -> {
+                if (isEligibleForDelivery(item)) {
+                    startDeliverySimulation(item);
+                    updateMaterialAfterDelivery(item);
+                    return true;
+                }
+                return false;
+            }));
+        } catch (Exception e) {
+            log.error("작업 아이템 배송 처리 중 오류 발생. Item ID: {}", item.getId(), e);
+            return false;
+        }
+    }
+
     private List<WorkInstructionItem> findCompletedWorkItems() {
         return transactionTemplate.execute(status -> workItemRepository.findAllByWorkItemStatus(WorkStatus.COMPLETED)
                 .orElseGet(() -> {
@@ -58,8 +74,14 @@ public class CoilDeliveryService {
                 }));
     }
 
+    private boolean isEligibleForDelivery(WorkInstructionItem item) {
+        return item.getWorkItemStatus() == WorkStatus.COMPLETED &&
+                item.getMaterial().getProgress() == MaterialProgress.H;
+    }
+
     private Mono<Void> processWorkItem(WorkInstructionItem item) {
         return Mono.just(item)
+                .filter(this::isEligibleForDelivery)
                 .flatMap(this::startDeliverySimulation)
                 .flatMap(this::updateMaterialAfterDelivery)
                 .onErrorResume(e -> {

@@ -18,9 +18,9 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class ClientDTO {
-    private List<CoilSupplyDTO> coilSupply;
-    private List<WorkInstructionDTO.View> workInstructions;
-    private List<WorkInstructionItemDTO.View> workItem;
+    private List<CoilSupplyDTO.Message> coilSupply;
+    private List<WorkInstructionDTO.Message> workInstructions;
+    private List<WorkInstructionItemDTO.Message> workItem;
     private List<EquipmentStatusDTO> equipmentStatus;
     private List<MaterialDTO.Message> materials;
     private Map<String, Integer> coilTypeCount;

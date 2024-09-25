@@ -37,6 +37,26 @@ public class WorkInstructionDTO {
     @Builder
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class View implements DTO {
+        private Long id;
+        private String workNo;
+        private Long scheduleId;
+        private String scheduleNo;
+        private String process;
+        private String rollUnit;
+        private int totalQuantity;
+        private Long expectedDuration;
+        private LocalDateTime startTime;
+        private LocalDateTime endTime;
+        private String schStatus;
+        private List<WorkInstructionItemDTO.View> items;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Message implements DTO {
         private Long workInstructionId;
         private String workNo;
         private Long scheduleId;
@@ -52,6 +72,8 @@ public class WorkInstructionDTO {
         private LocalDateTime endTime;
 
         private String schStatus;
-        private List<WorkInstructionItemDTO.View> items;
+        private List<WorkInstructionItemDTO.Message> items;
     }
+
+
 }
