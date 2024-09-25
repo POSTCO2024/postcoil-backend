@@ -14,5 +14,5 @@ public class ConstraintInsertionDTO implements DTO {
     private Long id;
     private String type;
     private String targetColumn;
-    private String targetValue;
+    private Double targetValue; // 2024-09-24 maxbort targetValue 타입 변경 String -> Double
 }

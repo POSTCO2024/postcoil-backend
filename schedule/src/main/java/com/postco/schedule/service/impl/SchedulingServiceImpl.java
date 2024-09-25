@@ -1,15 +1,20 @@
 package com.postco.schedule.service.impl;
 
 import com.postco.core.utils.mapper.MapperUtils;
+import com.postco.core.utils.mapper.TargetMaterialMapper;
 import com.postco.schedule.domain.PriorityApplyMethod;
 import com.postco.schedule.domain.SCHMaterial;
 import com.postco.schedule.domain.repository.SCHMaterialRepository;
 import com.postco.schedule.presentation.dto.ConstraintInsertionDTO;
 import com.postco.schedule.presentation.dto.PriorityDTO;
 import com.postco.schedule.presentation.dto.SCHMaterialDTO;
+import com.postco.schedule.service.redis.SCHMaterialRedisQueryService;
+import com.postco.schedule.service.redis.SCHMaterialRedisService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -21,32 +26,98 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SchedulingServiceImpl {
 
-    private final SCHMaterialRepository scheduleMaterialsRepository;
-
     private final PriorityServiceImpl priorityService;
     private final ConstraintInsertionServiceImpl constraintInsertionService;
+    private final SCHMaterialRedisService schMaterialRedisService;
+    private final SCHMaterialRedisQueryService schMaterialRedisQueryService;
 
-    private final double STANDARD_WIDTH = 50;
-
-    //* 스케줄링로직~! */
+//    //* 스케줄링로직~! */
     public List<SCHMaterial> planSchedule(List<SCHMaterial> materials, String processCode) {
 
-        String rollUnit =  materials.get(0).getRollUnit();
-        List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode,rollUnit);
-        List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode,rollUnit);
+        String rollUnit = materials.get(0).getRollUnit();
+        List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
+        List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
+
+        Double standardWidth = 50.0;  // 기본값 처리
+
+        for (ConstraintInsertionDTO constraint : constraintInsertionList) {
+            if ("CONSTRAINT".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
+                standardWidth = constraint.getTargetValue();  // 값이 일치하면 targetValue를 저장
+                break;
+            }
+        }
 
         // 우선순위 적용
-        List<SCHMaterial> sortedMaterials = applyPriorities(materials, priorities);
+        List<SCHMaterial> sortedMaterials = applyPriorities(materials, priorities, standardWidth);
 
         // priorityOrder 설정
         for (int i = 0; i < sortedMaterials.size(); i++) {
             sortedMaterials.get(i).setSequence(i + 1);
         }
+        printCurrentState(sortedMaterials, "미편성 처리 전");
 
         List<SCHMaterial> filteredCoils = applyConstraintToCoils(sortedMaterials, constraintInsertionList);
 
+        printCurrentState(filteredCoils, "미편성 처리 후");
 
-        return filteredCoils;
+
+        log.info("============================================================================================================");
+        // 미편성된 코일들을 다시 삽입하는 로직
+        List<SCHMaterial> unassignedCoils = getUnassignedCoils(sortedMaterials, filteredCoils);
+        List<SCHMaterial> finalScheduledCoils = insertUnassignedCoilsBackToSchedule(filteredCoils, unassignedCoils, constraintInsertionList);
+
+        printCurrentState(finalScheduledCoils, "미편성 삽입 후");
+        return finalScheduledCoils;
+
+    }
+
+
+    // 우선 순위에 따라 순서대로 스케쥴링 진행하는 함수
+    private List<SCHMaterial> applyPriorities(List<SCHMaterial> materials,
+                                              List<PriorityDTO> priorities, Double standardWidth) {
+
+        List<SCHMaterial> prioritizedMaterials = new ArrayList<>();
+        List<SCHMaterial> sortedMaterials = new ArrayList<>();
+        List<List<SCHMaterial>> groupedMaterials = new ArrayList<>();
+
+
+        for (PriorityDTO priority : priorities) {
+            PriorityApplyMethod method = PriorityApplyMethod.valueOf(priority.getApplyMethod());
+            String target = priority.getTargetColumn();
+            Method getterMethod;
+
+            try {
+                getterMethod = SCHMaterial.class.getMethod("get" + convertSnakeToPascal(target));
+            } catch (NoSuchMethodException e) {
+                throw new RuntimeException("Invalid target column: " + target, e);
+            }
+
+            switch (method) {
+                case DESC_GOALWIDTH:
+                    sortedMaterials = sortedWidthDesc(materials);
+                    break;
+
+                case GROUPING_BY_GOALWIDTH:
+                    groupedMaterials = groupByWidth(sortedMaterials,standardWidth);
+                    break;
+
+                case ASC_THICKNESS:
+                    groupedMaterials = sortEachGroupByThicknessAsc(groupedMaterials);
+                    break;
+
+                case APPLY_SIN:
+                    groupedMaterials = applySineCurveToGroups(groupedMaterials);
+                    break;
+
+                default:
+                    prioritizedMaterials = groupedMaterials.stream()
+                            .flatMap(List::stream)
+                            .collect(Collectors.toList());
+                    return prioritizedMaterials;
+            }
+        }
+
+        return prioritizedMaterials;
     }
 
     // 폭 기준 내림차순 함수
@@ -61,7 +132,7 @@ public class SchedulingServiceImpl {
     }
 
     // 폭 기준 동일폭 기준에 맞춰 그룹핑
-    private List<List<SCHMaterial>> groupByWidth(List<SCHMaterial> sortedCoils){
+    private List<List<SCHMaterial>> groupByWidth(List<SCHMaterial> sortedCoils, Double standardWidth){
         List<List<SCHMaterial>> coilGroups = new ArrayList<>();
         List<SCHMaterial> currentCoilGroup = new ArrayList<>();
 
@@ -73,7 +144,7 @@ public class SchedulingServiceImpl {
         // 그룹핑 로직
         for(int i = 1; i < sortedCoils.size(); i++){
             SCHMaterial currentCoil = sortedCoils.get(i);
-            if (currentBaseWidth - currentCoil.getGoalWidth() <= STANDARD_WIDTH) {
+            if (currentBaseWidth - currentCoil.getGoalWidth() <= standardWidth) {
                 currentCoilGroup.add(currentCoil);
             } else {
                 coilGroups.add(new ArrayList<>(currentCoilGroup));
@@ -84,21 +155,11 @@ public class SchedulingServiceImpl {
         }
         coilGroups.add(currentCoilGroup);
 
-        for(List<SCHMaterial> value : coilGroups) {
-            // 각 그룹의 goalWidth 값을 추출하여 출력
-            String goalWidths = value.stream()
-                    .map(coil -> String.valueOf(coil.getGoalWidth()))  // 각 View 객체에서 goalWidth 추출
-                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-
-
-        }
-
         return coilGroups;
     }
 
     // 폭 기준 동일폭 그룹들을 각각 두께 오름차순
-    private List<List<SCHMaterial>> sortEachGroupByThicknessAsc
-    (List<List<SCHMaterial>> groupCoils) {
+    private List<List<SCHMaterial>> sortEachGroupByThicknessAsc(List<List<SCHMaterial>> groupCoils) {
 
         List<List<SCHMaterial>> result = new ArrayList<>();
 
@@ -108,95 +169,100 @@ public class SchedulingServiceImpl {
                         .collect(Collectors.toList())
                 ).collect(Collectors.toList());
 
-        for(List<SCHMaterial> value : result) {
-            // 각 그룹의 thickness 값을 추출하여 출력
-            String goalWidths = value.stream()
-                    .map(coil -> String.valueOf(coil.getThickness()))  // 각 View 객체에서 goalWidth 추출
-                    .collect(Collectors.joining(", "));  // 콤마로 구분된 문자열로 변환
-        }
         return result;
     }
 
+    // 두께 배치에 sin그래프 적용
     private List<List<SCHMaterial>> applySineCurveToGroups(List<List<SCHMaterial>> groupCoils) {
 
-        List<List<SCHMaterial>> optimizedGroups = new ArrayList<>();
-        List<Double> prevGroupLastThickness = new ArrayList<>();
-        prevGroupLastThickness.add(0.0); // 초기값 설정
+    List<List<SCHMaterial>> optimizedGroups = new ArrayList<>();
+    double previousEndThickness = 0.0;  // 초기값
 
-        for (List<SCHMaterial> group : groupCoils) {
-            // i) 이전 그룹의 마지막 코일 두께와 두께 제약 조건이 맞는 코일 우선
-            double previousEndThickness = prevGroupLastThickness.get(0);
+    for (List<SCHMaterial> group : groupCoils) {
+        final double currentPreviousEndThickness = previousEndThickness;
 
-            // 두께가 증가하는 코일과 감소하는 코일을 구분
-            List<SCHMaterial> increasingCoils = group.stream()
-                    .filter(coil -> coil.getThickness() >= previousEndThickness)
-                    .collect(Collectors.toList());
+        // 1) 두께가 증가하는 코일과 감소하는 코일을 구분
+        List<SCHMaterial> increasingCoils = group.stream()
+                .filter(coil -> coil.getThickness() >= currentPreviousEndThickness)
+                .sorted(Comparator.comparingDouble(coil -> Math.abs(coil.getThickness() - currentPreviousEndThickness)))
+                .collect(Collectors.toList());
 
-            List<SCHMaterial> decreasingCoils = group.stream()
-                    .filter(coil -> coil.getThickness() < previousEndThickness)
-                    .collect(Collectors.toList());
+        List<SCHMaterial> decreasingCoils = group.stream()
+                .filter(coil -> coil.getThickness() < currentPreviousEndThickness)
+                .sorted(Comparator.comparingDouble(coil -> Math.abs(coil.getThickness() - currentPreviousEndThickness)))
+                .collect(Collectors.toList());
 
-            // ii) 감소하거나 증가하는 진행방향을 지키는 코일 우선 배치
-            List<SCHMaterial> sortedGroup = new ArrayList<>();
+        // 2) 감소 방향 먼저, 증가 방향 나중에 배치
+        List<SCHMaterial> sortedGroup = new ArrayList<>(decreasingCoils);
+        sortedGroup.addAll(increasingCoils);
 
-            // 이전 그룹 End 값보다 작은 코일 먼저 배치 (감소 방향)
-            decreasingCoils.sort(Comparator.comparingDouble(coil -> Math.abs(coil.getThickness() - previousEndThickness)));
-            sortedGroup.addAll(decreasingCoils);
+        // 3) 최적화된 그룹 선택
+        List<SCHMaterial> bestOptimizedGroup = findBestOptimizedGroup(sortedGroup);
 
-            // 이전 그룹 End 값보다 큰 코일을 나중에 배치 (증가 방향)
-            increasingCoils.sort(Comparator.comparingDouble(coil -> Math.abs(coil.getThickness() - previousEndThickness)));
-            sortedGroup.addAll(increasingCoils);
+        // 마지막 코일 두께 업데이트
+        previousEndThickness = bestOptimizedGroup.get(bestOptimizedGroup.size() - 1).getThickness();
 
-            // 여러 sin 곡선을 생성하여 최적화 시도
-            List<SCHMaterial> bestOptimizedGroup = null;
-            double minThicknessDifferenceSum = Double.MAX_VALUE;
-
-            for (int waveType = 1; waveType <= 3; waveType++) {
-                // 여러 종류의 사인 곡선을 시도 (여기서 waveType은 다양한 곡선 타입을 시뮬레이션)
-                double[] sineWave = generatedSineWave(group.size(), waveType);
-                List<Integer> sineIndices = new ArrayList<>();
-                for (int i = 0; i < sineWave.length; i++) {
-                    sineIndices.add(i);
-                }
-
-                // sin 곡선에 맞게 두께의 변화가 적도록 배치
-                sineIndices.sort(Comparator.comparing(i -> sineWave[i]));
-
-                // 현재 그룹을 sin 곡선에 따라 재배치
-                List<SCHMaterial> optimizedGroup = new ArrayList<>();
-                for (int i = 0; i < sortedGroup.size(); i++) {
-                    optimizedGroup.add(sortedGroup.get(sineIndices.get(i)));
-                }
-
-                // iii) 앞뒤 코일들의 두께 차이가 가장 적은지 확인 (최적화)
-                double thicknessDifferenceSum = 0;
-                for (int i = 0; i < optimizedGroup.size() - 1; i++) {
-                    thicknessDifferenceSum += Math.abs(optimizedGroup.get(i).getThickness() - optimizedGroup.get(i + 1).getThickness());
-                }
-
-                // 두께 차이의 총합이 가장 작은 배열을 선택
-                if (thicknessDifferenceSum < minThicknessDifferenceSum) {
-                    minThicknessDifferenceSum = thicknessDifferenceSum;
-                    bestOptimizedGroup = optimizedGroup;
-                }
-            }
-
-            // 마지막 코일 두께를 업데이트
-            prevGroupLastThickness.set(0, bestOptimizedGroup.get(bestOptimizedGroup.size() - 1).getThickness());
-
-            // 최적화된 그룹 추가
-            optimizedGroups.add(bestOptimizedGroup);
-//
-//            // 그룹 두께 정보 출력 (옵션)
-//            String thicknessValues = bestOptimizedGroup.stream()
-//                    .map(coil -> String.valueOf(coil.getThickness()))
-//                    .collect(Collectors.joining(", "));
-//            log.info("Optimized group thickness values: {}", thicknessValues);
-        }
-
-        return optimizedGroups;
+        // 최적화된 그룹 추가
+        optimizedGroups.add(bestOptimizedGroup);
     }
 
+    return optimizedGroups;
+}
+
+    // 최적 그룹을 찾는 메서드
+    private List<SCHMaterial> findBestOptimizedGroup(List<SCHMaterial> sortedGroup) {
+        List<SCHMaterial> bestOptimizedGroup = null;
+        double minThicknessDifferenceSum = Double.MAX_VALUE;
+
+        for (int waveType = 1; waveType <= 5; waveType++) {
+            // 여러 사인 곡선
+            double[] sineWave = generatedSineWave(sortedGroup.size(), waveType);
+
+            // 사인 곡선에 맞게 재배치
+            List<SCHMaterial> optimizedGroup = rearrangeBySineWave(sortedGroup, sineWave);
+
+            // 두께 차이의 총합 계산
+            double thicknessDifferenceSum = calculateThicknessDifferenceSum(optimizedGroup);
+
+            // 최소 두께 차이 그룹 선택
+            if (thicknessDifferenceSum < minThicknessDifferenceSum) {
+                minThicknessDifferenceSum = thicknessDifferenceSum;
+                bestOptimizedGroup = optimizedGroup;
+            }
+        }
+
+        return bestOptimizedGroup;
+    }
+
+    // 사인 곡선에 맞게 그룹을 재배치하는 메서드
+    private List<SCHMaterial> rearrangeBySineWave(List<SCHMaterial> sortedGroup, double[] sineWave) {
+        List<Integer> sineIndices = new ArrayList<>();
+        for (int i = 0; i < sineWave.length; i++) {
+            sineIndices.add(i);
+        }
+
+        // 사인 곡선에 따라 인덱스 정렬
+        sineIndices.sort(Comparator.comparing(i -> sineWave[i]));
+
+        // 재배치된 그룹 생성
+        List<SCHMaterial> optimizedGroup = new ArrayList<>();
+        for (int i = 0; i < sortedGroup.size(); i++) {
+            optimizedGroup.add(sortedGroup.get(sineIndices.get(i)));
+        }
+
+        return optimizedGroup;
+    }
+
+    // 두께 차이의 총합을 계산하는 메서드 (최적 sin 찾을 때 사용)
+    private double calculateThicknessDifferenceSum(List<SCHMaterial> group) {
+        double thicknessDifferenceSum = 0;
+        for (int i = 0; i < group.size() - 1; i++) {
+            thicknessDifferenceSum += Math.abs(group.get(i).getThickness() - group.get(i + 1).getThickness());
+        }
+        return thicknessDifferenceSum;
+    }
+
+    // sin 곡선 그리는 함수
     public double[] generatedSineWave(int size, int waveType) {
         double[] sineWave = new double[size];
 
@@ -248,145 +314,131 @@ public class SchedulingServiceImpl {
     }
 
 
-
-
-
-
-    // 제약조건에 맞춰 미편성 처리
+    // 제약 조건 적용 함수
     private List<SCHMaterial> applyConstraintToCoils(List<SCHMaterial> coils, List<ConstraintInsertionDTO> constraintInsertionList) {
-        // 미편성된 코일을 저장할 리스트
-        List<SCHMaterial> unassignedCoils = new ArrayList<>();
+        // thickness 제약조건 추출
+        Double thicknessConstraintValue = constraintInsertionList.stream()
+                .filter(constraint -> "thickness".equals(constraint.getTargetColumn()) && "CONSTRAINT".equals(constraint.getType()))
+                .map(ConstraintInsertionDTO::getTargetValue)
+                .findFirst()
+                .orElse(null);  // 없으면 null 반환
 
-        // thickness 제약조건을 추출
-        Double thicknessConstraintValue = null;
-        for (ConstraintInsertionDTO constraint : constraintInsertionList) {
-            if ("thickness".equals(constraint.getTargetColumn()) && "CONSTRAINT".equals(constraint.getType())) {
-                thicknessConstraintValue = Double.valueOf(constraint.getTargetValue());
-                break;
-            }
-        }
-
-        // 제약조건이 없으면 바로 반환
+        // 제약조건이 없으면 원래 리스트 반환
         if (thicknessConstraintValue == null) {
-            return coils;  // 제약조건이 없으면 아무것도 처리하지 않고 원래 리스트 반환
+            return coils;
         }
 
-        // 처리된 코일을 저장할 리스트
-        List<SCHMaterial> filteredCoils = new ArrayList<>(coils); // 처음엔 전체 리스트 복사
-
-        boolean constraintViolated;
-
-        // 리스트를 계속해서 처음부터 순회하여 제약조건 위반 코일 제거
+        boolean hasConstraintViolation;
+        List<SCHMaterial> filteredCoils = new ArrayList<>(coils);
+        List<SCHMaterial> unAssignedCoilsForRedis = new ArrayList<>();
+        // 제약조건 위반이 없을 때까지 반복
         do {
-            constraintViolated = false;  // 매 순회마다 초기화
+            hasConstraintViolation = false;  // 매 반복 시 초기화
 
-            // 인접한 코일을 순회하면서 thickness 차이 확인
-            for (int i = 1; i < filteredCoils.size(); i++) {
-                SCHMaterial previousCoil = filteredCoils.get(i - 1);
+            // 미편성된 코일 리스트를 필터링
+            List<SCHMaterial> unassignedCoils = new ArrayList<>();
+            for (int i = 1; i < filteredCoils.size(); i++) {  // 첫 번째 코일은 건너뜀
                 SCHMaterial currentCoil = filteredCoils.get(i);
+                SCHMaterial previousCoil = filteredCoils.get(i - 1);
+                double thicknessDifference = Math.abs(previousCoil.getThickness() - currentCoil.getThickness());
 
-                // 두 코일의 thickness 차이를 확인
-                double thicknessDifference = Math.abs(previousCoil.getGoalThickness() - currentCoil.getGoalThickness());
-
-                // thickness 차이가 제약조건을 넘으면 미편성 처리
                 if (thicknessDifference >= thicknessConstraintValue) {
-                    unassignedCoils.add(currentCoil);  // 미편성된 코일을 저장
-                    filteredCoils.remove(i);  // 조건을 위반한 코일을 리스트에서 제거
-                    constraintViolated = true;  // 제약조건 위반이 발생했음을 표시
-                    break;  // 리스트의 처음부터 다시 검사
+                    unassignedCoils.add(currentCoil);  // 제약 조건을 위반한 코일 추가
+                    hasConstraintViolation = true;  // 제약조건 위반 발생
                 }
             }
-        } while (constraintViolated);  // 제약조건 위반이 발생할 때까지 반복
 
-        // 미편성된 코일 리스트와 필터된 코일 리스트를 로그로 출력 (원하는 형식으로 출력 가능)
-        System.out.println("미편성된 코일:");
-        for (SCHMaterial coil : unassignedCoils) {
-            System.out.println("ID: " + coil.getId() + ", Thickness: " + coil.getGoalThickness() + ", Width: " + coil.getWidth());
+            // 미편성된 코일을 제외한 리스트 생성
+            filteredCoils = filteredCoils.stream()
+                    .filter(coil -> !unassignedCoils.contains(coil))  // 미편성된 코일을 제거
+                    .collect(Collectors.toList());
+
+            // 로그 출력 (원하는 형식으로 출력)
+            if (!unassignedCoils.isEmpty()) {
+                System.out.println("미편성된 코일:");
+                unassignedCoils.forEach(coil -> System.out.println("ID: " + coil.getId() + ", Thickness: " + coil.getThickness() + ", Width: " + coil.getGoalWidth()));
+                unAssignedCoilsForRedis.addAll(unassignedCoils);
+
+            }
+
+        } while (hasConstraintViolation);  // 제약 조건을 위반하는 코일이 없을 때까지 반복
+
+        if(!unAssignedCoilsForRedis.isEmpty()){
+            // 미편성된 코일을 Redis에 저장
+            saveUnassignedCoilsToRedis(unAssignedCoilsForRedis);
         }
-
-        // 필요한 경우 미편성된 코일을 반환하거나 다른 처리 수행 가능
-        // 이 예시에서는 필터된 코일 리스트를 반환
         return filteredCoils;
     }
 
 
-    private List<SCHMaterial> applyPriorities(List<SCHMaterial> materials,
-                                                            List<PriorityDTO> priorities) {
+    // 미편성 삽입 함수
+    private List<SCHMaterial> insertUnassignedCoilsBackToSchedule(List<SCHMaterial> scheduledCoils, List<SCHMaterial> unassignedCoils,
+                                                                  List<ConstraintInsertionDTO> constraintInsertionList) {
+        List<SCHMaterial> finalCoilList = new ArrayList<>(scheduledCoils); // 기존 스케줄링된 코일 리스트
+        Double flagWidth = 50.0; // 기본 값
+        Double flagThickness = 0.5; // 기본 값
 
-        List<SCHMaterial> prioritizedMaterials = new ArrayList<>();
-        List<SCHMaterial> sortedMaterials = new ArrayList<>();
-        List<List<SCHMaterial>> groupedMaterials = new ArrayList<>();
-
-
-        for (PriorityDTO priority : priorities) {
-            PriorityApplyMethod method = PriorityApplyMethod.valueOf(priority.getApplyMethod());
-            String target = priority.getTargetColumn();
-            Method getterMethod;
-
-            try {
-                getterMethod = SCHMaterial.class.getMethod("get" + convertSnakeToPascal(target));
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException("Invalid target column: " + target, e);
+        for (ConstraintInsertionDTO constraint : constraintInsertionList) {
+            if ("INSERTION".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
+                flagWidth = constraint.getTargetValue();  // 값이 일치하면 targetValue를 저장
             }
-
-            switch (method) {
-                case DESC_GOALWIDTH:
-                    sortedMaterials = sortedWidthDesc(materials);
-                    break;
-
-                case GROUPING_BY_GOALWIDTH:
-                    groupedMaterials = groupByWidth(sortedMaterials);
-                    break;
-
-                case ASC_THICKNESS:
-                    groupedMaterials = sortEachGroupByThicknessAsc(groupedMaterials);
-                    break;
-
-                case APPLY_SIN:
-                    groupedMaterials = applySineCurveToGroups(groupedMaterials);
-                    break;
-
-                default:
-                    prioritizedMaterials = groupedMaterials.stream()
-                        .flatMap(List::stream)
-                        .collect(Collectors.toList());
-                    printCurrentState(prioritizedMaterials, " After applying priority: " + priority.getPriorityOrder());
-
-                    return prioritizedMaterials;
-                    //throw new IllegalArgumentException("Unknown PriorityApplyMethod: " + method);
+            if ("CONSTRAINT".equals(constraint.getType()) && "thickness".equals(constraint.getTargetColumn())){
+                flagThickness = constraint.getTargetValue();
             }
-
-            // Print the current state after applying the priority
-            //printCurrentState(sortedMaterials, "After applying priority: " + priority.getPriorityOrder());
         }
 
-        return prioritizedMaterials;
+
+        for (SCHMaterial unassignedCoil : unassignedCoils) {
+            boolean inserted = false; // 삽입 여부 추적
+
+            // 스케줄링된 코일 리스트를 순회하면서 적절한 위치를 찾아서 삽입
+            for (int i = 0; i < finalCoilList.size(); i++) {
+                if(i == 0){
+                    SCHMaterial nextCoil = finalCoilList.get(i);
+                    if (Math.abs(nextCoil.getGoalWidth() - unassignedCoil.getGoalWidth()) <= flagWidth
+                            && Math.abs(nextCoil.getThickness() - unassignedCoil.getThickness()) <= flagThickness) {
+
+                        // 적절한 위치에 미편성 코일 삽입
+                        finalCoilList.add(i, unassignedCoil);
+                        inserted = true; // 삽입되었음을 기록
+                        log.info("Unassigned coil (ID: {}) inserted between coils (ID: {}) at position {}",
+                                unassignedCoil.getId(), nextCoil.getId(), i);
+                        break;
+                    }
+                }
+                else {
+                    SCHMaterial previousCoil = finalCoilList.get(i - 1);
+                    SCHMaterial nextCoil = finalCoilList.get(i);
+
+                    // 앞뒤 코일과의 폭 차이가 10 이하, 두께 차이가 50 이하인 경우 삽입
+                    if ((previousCoil.getGoalWidth() + flagWidth) <= unassignedCoil.getGoalWidth()
+                            && unassignedCoil.getGoalWidth()<= (nextCoil.getGoalWidth() + flagWidth)
+                            && Math.abs(previousCoil.getThickness() - unassignedCoil.getThickness()) <= flagThickness
+                            && Math.abs(nextCoil.getThickness() - unassignedCoil.getThickness()) <= flagThickness) {
+
+                        // 적절한 위치에 미편성 코일 삽입
+                        finalCoilList.add(i, unassignedCoil);
+                        inserted = true; // 삽입되었음을 기록
+                        log.info("Unassigned coil (ID: {}) inserted between coils (ID: {}) and (ID: {}) at position {}",
+                                unassignedCoil.getId(), previousCoil.getId(), nextCoil.getId(), i);
+                        break;
+                    }
+                }
+            }
+            // 삽입이 되지 않았을 경우 로그 남기기
+            if (!inserted) {
+                log.warn("Unassigned coil (ID: {}) could not be inserted into the schedule", unassignedCoil.getId());
+            }
+        }
+
+        return finalCoilList;
     }
 
-//    private List<SCHMaterial> groupByAndApplyNextPriority(List<SCHMaterial> materials, Method getterMethod, List<PriorityDTO> remainingPriorities) {
-//        // 원래 순서대로 그룹핑
-//        Map<Object, List<SCHMaterial>> groupedMaterials = new LinkedHashMap<>();
-//        for (SCHMaterial material : materials) {
-//            Object key = invokeGetter(material, getterMethod);
-//            groupedMaterials.computeIfAbsent(key, k -> new ArrayList<>()).add(material);
-//        }
-//
-//        // 각 그룹 내에서 우선순위 적용
-//        List<SCHMaterial> result = new ArrayList<>();
-//
-//        for (Map.Entry<Object, List<SCHMaterial>> entry : groupedMaterials.entrySet()) {
-//            List<SCHMaterial> group = entry.getValue();
-//            if(remainingPriorities.isEmpty()){
-//                return group;
-//            }
-//            List<SCHMaterial> sortedGroup = applyPriorities(group, remainingPriorities);
-//            result.addAll(sortedGroup);
-//        }
-//
-//        return result;
-//    }
-
-
+    private List<SCHMaterial> getUnassignedCoils(List<SCHMaterial> sortedMaterials, List<SCHMaterial> filteredCoils) {
+        return sortedMaterials.stream()
+                .filter(coil -> !filteredCoils.contains(coil))
+                .collect(Collectors.toList());
+    }
 
 
 
@@ -422,7 +474,6 @@ public class SchedulingServiceImpl {
     }
 
     public List<SCHMaterial> insertMaterialsWithWorkTime(List<SCHMaterial> materials) {
-
         for (SCHMaterial material : materials) {
             // 작업 시간 계산
             Long workTime = calculateWorkTime(material.getGoalLength(), material.getGoalThickness(),
@@ -437,6 +488,8 @@ public class SchedulingServiceImpl {
     private Long calculateWorkTime(double goalLength, double goalThickness, double goalWidth, double totalWeight) {
         return  (long) ((goalLength * goalThickness * goalWidth) / totalWeight);
     }
+
+    // 결과값 확인하기 위한 함수
     private void printCurrentState(List<SCHMaterial> materials, String message) {
         log.info(message);
         for (SCHMaterial material : materials) {
@@ -445,4 +498,76 @@ public class SchedulingServiceImpl {
 
         }
     }
+
+
+
+//    public Mono<List<SCHMaterial>> planSchedule(List<SCHMaterial> materials, String processCode) {
+//
+//        // Redis에서 미편성 코일 불러오기
+//        return loadUnassignedCoilsFromRedis().flatMap(unassignedCoils -> {
+//            // 기존 materials 리스트에 Redis에서 불러온 미편성 코일 추가
+//            materials.addAll(unassignedCoils);
+//
+//            // ProcessCode와 RollUnit에 해당하는 제약조건 및 우선순위 조회
+//            String rollUnit = materials.get(0).getRollUnit();
+//            List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
+//            List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
+//
+//            Double standardWidth = 50.0;  // 기본값 처리
+//
+//            // 제약 조건에서 폭 기준값 설정
+//            for (ConstraintInsertionDTO constraint : constraintInsertionList) {
+//                if ("CONSTRAINT".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
+//                    standardWidth = constraint.getTargetValue();  // 값이 일치하면 targetValue를 저장
+//                    break;
+//                }
+//            }
+//
+//            // 우선순위 적용
+//            List<SCHMaterial> sortedMaterials = applyPriorities(materials, priorities, standardWidth);
+//
+//            // 편성된 코일들에 순서를 할당
+//            for (int i = 0; i < sortedMaterials.size(); i++) {
+//                sortedMaterials.get(i).setSequence(i + 1);
+//            }
+//
+//            printCurrentState(sortedMaterials, "미편성 처리 전");
+//
+//            // 제약 조건을 적용하여 편성된 코일 필터링
+//            List<SCHMaterial> filteredCoils = applyConstraintToCoils(sortedMaterials, constraintInsertionList);
+//
+//            printCurrentState(filteredCoils, "미편성 처리 후");
+//
+//            // 미편성된 코일들(편성에서 제외된 코일들)
+//            List<SCHMaterial> unassignedCoilsAfterProcessing = sortedMaterials.stream()
+//                    .filter(coil -> !filteredCoils.contains(coil))
+//                    .collect(Collectors.toList());
+//
+//            // Redis에 새로 미편성된 코일 저장
+//            return saveUnassignedCoilsToRedis(unassignedCoilsAfterProcessing)
+//                    .thenReturn(filteredCoils);  // 편성된 코일을 반환
+//        });
+//    }
+//
+//
+    private void saveUnassignedCoilsToRedis(List<SCHMaterial> unassignedCoils) {
+        Flux.fromIterable(unassignedCoils)
+                .flatMap(coil -> schMaterialRedisService.saveData(coil)
+                        .doOnSuccess(result -> {
+                            if (result) {
+                                System.out.println("미편성된 코일 저장 완료 - ID: " + coil.getId());
+                            } else {
+                                System.out.println("미편성된 코일 저장 실패 - ID: " + coil.getId());
+                            }
+                        })
+                        .doOnError(error -> System.err.println("Redis 저장 중 오류 발생 - ID: " + coil.getId() + ": " + error.getMessage())))
+                .then()
+                .doOnSuccess(unused -> System.out.println("모든 미편성 코일이 Redis에 저장되었습니다."))
+                .doOnError(error -> System.err.println("미편성 코일 저장 중 전체 오류 발생: " + error.getMessage()))
+                .subscribe();
+    }
+//
+//    private Mono<List<SCHMaterial>> loadUnassignedCoilsFromRedis() {
+//        return schMaterialRedisQueryService.fetchAllUnassignedCoils(); // Redis에서 모든 미편성 코일 불러오기
+//    }
 }
