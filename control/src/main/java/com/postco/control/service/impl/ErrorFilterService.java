@@ -34,7 +34,7 @@ public class ErrorFilterService {
 
         targetMaterials.forEach(targetMaterial -> {
             MaterialDTO.View material = materials.stream()
-                    .filter(m -> m.getMaterialId().equals(targetMaterial.getMaterialId()))
+                    .filter(m -> m.getId().equals(targetMaterial.getMaterialId()))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Material not found: " + targetMaterial.getMaterialId()));
 
