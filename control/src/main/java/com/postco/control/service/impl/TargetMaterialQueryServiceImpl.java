@@ -72,6 +72,7 @@ public class TargetMaterialQueryServiceImpl implements TargetMaterialQueryServic
     }
 
     private Mono<List<TargetViewDTO>> getTargetViewDTOs(Supplier<List<TargetMaterialDTO.View>> targetMaterialsSupplier) {
+        System.out.println(targetMaterialsSupplier);
         return controlRedisQueryService.getRedisData()
                 .map(redisDataContainer -> {
                     Map<Long, MaterialDTO.View> materialMap = redisDataContainer.getMaterials().stream()
@@ -93,6 +94,7 @@ public class TargetMaterialQueryServiceImpl implements TargetMaterialQueryServic
                                         .isError(targetMaterial.getIsError())
                                         .errorType(targetMaterial.getErrorType())
                                         .isErrorPassed(targetMaterial.getIsErrorPassed())
+                                        .remarks(targetMaterial.getRemarks())
                                         .build();
                             })
                             .collect(Collectors.toList());

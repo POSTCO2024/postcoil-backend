@@ -77,13 +77,12 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
     @Column(name = "storage_loc")
     private String storageLoc;
 
+    private String remarks;
+
     private String yard;
 
     @Column(name = "coil_type_code")
     private String coilTypeCode;
-
-    @Column(name = "remarks")
-    private String remarks;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
