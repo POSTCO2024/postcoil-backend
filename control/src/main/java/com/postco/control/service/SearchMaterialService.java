@@ -93,6 +93,8 @@ public class SearchMaterialService {
                 // 타입 확인 (number)
                 if (searchFunction != null && searchFunction.apply(view) instanceof Number) {
                     double value = ((Number) searchFunction.apply(view)).doubleValue();  // 숫자형 값 비교
+                    // System.out.println(value);
+                    // System.out.println(value >= min && value <= max);
                     return value >= min && value <= max;  // 범위 내에 있는지 확인
                 }
             } catch (NumberFormatException e) {
@@ -119,7 +121,9 @@ public class SearchMaterialService {
             "order_no", view -> view.getOrder().getNo(),
             "customer_name", view -> view.getOrder().getCustomer(),
             "width", view -> view.getMaterial().getWidth(),
-            "thickness", view -> view.getMaterial().getThickness()
+            "thickness", view -> view.getMaterial().getThickness(),
+            "goal_width", view -> view.getOrder().getWidth(),
+            "goal_thickness", view -> view.getOrder().getThickness()
     );
 
     // Redis 및 DB에서 데이터를 매핑
