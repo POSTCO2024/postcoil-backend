@@ -117,20 +117,36 @@ public class ScheduleConfirmServiceImpl {
 
     // 카프카 전송
     // 따로 카프카 서비스로 별도로 빼는 것이 좋다.. 수정 예정
+//    @Transactional(readOnly = true)
+//    public void sendConfirmedSchedule(Long scheduleId) {
+//        SCHConfirm confirm = schConfirmRepository.findWithMaterialsById(scheduleId)
+//                .orElseThrow(() -> new EntityNotFoundException("확정된 스케줄을 찾을 수 없습니다. ID : " + scheduleId));
+//
+//        SCHConfirmDTO.View dto = modelMapper.map(confirm, SCHConfirmDTO.View.class);
+//
+//        List<SCHMaterialDTO> materialDTOs = confirm.getMaterials().stream()
+//                .map(material -> modelMapper.map(material, SCHMaterialDTO.class))
+//                .collect(Collectors.toList());
+//
+//        dto.setMaterials(materialDTOs);
+//
+//        // 카프카 전송
+//        scheduleProducer.sendConfirmedSchedule(dto);
+//    }
+
     @Transactional(readOnly = true)
-    public void sendConfirmedSchedule(Long scheduleId) {
-        SCHConfirm confirm = schConfirmRepository.findWithMaterialsById(scheduleId)
-                .orElseThrow(() -> new EntityNotFoundException("확정된 스케줄을 찾을 수 없습니다. ID : " + scheduleId));
-
-        SCHConfirmDTO.View dto = modelMapper.map(confirm, SCHConfirmDTO.View.class);
-
-        List<SCHMaterialDTO> materialDTOs = confirm.getMaterials().stream()
-                .map(material -> modelMapper.map(material, SCHMaterialDTO.class))
-                .collect(Collectors.toList());
-
-        dto.setMaterials(materialDTOs);
-
-        // 카프카 전송
-        scheduleProducer.sendConfirmedSchedule(dto);
+    public void sendConfirmedSchedule(List<Long> scheduleIds) {
+        scheduleIds.stream()
+                .map(scheduleId -> schConfirmRepository.findWithMaterialsById(scheduleId)
+                        .orElseThrow(() -> new EntityNotFoundException("확정된 스케줄을 찾을 수 없습니다. ID : " + scheduleId)))
+                .map(confirm -> {
+                    SCHConfirmDTO.View dto = modelMapper.map(confirm, SCHConfirmDTO.View.class);
+                    List<SCHMaterialDTO> materialDTOs = confirm.getMaterials().stream()
+                            .map(material -> modelMapper.map(material, SCHMaterialDTO.class))
+                            .collect(Collectors.toList());
+                    dto.setMaterials(materialDTOs);
+                    return dto;
+                })
+                .forEach(scheduleProducer::sendConfirmedSchedule);
     }
 }
