@@ -100,23 +100,32 @@ public class ErrorMaterialController {
 
     /**
      * 검색
-     * @param currProc
-     * @param searchCriteria
-     * @param searchValue
-     * @return
+     * @param currProc: 공정
+     * @param searchCriteria: 검색 기준
+     * @param searchValue: 검색 값 (keyword)
+     * @param minValue: 검색 범위 (min)
+     * @param maxValue: 검색 범위 (max)
+     * @return 검색이 완료된 리스트 반환
      */
     @GetMapping("/error-by-curr-proc/search")
     public Mono<ResponseEntity<ApiResponseDTO<List<TargetViewDTO>>>> searchTargetMaterials(
             @RequestParam String currProc,
             @RequestParam(required = false) String searchCriteria, // 검색 조건
-            @RequestParam(required = false) String searchValue) {  // 검색 값
+            @RequestParam(required = false) String searchValue,  // 검색 값
+            @RequestParam(required = false) String minValue,    // 범위 최소 값
+            @RequestParam(required = false) String maxValue) {  // 범위 최대 값
 
-        log.debug("[검색정보] 선택 공정: "+ currProc + "  검색 기준: " + searchCriteria + "  키워드: " + searchValue);
-        return searchMaterialService.searchMaterialsByCurrProc(currProc, searchCriteria, searchValue, "Y")
+
+        log.debug("[검색정보] 선택 공정: "+ currProc +
+                "  검색 기준: " + searchCriteria +
+                "  키워드: " + searchValue +
+                "  범위: " + minValue + " ~ " + maxValue);
+
+        return searchMaterialService.searchMaterialsByCurrProc(currProc, searchCriteria, searchValue, minValue, maxValue, "Y")
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<List<TargetViewDTO>>builder()
                                 .status(HttpStatus.OK.value())
-                                .resultMsg("키워드 검색 완료")
+                                .resultMsg("검색 완료")
                                 .result(result)
                                 .build()))
                 .doOnError(e -> log.error("검색 중 오류 발생", e))
