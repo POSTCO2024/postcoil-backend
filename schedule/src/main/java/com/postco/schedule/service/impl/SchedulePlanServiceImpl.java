@@ -29,9 +29,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SchedulePlanServiceImpl {
     private final SCHMaterialRepository schMaterialRepository;
-    private final SchedulingServiceImpl schedulingService;
+    private final SchedulingServiceImplRefac schedulingService;
     private final SCHPlanRepository schPlanRepository;
     private final ModelMapper modelMapper;
+   // private final SchedulingServiceImplRefac testSchedule;
 
     // GET : fs001 Request
     public List<SCHMaterialDTO> getMaterialsByProcessCode(String processCode) {
