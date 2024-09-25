@@ -17,7 +17,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -98,30 +97,23 @@ public class ScheduleController {
     }
 
     // POST : fs002 Request
-    // TODO: 예림 언니가 변경한 코드 보기~!
-//    @PostMapping("/confirm")
-//    public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> confirmSchedule(@RequestBody SCHForm schForm) {
-//        log.info("스케줄 확정 요청. 스케줄 ID: {}", schForm.getPlanId());
-//
-//        return Mono.fromCallable(() -> planAfterWorkService.confirmScheduleWithNewMaterials(schForm))
-//                .subscribeOn(Schedulers.boundedElastic())
-//                .flatMap(result -> {
-//                    if (result) {
-//                        // Kafka 전송
-//                        return Mono.fromRunnable(() -> scheduleConfirmService.sendConfirmedSchedule(schForm.getPlanId()))
-//                                .subscribeOn(Schedulers.boundedElastic())
-//                                .thenReturn(true);
-//                    }
-//                    return Mono.just(false);
-//                })
-//                .map(result -> ResponseEntity.ok(ApiResponseDTO.<Boolean>builder()
-//                        .status(HttpStatus.OK.value())
-//                        .resultMsg("스케줄 확정 성공 및 Kafka 전송 완료")
-//                        .result(true)
-//                        .build()))
-//                .doOnSuccess(response -> log.info("스케줄 확정 처리 완료. 결과: {}", Objects.requireNonNull(response.getBody()).getResult()))
-//                .doOnError(e -> log.error("스케줄 확정 처리 중 오류 발생", e));
-//    }
+    @PostMapping("/confirm")
+    public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> confirmScheduleForRedis(@RequestBody List<SCHForm> schForms) {
+        log.info("스케줄 확정 요청. 스케줄 수: {}", schForms.size());
+        return Mono.fromCallable(() -> planAfterWorkService.confirmScheduleWithNewMaterials(schForms))
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMap(result -> createSuccessResponseAndLog(result, result ? "스케줄 확정 성공" : "스케줄 확정 실패", "스케줄 확정 처리"))
+                .onErrorResume(e -> handleError("스케줄 확정 처리", e));
+    }
+
+    @PostMapping("/confirm/sendKafka")
+    public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> sendConfirmedSchedule(@RequestParam List<Long> planIds) {
+        log.info("Kafka 로 스케줄 확정 전송 요청. 스케줄 IDs: {}", planIds);
+        return Mono.fromRunnable(() -> scheduleConfirmService.sendConfirmedSchedule(planIds))
+                .subscribeOn(Schedulers.boundedElastic())
+                .then(createSuccessResponseAndLog(true, "Kafka 전송 완료", "Kafka 전송 처리"))
+                .onErrorResume(e -> handleError("Kafka 전송 처리", e));
+    }
 
     // GET : fs003 Request
     @GetMapping("/result/{processCode}")
@@ -182,28 +174,7 @@ public class ScheduleController {
         return ResponseEntity.ok(response);
     }
 
-    // ============================ 테스트용 controller ================================
-
-    @PostMapping("/confirm")
-    public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> confirmScheduleForRedis(@RequestBody List<SCHForm> schForms) {
-        log.info("스케줄 확정 요청. 스케줄 수: {}", schForms.size());
-        return Mono.fromCallable(() -> planAfterWorkService.confirmScheduleWithNewMaterials(schForms))
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(result -> createSuccessResponseAndLog(result, result ? "스케줄 확정 성공" : "스케줄 확정 실패", "스케줄 확정 처리"))
-                .onErrorResume(e -> handleError("스케줄 확정 처리", e));
-    }
-
-    @PostMapping("/confirm/sendKafka")
-    public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> sendConfirmedSchedule(@RequestParam List<Long> planIds) {
-        log.info("Kafka 로 스케줄 확정 전송 요청. 스케줄 IDs: {}", planIds);
-        return Mono.fromRunnable(() -> scheduleConfirmService.sendConfirmedSchedule(planIds))
-                .subscribeOn(Schedulers.boundedElastic())
-                .then(createSuccessResponseAndLog(true, "Kafka 전송 완료", "Kafka 전송 처리"))
-                .onErrorResume(e -> handleError("Kafka 전송 처리", e));
-    }
-
     // =================================================================
-
 
     // 중복되는 응답을 하나의 메서드로 분리함
     // 다른 컨트롤러 메서드에서는 아직 적용 안함
