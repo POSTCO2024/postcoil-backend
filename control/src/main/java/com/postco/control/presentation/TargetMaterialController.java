@@ -106,7 +106,8 @@ public class TargetMaterialController {
             @RequestParam(required = false) String searchCriteria, // 검색 조건
             @RequestParam(required = false) String searchValue, // 키워드 검색 값
             @RequestParam(required = false) String minValue,    // 범위 최소 값
-            @RequestParam(required = false) String maxValue) {  // 범위 최대 값
+            @RequestParam(required = false) String maxValue,    // 범위 최대 값
+            @RequestParam(required = false) String isError) {   // 에러 여부
 
         
         log.debug("[검색정보] 선택 공정: "+ currProc +
@@ -114,7 +115,7 @@ public class TargetMaterialController {
                 "  키워드: " + searchValue +
                 "  범위: " + minValue + " ~ " + maxValue);
 
-        return searchMaterialService.searchMaterialsByCurrProc(currProc, searchCriteria, searchValue, minValue, maxValue, "N")
+        return searchMaterialService.searchMaterialsByCurrProc(currProc, searchCriteria, searchValue, minValue, maxValue, isError)
                 .map(result -> ResponseEntity.ok(
                         ApiResponseDTO.<List<TargetViewDTO>>builder()
                                 .status(HttpStatus.OK.value())
