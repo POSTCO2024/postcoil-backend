@@ -117,11 +117,11 @@ public class ScheduleController {
 
     // GET : fs003 Request
     @GetMapping("/result/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<SCHForm.Info>>> getScheduleResultsId(@PathVariable String processCode) {
-        // processCode가 오면, confirm - id, scheduleNo 보내기
-        List<SCHForm.Info> results = scheduleConfirmService.getAllConfirmedScheduleIdsFromInProgressToPending(processCode);
+    public ResponseEntity<ApiResponseDTO<List<SCHForm.InfoWithWorkStatus>>> getScheduleResultsId(@PathVariable String processCode) {
+        // processCode가 오면, confirm - id, scheduleNo, workStatus 보내기
+        List<SCHForm.InfoWithWorkStatus> results = scheduleConfirmService.getAllConfirmedScheduleIdsFromInProgressToPending(processCode);
 
-        ApiResponseDTO<List<SCHForm.Info>> response = ApiResponseDTO.<List<SCHForm.Info>>builder()
+        ApiResponseDTO<List<SCHForm.InfoWithWorkStatus>> response = ApiResponseDTO.<List<SCHForm.InfoWithWorkStatus>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
