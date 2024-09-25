@@ -126,14 +126,6 @@ public class SchedulingServiceImpl {
 
         for (PriorityDTO priority : priorities) {
             PriorityApplyMethod method = PriorityApplyMethod.valueOf(priority.getApplyMethod());
-            String target = priority.getTargetColumn();
-            Method getterMethod;
-
-            try {
-                getterMethod = SCHMaterial.class.getMethod("get" + convertSnakeToPascal(target));
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException("Invalid target column: " + target, e);
-            }
 
             switch (method) {
                 case DESC_GOALWIDTH:
@@ -203,16 +195,11 @@ public class SchedulingServiceImpl {
 
     // 폭 기준 동일폭 그룹들을 각각 두께 오름차순
     private List<List<SCHMaterial>> sortEachGroupByThicknessAsc(List<List<SCHMaterial>> groupCoils) {
-
-        List<List<SCHMaterial>> result = new ArrayList<>();
-
-        result = groupCoils.stream()
+        return groupCoils.stream()
                 .map(group -> group.stream()
                         .sorted(Comparator.comparingDouble(SCHMaterial::getThickness))
                         .collect(Collectors.toList())
                 ).collect(Collectors.toList());
-
-        return result;
     }
 
     // 두께 배치에 sin그래프 적용
@@ -236,8 +223,8 @@ public class SchedulingServiceImpl {
                 .collect(Collectors.toList());
 
         // 2) 감소 방향 먼저, 증가 방향 나중에 배치
-        List<SCHMaterial> sortedGroup = new ArrayList<>(decreasingCoils);
-        sortedGroup.addAll(increasingCoils);
+        List<SCHMaterial> sortedGroup = new ArrayList<>(increasingCoils);
+        sortedGroup.addAll(decreasingCoils);
 
         // 3) 최적화된 그룹 선택
         List<SCHMaterial> bestOptimizedGroup = findBestOptimizedGroup(sortedGroup);
@@ -420,7 +407,7 @@ public class SchedulingServiceImpl {
         List<SCHMaterial> finalCoilList = new ArrayList<>(scheduledCoils); // 기존 스케줄링된 코일 리스트
         List<SCHMaterial> remainingUnassignedCoils = new ArrayList<>(); // 삽입되지 않은 미편성 코일 리스트
         Double flagWidth = 50.0; // 기본 값
-        Double flagThickness = 0.5; // 기본 값
+        Double flagThickness = 1.0; // 기본 값
 
         for (ConstraintInsertionDTO constraint : constraintInsertionList) {
             if ("INSERTION".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
@@ -505,15 +492,6 @@ public class SchedulingServiceImpl {
         return pascalCaseString.toString();
     }
 
-    // 헬퍼 메서드: Getter 메서드 호출 (제네릭)
-    @SuppressWarnings("unchecked")
-    private <T> T invokeGetter(Object obj, Method method) {
-        try {
-            return (T) method.invoke(obj);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException("Failed to invoke getter method: " + method.getName(), e);
-        }
-    }
 
     public List<SCHMaterial> insertMaterialsWithWorkTime(List<SCHMaterial> materials) {
         for (SCHMaterial material : materials) {
