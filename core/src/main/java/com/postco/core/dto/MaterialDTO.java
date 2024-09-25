@@ -13,8 +13,8 @@ public class MaterialDTO {
     @NoArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true) // error 수정 - maxbort 2024-09-19
     public static class View implements DTO {
-        private Long id;
-        private String no;
+        private Long materialId;
+        private String materialNo;
         private String status;
         private String factoryCode;
         private String opCode;
