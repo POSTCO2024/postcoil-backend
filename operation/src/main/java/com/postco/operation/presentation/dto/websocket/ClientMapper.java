@@ -31,7 +31,7 @@ public class ClientMapper {
 
         return ClientDTO.builder()
                 .coilSupply(List.of(mapToCoilSupplyDTO(coilSupply)))
-                .workInstructions(List.of(WorkInstructionMapper.mapToDto(workInstruction)))
+                .workInstructions(List.of(WorkInstructionMapper.mapToMessageDto(workInstruction)))
                 .workItem(mapToWorkInstructionItemDTOs(workItems))
                 .coilTypeCount(calculateCoilTypeCount(workInstruction))
                 .totalWorkTime(calculateTotalWorkTime(workItems))
@@ -39,8 +39,8 @@ public class ClientMapper {
     }
 
     // CoilSupplyDTO 변환
-    public CoilSupplyDTO mapToCoilSupplyClientDTO(CoilSupplyDTO coilSupplyDTO) {
-        return modelMapper.map(coilSupplyDTO, CoilSupplyDTO.class);
+    public CoilSupplyDTO.Message mapToCoilSupplyClientDTO(CoilSupplyDTO.Message coilSupplyDTO) {
+        return modelMapper.map(coilSupplyDTO, CoilSupplyDTO.Message.class);
     }
 
     // MaterialDTO 변환
@@ -49,18 +49,18 @@ public class ClientMapper {
     }
 
     // WorkInstructionItemDTO 변환
-    public List<WorkInstructionItemDTO.View> mapToWorkInstructionItemClientDTO(WorkInstructionItemDTO.View workInstructionItemDTO) {
+    public List<WorkInstructionItemDTO.Message> mapToWorkInstructionItemClientDTO(WorkInstructionItemDTO.Message workInstructionItemDTO) {
         return List.of(workInstructionItemDTO);
     }
 
     // 추가적인 DTO 변환 로직은 기존과 동일하게 처리
-    private CoilSupplyDTO mapToCoilSupplyDTO(CoilSupply coilSupply) {
-        return modelMapper.map(coilSupply, CoilSupplyDTO.class);
+    private CoilSupplyDTO.Message   mapToCoilSupplyDTO(CoilSupply coilSupply) {
+        return modelMapper.map(coilSupply, CoilSupplyDTO.Message.class);
     }
 
-    private List<WorkInstructionItemDTO.View> mapToWorkInstructionItemDTOs(List<WorkInstructionItem> workItems) {
+    private List<WorkInstructionItemDTO.Message> mapToWorkInstructionItemDTOs(List<WorkInstructionItem> workItems) {
         return workItems.stream()
-                .map(WorkInstructionMapper::mapToItemDto)
+                .map(WorkInstructionMapper::mapToItemMessageDto)
                 .collect(Collectors.toList());
     }
 
