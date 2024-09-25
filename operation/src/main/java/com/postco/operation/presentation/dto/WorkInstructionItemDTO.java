@@ -32,14 +32,16 @@ public class WorkInstructionItemDTO {
     @Builder
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class View implements DTO {
-        private Long id;
+        private Long workItemId;
         private Long materialId;
         private Long targetId;
         private String workItemStatus;
         private int sequence;
         private String isRejected;
         private Long expectedItemDuration;
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         private LocalDateTime startTime;
+        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         private LocalDateTime endTime;
     }
 

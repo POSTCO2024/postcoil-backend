@@ -30,7 +30,7 @@ public class ControlRedisServiceImpl implements ControlRedisService {
                 .defaultIfEmpty(0L)
                 .flatMap(lastProcessedId ->
                         centralRedisService.getAllData("material:*", MaterialDTO.View.class)
-                                .filter(material -> Long.parseLong(String.valueOf(material.getId())) > lastProcessedId)
+                                .filter(material -> Long.parseLong(String.valueOf(material.getMaterialId())) > lastProcessedId)
                                 .collectList()
                                 .flatMap(materials -> updateLastProcessedId().thenReturn(materials)))
                 .doOnSuccess(materials -> log.info("[성공] 새롭게 추가된 재료를 Redis 로부터 가져옴: {}", materials));
@@ -45,7 +45,7 @@ public class ControlRedisServiceImpl implements ControlRedisService {
 
     private Mono<Void> updateLastProcessedId() {
         return centralRedisService.getAllData("material:*", MaterialDTO.View.class)
-                .map(material -> Long.parseLong(String.valueOf(material.getId())))
+                .map(material -> Long.parseLong(String.valueOf(material.getMaterialId())))
                 .reduce(Math::max)
                 .flatMap(maxId -> centralRedisService.setData("last_processed_id", maxId))
                 .then();

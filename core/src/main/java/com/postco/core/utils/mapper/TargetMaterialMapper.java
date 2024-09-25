@@ -24,8 +24,8 @@ public class TargetMaterialMapper {
         modelMapper.addMappings(new PropertyMap<MaterialDTO.View, TargetMaterialDTO.Create>() {
             @Override
             protected void configure() {
-                map().setMaterialId(source.getId());  // materialId 명시적 매핑
-                map().setMaterialNo(source.getNo());
+                map().setMaterialId(source.getMaterialId());  // materialId 명시적 매핑
+                map().setMaterialNo(source.getMaterialNo());
 
                 // processPlan 매핑 로직
                 using((Converter<MaterialDTO.View, String>) context -> {
