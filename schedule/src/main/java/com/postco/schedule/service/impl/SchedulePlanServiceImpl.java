@@ -218,7 +218,7 @@ public class SchedulePlanServiceImpl {
                                     && (planDate.isBefore(today) || planDate.isEqual(today));
                         }
                 )
-                .map(plan -> new SCHForm.Info(plan.getId(), plan.getScheduleNo()))
+                .map(plan -> new SCHForm.Info(plan.getId(), plan.getScheduleNo(), plan.getScExpectedDuration()))
                 .collect(Collectors.toList());
     }
 
