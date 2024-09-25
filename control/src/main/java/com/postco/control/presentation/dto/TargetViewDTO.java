@@ -20,6 +20,7 @@ public class TargetViewDTO {
     private String isError;
     private String errorType;
     private String isErrorPassed;
+    private String remarks;
 
     // 재료 및 주문
     private MaterialDTO.View material;

@@ -32,4 +32,13 @@ public class SCHForm {
         private Long id;
         private String scheduleNo;
     }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class InfoWithWorkStatus  {
+        private Long id;
+        private String scheduleNo;
+        private String workStatus;
+    }
 }

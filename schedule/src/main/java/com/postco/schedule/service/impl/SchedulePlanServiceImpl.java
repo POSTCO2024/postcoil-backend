@@ -43,7 +43,7 @@ public class SchedulePlanServiceImpl {
      * @return List<SCHPlan> - 생성된 스케줄 목록
      */
     @Transactional
-    public List<SCHPlan> executeSchedulingAndSave(List<Long> ids, String processCode) {
+    public List<SCHPlan> executeSchedulingAndSave(List<Long> ids) {
         // step 1: ids에 해당하는 등록된 스케줄 대상재 불러오기
         // List<SCHMaterial> materials = getScheduleMaterials();
         log.info("불러온 id들 : {}", ids);

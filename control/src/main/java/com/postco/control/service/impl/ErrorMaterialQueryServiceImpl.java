@@ -53,6 +53,7 @@ public class ErrorMaterialQueryServiceImpl implements ErrorMaterialQueryService 
     }
 
     public List<TargetMaterialDTO.View> getErrorMaterials() {
+//        System.out.println(targetMaterialRepository.findByIsError("Y"));
         return targetMaterialRepository.findByIsError("Y").stream()
                 .map(tm -> modelMapper.map(tm, TargetMaterialDTO.View.class))
                 .collect(Collectors.toList());
@@ -88,6 +89,7 @@ public class ErrorMaterialQueryServiceImpl implements ErrorMaterialQueryService 
                                         .isError(targetMaterial.getIsError())
                                         .errorType(targetMaterial.getErrorType())
                                         .isErrorPassed(targetMaterial.getIsErrorPassed())
+                                        .remarks(targetMaterial.getRemarks())
                                         .build();
                             })
                             .collect(Collectors.toList());

@@ -68,19 +68,24 @@ public class ScheduleConfirmServiceImpl {
     }
 
     // 스케줄 확정 결과 -> id들 조회, 현재 진행중인 스케줄부터 예정된 스케줄 id list 반환
-    public List<SCHForm.Info> getAllConfirmedScheduleIdsFromInProgressToPending(String processCode) {
+    public List<SCHForm.InfoWithWorkStatus> getAllConfirmedScheduleIdsFromInProgressToPending(String processCode) {
         // IN_PROGRESS 상태와 PENDING 상태의 스케줄을 모두 가져오기
         List<SCHConfirm> inProgressSchedules = getInProgressSchedules(processCode);
         List<SCHConfirm> pendingSchedules = getPendingSchedulesByConfirmDate(processCode);
 
         // 두 리스트를 하나로 합치기
-        List<SCHConfirm> allConfirmedSchedules = new ArrayList<>();
-        allConfirmedSchedules.addAll(inProgressSchedules);
-        allConfirmedSchedules.addAll(pendingSchedules);
+        List<SCHForm.InfoWithWorkStatus> allConfirmedSchedules = new ArrayList<>();
+        // IN_PROGRESS 스케줄을 "IN_PROGRESS" 상태로 변환하여 리스트에 추가
+        allConfirmedSchedules.addAll(inProgressSchedules.stream()
+                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), "IN_PROGRESS"))
+                .collect(Collectors.toList()));
 
-        return allConfirmedSchedules.stream()
-                .map(confirm -> new SCHForm.Info(confirm.getId(), confirm.getScheduleNo()))
-                .collect(Collectors.toList());
+        // PENDING 스케줄을 "PENDING" 상태로 변환하여 리스트에 추가
+        allConfirmedSchedules.addAll(pendingSchedules.stream()
+                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), "PENDING"))
+                .collect(Collectors.toList()));
+
+        return allConfirmedSchedules;
     }
 
     public List<SCHMaterialDTO> getScheduleMaterialsByConfirmId(Long confirmId) {
@@ -117,20 +122,36 @@ public class ScheduleConfirmServiceImpl {
 
     // 카프카 전송
     // 따로 카프카 서비스로 별도로 빼는 것이 좋다.. 수정 예정
+//    @Transactional(readOnly = true)
+//    public void sendConfirmedSchedule(Long scheduleId) {
+//        SCHConfirm confirm = schConfirmRepository.findWithMaterialsById(scheduleId)
+//                .orElseThrow(() -> new EntityNotFoundException("확정된 스케줄을 찾을 수 없습니다. ID : " + scheduleId));
+//
+//        SCHConfirmDTO.View dto = modelMapper.map(confirm, SCHConfirmDTO.View.class);
+//
+//        List<SCHMaterialDTO> materialDTOs = confirm.getMaterials().stream()
+//                .map(material -> modelMapper.map(material, SCHMaterialDTO.class))
+//                .collect(Collectors.toList());
+//
+//        dto.setMaterials(materialDTOs);
+//
+//        // 카프카 전송
+//        scheduleProducer.sendConfirmedSchedule(dto);
+//    }
+
     @Transactional(readOnly = true)
-    public void sendConfirmedSchedule(Long scheduleId) {
-        SCHConfirm confirm = schConfirmRepository.findWithMaterialsById(scheduleId)
-                .orElseThrow(() -> new EntityNotFoundException("확정된 스케줄을 찾을 수 없습니다. ID : " + scheduleId));
-
-        SCHConfirmDTO.View dto = modelMapper.map(confirm, SCHConfirmDTO.View.class);
-
-        List<SCHMaterialDTO> materialDTOs = confirm.getMaterials().stream()
-                .map(material -> modelMapper.map(material, SCHMaterialDTO.class))
-                .collect(Collectors.toList());
-
-        dto.setMaterials(materialDTOs);
-
-        // 카프카 전송
-        scheduleProducer.sendConfirmedSchedule(dto);
+    public void sendConfirmedSchedule(List<Long> scheduleIds) {
+        scheduleIds.stream()
+                .map(scheduleId -> schConfirmRepository.findWithMaterialsById(scheduleId)
+                        .orElseThrow(() -> new EntityNotFoundException("확정된 스케줄을 찾을 수 없습니다. ID : " + scheduleId)))
+                .map(confirm -> {
+                    SCHConfirmDTO.View dto = modelMapper.map(confirm, SCHConfirmDTO.View.class);
+                    List<SCHMaterialDTO> materialDTOs = confirm.getMaterials().stream()
+                            .map(material -> modelMapper.map(material, SCHMaterialDTO.class))
+                            .collect(Collectors.toList());
+                    dto.setMaterials(materialDTOs);
+                    return dto;
+                })
+                .forEach(scheduleProducer::sendConfirmedSchedule);
     }
 }
