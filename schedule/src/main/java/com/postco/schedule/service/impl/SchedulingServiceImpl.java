@@ -31,64 +31,32 @@ public class SchedulingServiceImpl {
     private final SCHMaterialRedisService schMaterialRedisService;
     private final SCHMaterialRedisQueryService schMaterialRedisQueryService;
 
-//    //* 스케줄링로직~! */
-//    public List<SCHMaterial> planSchedule(List<SCHMaterial> materials, String processCode) {
-//
-//        String rollUnit = materials.get(0).getRollUnit();
-//        List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
-//        List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
-//
-//        Double standardWidth = 50.0;  // 기본값 처리
-//
-//        for (ConstraintInsertionDTO constraint : constraintInsertionList) {
-//            if ("CONSTRAINT".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
-//                standardWidth = constraint.getTargetValue();  // 값이 일치하면 targetValue를 저장
-//                break;
-//            }
-//        }
-//
-//        // 우선순위 적용
-//        List<SCHMaterial> sortedMaterials = applyPriorities(materials, priorities, standardWidth);
-//
-//        // priorityOrder 설정
-//        for (int i = 0; i < sortedMaterials.size(); i++) {
-//            sortedMaterials.get(i).setSequence(i + 1);
-//        }
-//        printCurrentState(sortedMaterials, "미편성 처리 전");
-//
-//        List<SCHMaterial> filteredCoils = applyConstraintToCoils(sortedMaterials, constraintInsertionList);
-//
-//        printCurrentState(filteredCoils, "미편성 처리 후");
-//
-//
-//        log.info("============================================================================================================");
-//        // 미편성된 코일들을 다시 삽입하는 로직
-//        List<SCHMaterial> unassignedCoils = getUnassignedCoils(sortedMaterials, filteredCoils);
-//        List<SCHMaterial> finalScheduledCoils = insertUnassignedCoilsBackToSchedule(filteredCoils, unassignedCoils, constraintInsertionList);
-//
-//        printCurrentState(finalScheduledCoils, "미편성 삽입 후");
-//        return finalScheduledCoils;
-//
-//    }
 
+    // 스케쥴링
     public List<SCHMaterial> planSchedule(List<SCHMaterial> materials, String processCode) {
-        // Redis에서 미편성된 코일 불러오기 (비동기적으로 받아와서 동기적으로 변환)
-        List<SCHMaterialDTO> unassignedCoilsFromRedis = schMaterialRedisQueryService.fetchAllUnassignedCoils().block();
-        List<SCHMaterial> unassignedCoils = MapperUtils.mapList(unassignedCoilsFromRedis, SCHMaterial.class);
-        // 기존 materials 리스트에 Redis에서 불러온 미편성 코일 추가
-        if (unassignedCoils != null) {
-            materials.addAll(unassignedCoils);
-            // Redis에 저장된 미편성 코일 삭제
-            List<String> unassignedCoilIds = unassignedCoils.stream()
-                    .map(SCHMaterial::getId)
-                    .map(String::valueOf)
-                    .collect(Collectors.toList());
+        String rollUnit = materials.get(0).getRollUnit();
 
-            deleteUnassignedCoilsFromRedis(unassignedCoilIds).subscribe(); // 비동기적으로 삭제
-        }
+        // Redis에서 미편성된 코일 불러오기 (비동기적으로 받아와서 동기적으로 변환)
+        Optional.ofNullable(schMaterialRedisQueryService.fetchUnassignedCoilsByCurrProcAndRollUnit(processCode, rollUnit).block())
+                .ifPresent(unassignedCoilsFromRedis -> {
+                    List<SCHMaterial> unassignedCoils = MapperUtils.mapList(unassignedCoilsFromRedis, SCHMaterial.class);
+
+                    // 기존 materials 리스트에 Redis에서 불러온 미편성 코일 추가
+                    if (!unassignedCoils.isEmpty()) {
+                        materials.addAll(unassignedCoils);
+
+                        // Redis에 저장된 미편성 코일 삭제
+                        List<String> unassignedCoilIds = unassignedCoils.stream()
+                                .map(SCHMaterial::getId)
+                                .map(String::valueOf)
+                                .collect(Collectors.toList());
+
+                        deleteUnassignedCoilsFromRedis(unassignedCoilIds).subscribe(); // 비동기적으로 삭제
+                    }
+                });
+
 
         // ProcessCode와 RollUnit에 해당하는 제약조건 및 우선순위 조회
-        String rollUnit = materials.get(0).getRollUnit();
         List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
         List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
 
@@ -125,7 +93,25 @@ public class SchedulingServiceImpl {
         // Redis에 새로 미편성된 코일 저장 (비동기적으로 저장)
         saveUnassignedCoilsToRedis(unassignedCoilsAfterProcessing).subscribe();
 
-        return filteredCoils;  // 최종 편성된 코일을 반환
+        // 미편성 삽입
+       // Redis에서 미편성된 코일 불러오기 (비동기적으로 받아와서 동기적으로 변환)
+        Optional.ofNullable(schMaterialRedisQueryService.fetchUnassignedCoilsByCurrProcAndRollUnit(processCode, rollUnit).block())
+                .ifPresent(unassignedCoilsFromRedis -> {
+                    List<SCHMaterial> unassignedCoils = MapperUtils.mapList(unassignedCoilsFromRedis, SCHMaterial.class);
+                    if (!unassignedCoils.isEmpty()) {
+                        // Redis에 저장된 미편성 코일 삭제
+                        List<String> unassignedCoilIds = unassignedCoils.stream()
+                                .map(SCHMaterial::getId)
+                                .map(String::valueOf)
+                                .collect(Collectors.toList());
+                        deleteUnassignedCoilsFromRedis(unassignedCoilIds).subscribe(); // 비동기적으로 삭제
+                    }
+                });
+
+        List<SCHMaterial> finalCoilList = insertUnassignedCoilsBackToSchedule(filteredCoils, unassignedCoilsAfterProcessing, constraintInsertionList);
+        printCurrentState(finalCoilList, "미편성 삽입 후");
+
+        return finalCoilList;  // 최종 편성된 코일을 반환
     }
 
 
@@ -432,6 +418,7 @@ public class SchedulingServiceImpl {
     private List<SCHMaterial> insertUnassignedCoilsBackToSchedule(List<SCHMaterial> scheduledCoils, List<SCHMaterial> unassignedCoils,
                                                                   List<ConstraintInsertionDTO> constraintInsertionList) {
         List<SCHMaterial> finalCoilList = new ArrayList<>(scheduledCoils); // 기존 스케줄링된 코일 리스트
+        List<SCHMaterial> remainingUnassignedCoils = new ArrayList<>(); // 삽입되지 않은 미편성 코일 리스트
         Double flagWidth = 50.0; // 기본 값
         Double flagThickness = 0.5; // 기본 값
 
@@ -439,18 +426,17 @@ public class SchedulingServiceImpl {
             if ("INSERTION".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
                 flagWidth = constraint.getTargetValue();
             }
-            if ("CONSTRAINT".equals(constraint.getType()) && "thickness".equals(constraint.getTargetColumn())){
+            if ("CONSTRAINT".equals(constraint.getType()) && "thickness".equals(constraint.getTargetColumn())) {
                 flagThickness = constraint.getTargetValue();
             }
         }
-
 
         for (SCHMaterial unassignedCoil : unassignedCoils) {
             boolean inserted = false; // 삽입 여부 추적
 
             // 스케줄링된 코일 리스트를 순회하면서 적절한 위치를 찾아서 삽입
             for (int i = 0; i < finalCoilList.size(); i++) {
-                if(i == 0){
+                if (i == 0) {
                     SCHMaterial nextCoil = finalCoilList.get(i);
                     if (Math.abs(nextCoil.getGoalWidth() - unassignedCoil.getGoalWidth()) <= flagWidth
                             && Math.abs(nextCoil.getThickness() - unassignedCoil.getThickness()) <= flagThickness) {
@@ -462,40 +448,40 @@ public class SchedulingServiceImpl {
                                 unassignedCoil.getId(), nextCoil.getId(), i);
                         break;
                     }
-                }
-                else {
+                } else {
                     SCHMaterial previousCoil = finalCoilList.get(i - 1);
                     SCHMaterial nextCoil = finalCoilList.get(i);
 
                     if ((previousCoil.getGoalWidth() + flagWidth) <= unassignedCoil.getGoalWidth()
-                            && unassignedCoil.getGoalWidth()<= (nextCoil.getGoalWidth() + flagWidth)
+                            && unassignedCoil.getGoalWidth() <= (nextCoil.getGoalWidth() + flagWidth)
                             && Math.abs(previousCoil.getThickness() - unassignedCoil.getThickness()) <= flagThickness
                             && Math.abs(nextCoil.getThickness() - unassignedCoil.getThickness()) <= flagThickness) {
 
                         // 적절한 위치에 미편성 코일 삽입
                         finalCoilList.add(i, unassignedCoil);
                         inserted = true; // 삽입되었음을 기록
-                        log.info("Unassigned coil (ID: {}) inserted between coils (ID: {}) and (ID: {}) at position {}",
+                        log.info("미편성코일 (ID: {})이 (ID: {})와 (ID: {}) 사이에 삽입되었습니다. {}",
                                 unassignedCoil.getId(), previousCoil.getId(), nextCoil.getId(), i);
                         break;
                     }
                 }
             }
-            // 삽입이 되지 않았을 경우 로그 남기기
+
+            // 삽입이 되지 않았을 경우 남은 코일로 저장
             if (!inserted) {
-                log.warn("Unassigned coil (ID: {}) could not be inserted into the schedule", unassignedCoil.getId());
+                log.warn("미편성코일 (ID: {}) 삽입불가", unassignedCoil.getId());
+                remainingUnassignedCoils.add(unassignedCoil); // 삽입되지 않은 코일 저장
             }
+        }
+
+        // 남은 미편성 코일을 Redis에 다시 저장
+        if (!remainingUnassignedCoils.isEmpty()) {
+            saveUnassignedCoilsToRedis(remainingUnassignedCoils).subscribe(); // 비동기적으로 Redis에 저장
+            log.info("남은 미편성 코일들 저장됨. Count: {}", remainingUnassignedCoils.size());
         }
 
         return finalCoilList;
     }
-
-    private List<SCHMaterial> getUnassignedCoils(List<SCHMaterial> sortedMaterials, List<SCHMaterial> filteredCoils) {
-        return sortedMaterials.stream()
-                .filter(coil -> !filteredCoils.contains(coil))
-                .collect(Collectors.toList());
-    }
-
 
 
     // Helper method to capitalize the first letter of the field name
@@ -556,78 +542,6 @@ public class SchedulingServiceImpl {
     }
 
 
-
-//    public Mono<List<SCHMaterial>> planSchedule(List<SCHMaterial> materials, String processCode) {
-//
-//        // Redis에서 미편성 코일 불러오기
-//        return loadUnassignedCoilsFromRedis().flatMap(unassignedCoils -> {
-//            // 기존 materials 리스트에 Redis에서 불러온 미편성 코일 추가
-//            materials.addAll(unassignedCoils);
-//
-//            // ProcessCode와 RollUnit에 해당하는 제약조건 및 우선순위 조회
-//            String rollUnit = materials.get(0).getRollUnit();
-//            List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
-//            List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
-//
-//            Double standardWidth = 50.0;  // 기본값 처리
-//
-//            // 제약 조건에서 폭 기준값 설정
-//            for (ConstraintInsertionDTO constraint : constraintInsertionList) {
-//                if ("CONSTRAINT".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
-//                    standardWidth = constraint.getTargetValue();  // 값이 일치하면 targetValue를 저장
-//                    break;
-//                }
-//            }
-//
-//            // 우선순위 적용
-//            List<SCHMaterial> sortedMaterials = applyPriorities(materials, priorities, standardWidth);
-//
-//            // 편성된 코일들에 순서를 할당
-//            for (int i = 0; i < sortedMaterials.size(); i++) {
-//                sortedMaterials.get(i).setSequence(i + 1);
-//            }
-//
-//            printCurrentState(sortedMaterials, "미편성 처리 전");
-//
-//            // 제약 조건을 적용하여 편성된 코일 필터링
-//            List<SCHMaterial> filteredCoils = applyConstraintToCoils(sortedMaterials, constraintInsertionList);
-//
-//            printCurrentState(filteredCoils, "미편성 처리 후");
-//
-//            // 미편성된 코일들(편성에서 제외된 코일들)
-//            List<SCHMaterial> unassignedCoilsAfterProcessing = sortedMaterials.stream()
-//                    .filter(coil -> !filteredCoils.contains(coil))
-//                    .collect(Collectors.toList());
-//
-//            // Redis에 새로 미편성된 코일 저장
-//            return saveUnassignedCoilsToRedis(unassignedCoilsAfterProcessing)
-//                    .thenReturn(filteredCoils);  // 편성된 코일을 반환
-//        });
-//    }
-//
-//
-
-    /*
-    private void saveUnassignedCoilsToRedis(List<SCHMaterial> unassignedCoils) {
-        Flux.fromIterable(unassignedCoils)
-                .flatMap(coil -> schMaterialRedisService.saveData(coil)
-                        .doOnSuccess(result -> {
-                            if (result) {
-                                System.out.println("미편성된 코일 저장 완료 - ID: " + coil.getId());
-                            } else {
-                                System.out.println("미편성된 코일 저장 실패 - ID: " + coil.getId());
-                            }
-                        })
-                        .doOnError(error -> System.err.println("Redis 저장 중 오류 발생 - ID: " + coil.getId() + ": " + error.getMessage())))
-                .then()
-                .doOnSuccess(unused -> System.out.println("모든 미편성 코일이 Redis에 저장되었습니다."))
-                .doOnError(error -> System.err.println("미편성 코일 저장 중 전체 오류 발생: " + error.getMessage()))
-                .subscribe();
-    }
-
-     */
-
-
     // Redis에 미편성된 코일 저장 로직
     private Mono<Void> saveUnassignedCoilsToRedis(List<SCHMaterial> unassignedCoils) {
         return Flux.fromIterable(unassignedCoils)
@@ -659,8 +573,4 @@ public class SchedulingServiceImpl {
                 .then();
     }
 
-//
-//    private Mono<List<SCHMaterial>> loadUnassignedCoilsFromRedis() {
-//        return schMaterialRedisQueryService.fetchAllUnassignedCoils(); // Redis에서 모든 미편성 코일 불러오기
-//    }
 }
