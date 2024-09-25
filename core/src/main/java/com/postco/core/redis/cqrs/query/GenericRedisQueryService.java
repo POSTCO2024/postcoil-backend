@@ -41,8 +41,7 @@ public class GenericRedisQueryService implements QueryService {
      * 단일 프리픽스 내의 모든 데이터를 비동기로 가져오는 메서드.
      * getAllData 로 대체
      * 예 ) 재료 데이터만 가져오고 싶은 경우, prefix 로 material: 전달
-     */
-    @Override
+     */    @Override
     public <T> Flux<T> fetchAllBySinglePrefix(String prefix, Class<T> entityClass) {
         return redisTemplate.keys(prefix + "*")
                 .flatMap(key -> redisTemplate.opsForHash().entries(key)
@@ -50,6 +49,7 @@ public class GenericRedisQueryService implements QueryService {
                         .map(map -> objectMapper.convertValue(map, entityClass)))
                 .switchIfEmpty(Flux.empty());
     }
+
 
     /**
      * 여러 프리픽스에 해당하는 데이터를 비동기로 가져오는 메서드.

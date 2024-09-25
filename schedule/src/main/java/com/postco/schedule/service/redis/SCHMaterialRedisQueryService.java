@@ -3,12 +3,11 @@ package com.postco.schedule.service.redis;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.dto.MaterialDTO;
-import com.postco.core.dto.SCHMaterialDTO;
-import com.postco.core.dto.ScheduleResultDTO;
 import com.postco.core.dto.TargetMaterialDTO;
 import com.postco.core.redis.AbstractRedisQueryService;
 import com.postco.core.redis.cqrs.query.GenericRedisQueryService;
 import com.postco.schedule.domain.SCHMaterial;
+import com.postco.schedule.presentation.dto.SCHMaterialDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -30,10 +29,10 @@ public class SCHMaterialRedisQueryService{
      * Redis에서 미편성된 코일 데이터를 조회하는 메서드.
      * Redis의 "unassigned_sch_material:"로 시작하는 모든 데이터를 조회하여 SCHMaterial 객체로 변환합니다.
      */
-    public Mono<List<SCHMaterial>> fetchAllUnassignedCoils() {
+    public Mono<List<SCHMaterialDTO>> fetchAllUnassignedCoils() {
         return redisQueryService.fetchAllBySinglePrefix(
                         "unassigned_sch_material:",
-                        SCHMaterial.class
+                        SCHMaterialDTO.class
                 )
                 .collectList()
                 .doOnNext(coils -> log.info("[Redis 성공] 모든 미편성된 코일 데이터를 Redis에서 불러왔습니다. 개수: {}", coils.size()))

@@ -1,5 +1,11 @@
 package com.postco.schedule.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.postco.schedule.domain.jackson.NullStringToObjectDeserializer;
+import com.postco.schedule.domain.jackson.NullToStringSerializer;
+import com.postco.schedule.domain.jackson.SCHPlanDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -50,6 +56,8 @@ public class SCHMaterial implements com.postco.core.entity.Entity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "confirm_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+    @JsonSerialize(using = NullToStringSerializer.class)
+    @JsonDeserialize(using = SCHPlanDeserializer.class)
     private SCHConfirm schConfirm;
 
 
