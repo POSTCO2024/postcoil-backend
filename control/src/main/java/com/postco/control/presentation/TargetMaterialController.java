@@ -100,7 +100,7 @@ public class TargetMaterialController {
      * @param maxValue: 검색 범위 (max)
      * @return 검색이 완료된 리스트 반환
      */
-    @GetMapping("/normal-by-curr-proc/search")
+    @GetMapping("/search")
     public Mono<ResponseEntity<ApiResponseDTO<List<TargetViewDTO>>>> searchTargetMaterials(
             @RequestParam String currProc,
             @RequestParam(required = false) String searchCriteria, // 검색 조건
