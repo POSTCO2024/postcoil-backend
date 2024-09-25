@@ -1,6 +1,7 @@
 package com.postco.operation.presentation.dto.websocket;
 
 import com.postco.core.dto.CoilSupplyDTO;
+import com.postco.core.dto.MaterialDTO;
 import com.postco.operation.domain.entity.CoilSupply;
 import com.postco.operation.domain.entity.WorkInstruction;
 import com.postco.operation.domain.entity.WorkInstructionItem;
@@ -22,20 +23,37 @@ public class ClientMapper {
     private final ModelMapper modelMapper;
     private final CoilSupplyRepository coilSupplyRepository;
 
-//    public ClientDTO mapToClientDTO(WorkInstruction workInstruction) {
-//        List<WorkInstructionItem> workItems = workInstruction.getItems();
-//        CoilSupply coilSupply = coilSupplyRepository.findByWorkInstructionId(workInstruction.getId())
-//                .orElseThrow(() -> new IllegalStateException("CoilSupply not found for WorkInstruction: " + workInstruction.getId()));
-//
-////        return ClientDTO.builder()
-////                .coilSupply(mapToCoilSupplyDTO(coilSupply))
-////                .workItem(mapToWorkInstructionItemDTOs(workItems))
-////                .coilTypeCount(calculateCoilTypeCount(workItems))
-////                .totalWorkTime(calculateTotalWorkTime(workItems))
-////                .build();
-//        return true;
-//    }
+    // WorkInstruction -> ClientDTO 변환
+    public ClientDTO mapToClientDTO(WorkInstruction workInstruction) {
+        List<WorkInstructionItem> workItems = workInstruction.getItems();
+        CoilSupply coilSupply = coilSupplyRepository.findByWorkInstructionId(workInstruction.getId())
+                .orElseThrow(() -> new IllegalStateException("CoilSupply not found for WorkInstruction: " + workInstruction.getId()));
 
+        return ClientDTO.builder()
+                .coilSupply(List.of(mapToCoilSupplyDTO(coilSupply)))
+                .workInstructions(List.of(WorkInstructionMapper.mapToDto(workInstruction)))
+                .workItem(mapToWorkInstructionItemDTOs(workItems))
+                .coilTypeCount(calculateCoilTypeCount(workInstruction))
+                .totalWorkTime(calculateTotalWorkTime(workItems))
+                .build();
+    }
+
+    // CoilSupplyDTO 변환
+    public CoilSupplyDTO mapToCoilSupplyClientDTO(CoilSupplyDTO coilSupplyDTO) {
+        return modelMapper.map(coilSupplyDTO, CoilSupplyDTO.class);
+    }
+
+    // MaterialDTO 변환
+    public MaterialDTO.Message mapToMaterialClientDTO(MaterialDTO.Message materialMessage) {
+        return modelMapper.map(materialMessage, MaterialDTO.Message.class);
+    }
+
+    // WorkInstructionItemDTO 변환
+    public List<WorkInstructionItemDTO.View> mapToWorkInstructionItemClientDTO(WorkInstructionItemDTO.View workInstructionItemDTO) {
+        return List.of(workInstructionItemDTO);
+    }
+
+    // 추가적인 DTO 변환 로직은 기존과 동일하게 처리
     private CoilSupplyDTO mapToCoilSupplyDTO(CoilSupply coilSupply) {
         return modelMapper.map(coilSupply, CoilSupplyDTO.class);
     }
@@ -46,11 +64,12 @@ public class ClientMapper {
                 .collect(Collectors.toList());
     }
 
-    private Map<String, Integer> calculateCoilTypeCount(List<WorkInstructionItem> workItems) {
-        return workItems.stream()
+    private Map<String, Integer> calculateCoilTypeCount(WorkInstruction workInstruction) {
+        return workInstruction.getItems().stream()
+                .map(item -> item.getMaterial().getCoilTypeCode())
                 .collect(Collectors.groupingBy(
-                        item -> item.getMaterial().getCoilTypeCode(),
-                        Collectors.summingInt(e -> 1)
+                        coilType -> coilType,
+                        Collectors.summingInt(coilType -> 1)
                 ));
     }
 

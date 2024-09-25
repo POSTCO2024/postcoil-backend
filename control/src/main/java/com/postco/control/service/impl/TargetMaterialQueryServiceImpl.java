@@ -76,7 +76,7 @@ public class TargetMaterialQueryServiceImpl implements TargetMaterialQueryServic
         return controlRedisQueryService.getRedisData()
                 .map(redisDataContainer -> {
                     Map<Long, MaterialDTO.View> materialMap = redisDataContainer.getMaterials().stream()
-                            .collect(Collectors.toMap(MaterialDTO.View::getMaterialId, Function.identity()));
+                            .collect(Collectors.toMap(MaterialDTO.View::getId, Function.identity()));
                     Map<Long, OrderDTO.View> orderMap = redisDataContainer.getOrders().stream()
                             .collect(Collectors.toMap(OrderDTO.View::getId, Function.identity()));
 
