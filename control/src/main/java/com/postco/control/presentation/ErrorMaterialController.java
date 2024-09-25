@@ -3,6 +3,7 @@ package com.postco.control.presentation;
 import com.postco.control.domain.ErrorMaterialMapper;
 import com.postco.control.presentation.dto.TargetViewDTO;
 import com.postco.control.service.ErrorPassService;
+import com.postco.control.service.SearchMaterialService;
 import com.postco.control.service.impl.ErrorMaterialQueryServiceImpl;
 import com.postco.core.dto.ApiResponseDTO;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,12 @@ import java.util.Map;
 @Slf4j
 @RestController
 @CrossOrigin(origins = {"http://localhost:4000", "http://localhost:8081"})
-@RequestMapping("/api/v1/target-materials")
+@RequestMapping("/api/v1/error-materials")
 @RequiredArgsConstructor
 public class ErrorMaterialController {
     private final ErrorMaterialQueryServiceImpl errorMaterialQueryService;
     private final ErrorPassService errorPassService;
+    private final SearchMaterialService searchMaterialService;
 
     /**
      * 공정 별 에러재 조회
@@ -93,4 +95,5 @@ public class ErrorMaterialController {
         ApiResponseDTO<String> response = new ApiResponseDTO<>(200, "에러재 코멘트 성공", "true");
         return ResponseEntity.ok(response);
     }
+
 }
