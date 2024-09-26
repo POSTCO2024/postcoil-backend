@@ -6,10 +6,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
-
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ControlClientDTO {
+    private List<TotalSupply> factoryDashboard;      // 공장별 작업대상재 대시보드 용
+    private List<StatisticsInfo> processDashboard;   // 공정별 작업대상재 대시보드 용
+
     @Data
     @Builder
     @NoArgsConstructor

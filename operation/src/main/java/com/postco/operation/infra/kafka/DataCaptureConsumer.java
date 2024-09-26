@@ -6,7 +6,6 @@ import com.postco.core.dto.MaterialDTO;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
 import com.postco.operation.presentation.dto.WorkInstructionItemDTO;
 import com.postco.operation.presentation.dto.websocket.WebSocketMessageType;
-import com.postco.operation.service.impl.OperationWebSocketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -21,9 +20,8 @@ import java.util.function.BiConsumer;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CDCProducer {
+public class DataCaptureConsumer {
     private final DataCaptureReceiverService captureReceiverService;
-    private final OperationWebSocketService operationWebSocketService;
 
     private final Map<String, Map<String, Object>> changedDataMap = new HashMap<>();
     private Map<String, BiConsumer<String, String>> topicHandlers;

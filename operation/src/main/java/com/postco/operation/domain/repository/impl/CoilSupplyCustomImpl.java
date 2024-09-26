@@ -1,36 +1,42 @@
 package com.postco.operation.domain.repository.impl;
 
-import com.postco.operation.domain.entity.QCoilSupply;
-import com.postco.operation.domain.entity.QWorkInstruction;
 import com.postco.operation.domain.repository.CoilSupplyRepositoryCustom;
 import com.postco.operation.presentation.dto.websocket.ControlClientDTO;
-import com.querydsl.core.types.Projections;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 public class CoilSupplyCustomImpl implements CoilSupplyRepositoryCustom {
-    private final JPAQueryFactory queryFactory;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public List<ControlClientDTO.TotalSupply> getTotalSupplyByProcess() {
-        QCoilSupply cs = QCoilSupply.coilSupply;
-        QWorkInstruction wi = QWorkInstruction.workInstruction;
 
-        return queryFactory
-                .select(Projections.constructor(ControlClientDTO.TotalSupply.class,
-                        wi.process,
-                        cs.totalCoils.sum().as("totalGoalCoils"),
-                        cs.totalProgressed.sum().as("totalCompleteCoils"),
-                        wi.startTime.min()
-                ))
-                .from(cs)
-                .join(cs.workInstruction, wi)
-                .groupBy(wi.process)
-                .fetch();
+        String sql = "SELECT * FROM work_schedule_summary";
+
+        Query query = entityManager.createNativeQuery(sql);
+
+        List<Object[]> results = query.getResultList();
+
+        return results.stream()
+                .map(this::mapToTotalSupply)
+                .collect(Collectors.toList());
+    }
+
+    private ControlClientDTO.TotalSupply mapToTotalSupply(Object[] result) {
+        return ControlClientDTO.TotalSupply.builder()
+                .process((String) result[0])
+                .totalGoalCoils(((Number) result[2]).intValue())
+                .totalCompleteCoils(((Number) result[3]).intValue())
+                .totalScheduledCoils(((Number) result[4]).intValue())
+                .build();
     }
 }
