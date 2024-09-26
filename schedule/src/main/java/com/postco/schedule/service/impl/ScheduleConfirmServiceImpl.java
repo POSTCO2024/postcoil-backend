@@ -77,12 +77,12 @@ public class ScheduleConfirmServiceImpl {
         List<SCHForm.InfoWithWorkStatus> allConfirmedSchedules = new ArrayList<>();
         // IN_PROGRESS 스케줄을 "IN_PROGRESS" 상태로 변환하여 리스트에 추가
         allConfirmedSchedules.addAll(inProgressSchedules.stream()
-                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), "IN_PROGRESS"))
+                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), confirm.getScExpectedDuration(), "IN_PROGRESS"))
                 .collect(Collectors.toList()));
 
         // PENDING 스케줄을 "PENDING" 상태로 변환하여 리스트에 추가
         allConfirmedSchedules.addAll(pendingSchedules.stream()
-                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), "PENDING"))
+                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), confirm.getScExpectedDuration(),  "PENDING"))
                 .collect(Collectors.toList()));
 
         return allConfirmedSchedules;

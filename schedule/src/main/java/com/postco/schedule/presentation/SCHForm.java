@@ -40,6 +40,7 @@ public class SCHForm {
     public static class InfoWithWorkStatus  {
         private Long id;
         private String scheduleNo;
+        private Long scExpectedDuration;
         private String workStatus;
     }
 }
