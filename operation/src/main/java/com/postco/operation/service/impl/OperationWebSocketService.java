@@ -5,8 +5,8 @@ import com.postco.core.dto.MaterialDTO;
 import com.postco.operation.domain.entity.WorkInstruction;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
 import com.postco.operation.presentation.dto.WorkInstructionItemDTO;
-import com.postco.operation.presentation.dto.websocket.ClientDTO;
-import com.postco.operation.presentation.dto.websocket.ClientMapper;
+import com.postco.operation.presentation.dto.websocket.MessageDTO;
+import com.postco.operation.presentation.dto.websocket.MessageMapper;
 import com.postco.operation.presentation.dto.websocket.WebSocketMessageDTO;
 import com.postco.operation.presentation.dto.websocket.WebSocketMessageType;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +26,8 @@ import java.util.function.Function;
 @Slf4j
 public class OperationWebSocketService {
     private final SimpMessagingTemplate messagingTemplate;
-    private final ClientMapper clientMapper;
-    private final Map<Class<?>, Function<Object, ClientDTO>> dtoMappers = new HashMap<>();
+    private final MessageMapper messageMapper;
+    private final Map<Class<?>, Function<Object, MessageDTO>> dtoMappers = new HashMap<>();
 
     @PostConstruct
     public void init() {
@@ -35,11 +35,11 @@ public class OperationWebSocketService {
     }
 
     private void initDtoMappers() {
-        dtoMappers.put(WorkInstruction.class, dto -> clientMapper.mapToClientDTO((WorkInstruction) dto));
-        dtoMappers.put(CoilSupplyDTO.Message.class, dto -> ClientDTO.builder().coilSupply(List.of(clientMapper.mapToCoilSupplyClientDTO((CoilSupplyDTO.Message) dto))).build());
-        dtoMappers.put(MaterialDTO.Message.class, dto -> ClientDTO.builder().materials(List.of(clientMapper.mapToMaterialClientDTO((MaterialDTO.Message) dto))).build());
-        dtoMappers.put(WorkInstructionItemDTO.Message.class, dto -> ClientDTO.builder().workItem(clientMapper.mapToWorkInstructionItemClientDTO((WorkInstructionItemDTO.Message) dto)).build());
-        dtoMappers.put(WorkInstructionDTO.Message.class, dto -> ClientDTO.builder().workInstructions(List.of((WorkInstructionDTO.Message) dto)).build());
+        dtoMappers.put(WorkInstruction.class, dto -> messageMapper.mapToClientDTO((WorkInstruction) dto));
+        dtoMappers.put(CoilSupplyDTO.Message.class, dto -> MessageDTO.builder().coilSupply(List.of(messageMapper.mapToCoilSupplyClientDTO((CoilSupplyDTO.Message) dto))).build());
+        dtoMappers.put(MaterialDTO.Message.class, dto -> MessageDTO.builder().materials(List.of(messageMapper.mapToMaterialClientDTO((MaterialDTO.Message) dto))).build());
+        dtoMappers.put(WorkInstructionItemDTO.Message.class, dto -> MessageDTO.builder().workItem(messageMapper.mapToWorkInstructionItemClientDTO((WorkInstructionItemDTO.Message) dto)).build());
+        dtoMappers.put(WorkInstructionDTO.Message.class, dto -> MessageDTO.builder().workInstructions(List.of((WorkInstructionDTO.Message) dto)).build());
     }
 
     public <T> void sendMessage(T dto, WebSocketMessageType type) {
@@ -48,7 +48,7 @@ public class OperationWebSocketService {
         try {
             Optional.ofNullable(dtoMappers.get(dto.getClass()))
                     .map(mapper -> mapper.apply(dto))
-                    .map(clientDto -> new WebSocketMessageDTO(type, clientDto))
+                    .map(messageDto -> new WebSocketMessageDTO(type, messageDto))
                     .ifPresentOrElse(
                             message -> {
                                 messagingTemplate.convertAndSend("/topic/coilData", message);

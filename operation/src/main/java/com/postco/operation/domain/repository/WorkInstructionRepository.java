@@ -1,7 +1,9 @@
 package com.postco.operation.domain.repository;
 
+import com.postco.operation.domain.entity.CoilSupply;
 import com.postco.operation.domain.entity.WorkInstruction;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
@@ -9,7 +11,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import java.util.List;
 import java.util.Optional;
 
-public interface WorkInstructionRepository extends JpaRepository<WorkInstruction, Long> {
+public interface WorkInstructionRepository extends JpaRepository<WorkInstruction, Long>, JpaSpecificationExecutor<WorkInstruction> {
     @Query("SELECT MAX(w.id) FROM WorkInstruction w")
     Long findLastSavedId();
 

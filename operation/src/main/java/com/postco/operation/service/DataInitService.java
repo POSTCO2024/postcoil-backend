@@ -23,8 +23,8 @@ public class DataInitService {
      * 2) Kafka로 데이터 전송
      */
     public Mono<Void> initializeAllData() {
-        return initializeRedisData();
-//                .then(sendKafkaData());
+        return initializeRedisData()
+                .then(sendKafkaData());
     }
 
     /**

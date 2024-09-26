@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.postco.core.config.AuditorAwareImpl;
 import com.postco.operation.service.DataInitService;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.modelmapper.ModelMapper;
@@ -19,6 +20,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import javax.persistence.EntityManager;
 
 @SpringBootApplication
 @EnableDiscoveryClient
@@ -66,6 +69,11 @@ public class OperationApp {
     @Bean
     public ObjectMapper defaultObjectMapper() {
         return new ObjectMapper();
+    }
+
+    @Bean
+    public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
+        return new JPAQueryFactory(entityManager);
     }
 
     // AsyncTaskExecutor 빈 추가

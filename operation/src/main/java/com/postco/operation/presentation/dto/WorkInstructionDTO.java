@@ -74,6 +74,4 @@ public class WorkInstructionDTO {
         private String schStatus;
         private List<WorkInstructionItemDTO.Message> items;
     }
-
-
 }

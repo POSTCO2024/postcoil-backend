@@ -1,5 +1,6 @@
 plugins {
     id 'org.hidetake.swagger.generator'
+    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
 }
 
 bootJar {
@@ -21,6 +22,10 @@ dependencies {
     // Eureka - client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
+    // queryDsl
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+
     // swagger
     swaggerUI "org.webjars:swagger-ui:${swaggerUiVersion}"
 
@@ -40,6 +45,29 @@ openapi3 {
     version = "${project.version}"
     format = "yaml"
     outputDirectory = 'src/main/resources/static/docs'
+}
+
+def querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+sourceSets {
+    main.java.srcDir querydslDir
+}
+compileQuerydsl{
+    options.annotationProcessorPath = configurations.querydsl
+}
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    querydsl.extendsFrom compileClasspath
+}
+
+clean {
+    delete querydslDir
 }
 
 tasks.withType(GenerateSwaggerUI).configureEach {

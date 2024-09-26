@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class WebSocketMessageDTO {
     private WebSocketMessageType type;
-    private ClientDTO data;
+    private MessageDTO data;
 }

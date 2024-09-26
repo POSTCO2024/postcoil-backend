@@ -1,5 +1,6 @@
 plugins {
     id 'org.hidetake.swagger.generator'
+    id 'com.ewerk.gradle.plugins.querydsl' version '1.0.10'
 }
 
 bootJar {
@@ -20,6 +21,10 @@ dependencies {
 
     // Spring Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // queryDsl
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
 
     // swagger
     swaggerUI "org.webjars:swagger-ui:${swaggerUiVersion}"
@@ -46,6 +51,41 @@ openapi3 {
     version = "${project.version}"
     format = "yaml"
     outputDirectory = 'src/main/resources/static/docs'
+}
+
+def querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+sourceSets {
+    main.java.srcDir querydslDir
+}
+compileQuerydsl {
+    compileQuerydsl {
+        options.annotationProcessorPath = configurations.querydsl
+        options.compilerArgs += [
+                "-proc:only",
+                "-processor", "com.querydsl.apt.jpa.JPAAnnotationProcessor"
+        ]
+        source = [project(':core').sourceSets.main.java, sourceSets.main.java]
+    }
+}
+    configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+    querydsl.extendsFrom compileClasspath
+}
+
+clean {
+    delete fileTree(dir: "$buildDir/generated", exclude: ['**/querydsl/**'])
+}
+
+// compileQuerydsl 태스크를 classes 태스크에 의존성 추가
+tasks.named('compileJava') {
+    dependsOn("compileQuerydsl")
 }
 
 tasks.withType(GenerateSwaggerUI).configureEach {

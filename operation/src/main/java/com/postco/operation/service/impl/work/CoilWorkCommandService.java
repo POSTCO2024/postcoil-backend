@@ -36,7 +36,6 @@ public class CoilWorkCommandService {
     private final MaterialUpdateService materialUpdateService;
     private final TransactionTemplate transactionTemplate;
     private final SupplyQueueManager supplyQueueManager;
-    private final OperationWebSocketService operationWebSocketService;
 
     // 작업 지시서에서 보급 요청 시 관련 작업 수행
     // 1) 코일 보급 처리 -> 업데이트

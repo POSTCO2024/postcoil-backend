@@ -19,17 +19,17 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class ClientMapper {
+public class MessageMapper {
     private final ModelMapper modelMapper;
     private final CoilSupplyRepository coilSupplyRepository;
 
     // WorkInstruction -> ClientDTO 변환
-    public ClientDTO mapToClientDTO(WorkInstruction workInstruction) {
+    public MessageDTO mapToClientDTO(WorkInstruction workInstruction) {
         List<WorkInstructionItem> workItems = workInstruction.getItems();
         CoilSupply coilSupply = coilSupplyRepository.findByWorkInstructionId(workInstruction.getId())
                 .orElseThrow(() -> new IllegalStateException("CoilSupply not found for WorkInstruction: " + workInstruction.getId()));
 
-        return ClientDTO.builder()
+        return MessageDTO.builder()
                 .coilSupply(List.of(mapToCoilSupplyDTO(coilSupply)))
                 .workInstructions(List.of(WorkInstructionMapper.mapToMessageDto(workInstruction)))
                 .workItem(mapToWorkInstructionItemDTOs(workItems))

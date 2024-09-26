@@ -4,8 +4,6 @@ import lombok.*;
 
 import javax.persistence.*;
 
-import java.util.concurrent.CompletableFuture;
-
 import static javax.persistence.FetchType.LAZY;
 
 @Entity
@@ -29,7 +27,6 @@ public class CoilSupply {
     private int suppliedCoils;  // 보급 완료 된 코일 수(설비 앞 도착)
     private int totalProgressed;  // 현재까지 실제 작업이 진행된 코일 수
     private int totalRejects;  // 리젝트된 코일 수 (개별 리젝트는 작업 아이템에서 관리)
-
 
     // ===== 연관관계 메서드 ====
 
