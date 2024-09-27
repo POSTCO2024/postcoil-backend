@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -176,7 +177,9 @@ public class SchedulingServiceImplRefac {
         if (!remainingUnassignedCoils.isEmpty()) {
             redisService.saveUnassignedCoils(remainingUnassignedCoils).subscribe();
         }
+        AtomicInteger sequence = new AtomicInteger(1); // 시퀀스 시작 값을 1로 설정
 
+        finalCoilList.forEach(coil -> coil.setSequence(sequence.getAndIncrement()));
         return finalCoilList;
     }
 
@@ -184,8 +187,8 @@ public class SchedulingServiceImplRefac {
     private void printCurrentState(List<SCHMaterial> materials, String message) {
         log.info(message);
         for (SCHMaterial material : materials) {
-            log.info("ID: {}, Goal Width: {}, Thickness: {}, Temperature: {}, RollUnit: {}",
-                    material.getId(), material.getGoalWidth(), material.getThickness(), material.getTemperature(), material.getRollUnit());
+            log.info("ID: {}, Goal Width: {}, Thickness: {}, Temperature: {}, RollUnit: {}, sequence: {}",
+                    material.getId(), material.getGoalWidth(), material.getThickness(), material.getTemperature(), material.getRollUnit(), material.getSequence());
         }
     }
 }
