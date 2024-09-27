@@ -12,23 +12,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/work-instructions")
+@RequestMapping("/api/v1/work-instructions")
 @RequiredArgsConstructor
 @Slf4j
 public class WorkInstructionController {
     private final WorkInstructionService workInstructionService;
 
-    @GetMapping
+    @GetMapping("operation")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructions(
-            @RequestParam String process,
-            @RequestParam String rollUnit) {
-        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process, rollUnit);
-        return workInstructionService.getWorkInstructions(process, rollUnit)
+            @RequestParam String process) {
+        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
+        return workInstructionService.getWorkInstructionsAllByProcess(process)
+                .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
+                .onErrorResume(e -> handleError("작업 지시서 조회", e));
+    }
+
+    @GetMapping("getAllRecord")
+    public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructionsExceptFinished(
+            @RequestParam String process) {
+        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
+        return workInstructionService.getWorkInstructionsAllByProcessExceptFinish(process)
                 .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
                 .onErrorResume(e -> handleError("작업 지시서 조회", e));
     }

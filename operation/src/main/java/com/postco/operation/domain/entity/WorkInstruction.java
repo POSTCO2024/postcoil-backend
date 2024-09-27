@@ -15,7 +15,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = "items")
+//@ToString(exclude = "items")
+@ToString
 @Builder
 public class WorkInstruction implements com.postco.core.entity.Entity, Serializable {
     @Id
@@ -36,7 +37,7 @@ public class WorkInstruction implements com.postco.core.entity.Entity, Serializa
     @Column(name = "sch_status", nullable = false)
     private WorkStatus workStatus;
 
-    @OneToMany(mappedBy = "workInstruction",cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "workInstruction", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @JsonManagedReference
     private List<WorkInstructionItem> items = new ArrayList<>();

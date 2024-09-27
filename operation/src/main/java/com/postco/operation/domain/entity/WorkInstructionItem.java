@@ -1,7 +1,6 @@
 package com.postco.operation.domain.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
@@ -18,9 +17,11 @@ import static javax.persistence.FetchType.LAZY;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString(exclude = {"workInstruction", "material"})
+//@ToString(exclude = "workInstruction")
 @Builder
 public class WorkInstructionItem implements com.postco.core.entity.Entity, Serializable {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     @Column(name = "work_item_id")
     private Long id;
 
@@ -53,6 +54,12 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
 
     @Column(name = "end_time")
     private LocalDateTime endTime; // 종료 작업 시간
+
+    @Column(name = "initial_thickness")
+    private double initialThickness;
+
+    @Column(name = "initial_goal_width")
+    private double initialGoalWidth;
 
     @Override
     public boolean equals(Object o) {
@@ -99,7 +106,7 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
 
     // 리젝트된 코일 처리 -> Y 로 변경
     public void updateReject() {
-        if(this.workItemStatus == WorkStatus.PENDING) {
+        if (this.workItemStatus == WorkStatus.PENDING) {
             // 진행중이 아닌 코일에 대해서만 가능
             this.isRejected = "Y";
         }

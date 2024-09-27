@@ -3,10 +3,7 @@ package com.postco.operation.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.dto.ScheduleResultDTO;
-import com.postco.operation.domain.entity.CoilSupply;
-import com.postco.operation.domain.entity.MaterialProgress;
-import com.postco.operation.domain.entity.WorkInstruction;
-import com.postco.operation.domain.entity.WorkInstructionItem;
+import com.postco.operation.domain.entity.*;
 import com.postco.operation.domain.repository.CoilSupplyRepository;
 import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
@@ -174,10 +171,39 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
 
     // ============= 조회 부분 (cqrs 패턴에 따라 분리해야함.. 나중에 리팩토링.. )
     @Override
+    @Transactional
     public Mono<List<WorkInstructionDTO.View>> getWorkInstructions(String process, String rollUnit) {
         return Mono.fromCallable(() -> {
             log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process, rollUnit);
             List<WorkInstruction> workInstructions = workInstructionRepository.findByProcessAndRollUnit(process, rollUnit);
+            log.info("작업지시문 : {}", workInstructions.get(0).getItems().get(0).getMaterial());
+            List<WorkInstructionDTO.View> dtos = workInstructions.stream()
+                    .map(WorkInstructionMapper::mapToDto)
+                    .collect(Collectors.toList());
+            log.info("작업 지시서 조회 완료. 조회된 작업 지시서 수: {}", dtos.size());
+            return dtos;
+        }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
+    }
+
+    @Override
+    public Mono<List<WorkInstructionDTO.View>> getWorkInstructionsAllByProcess(String process) {
+        return Mono.fromCallable(() -> {
+            log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
+            List<WorkInstruction> workInstructions = workInstructionRepository.findByProcess(process);
+            List<WorkInstructionDTO.View> dtos = workInstructions.stream()
+                    .map(WorkInstructionMapper::mapToDto)
+                    .collect(Collectors.toList());
+            log.info("작업 지시서 조회 완료. 조회된 작업 지시서 수: {}", dtos.size());
+            return dtos;
+        }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
+    }
+
+    @Override
+    public Mono<List<WorkInstructionDTO.View>> getWorkInstructionsAllByProcessExceptFinish(String process) {
+        return Mono.fromCallable(() -> {
+            log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
+            List<WorkInstruction> workInstructions = workInstructionRepository.findByProcess(process).stream()
+                    .filter(w -> w.getWorkStatus() != WorkStatus.COMPLETED).collect(Collectors.toList());
             List<WorkInstructionDTO.View> dtos = workInstructions.stream()
                     .map(WorkInstructionMapper::mapToDto)
                     .collect(Collectors.toList());

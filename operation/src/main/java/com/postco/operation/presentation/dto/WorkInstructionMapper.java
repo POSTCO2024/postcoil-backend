@@ -7,11 +7,11 @@ import com.postco.operation.domain.entity.WorkInstruction;
 import com.postco.operation.domain.entity.WorkInstructionItem;
 import com.postco.operation.domain.entity.WorkStatus;
 import com.postco.operation.domain.repository.MaterialRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.Mapping;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
+@Slf4j
 @Component
 public class WorkInstructionMapper {
     private static final ModelMapper modelMapper = new ModelMapper();
@@ -47,6 +47,8 @@ public class WorkInstructionMapper {
             protected void configure() {
                 map().setMaterialId(source.getMaterialId());
                 map().setTargetId(source.getTargetId());
+                map().setInitialThickness(source.getThickness());
+                map().setInitialGoalWidth(source.getGoalWidth());
                 map().setWorkItemStatus(safeValueOf(source.getWorkStatus()));
                 map().setIsRejected(source.getIsRejected());
                 map().setExpectedItemDuration(source.getExpectedDuration());
@@ -57,6 +59,14 @@ public class WorkInstructionMapper {
             @Override
             protected void configure() {
                 map(source.getId(), destination.getWorkInstructionId());
+            }
+        });
+
+        // WorkInstructionItem -> WorkInstructionItemDTO.View 매핑 추가
+        modelMapper.addMappings(new PropertyMap<WorkInstructionItem, WorkInstructionItemDTO.View>() {
+            @Override
+            protected void configure() {
+                map(source.getMaterial().getId(), destination.getMaterialId()); // material의 id를 materialId로 매핑
             }
         });
     }
@@ -119,6 +129,7 @@ public class WorkInstructionMapper {
                     .map(WorkInstructionMapper::mapToItemDto)
                     .collect(Collectors.toList()));
         }
+        log.info("mapToDto : {}", dto);
         return dto;
     }
 
@@ -135,6 +146,7 @@ public class WorkInstructionMapper {
 
     // WorkInstructionItem 엔티티 -> WorkInstructionItemDTO.View 매핑
     public static WorkInstructionItemDTO.View mapToItemDto(WorkInstructionItem item) {
+        log.info("mapToDto : {}", modelMapper.map(item, WorkInstructionItemDTO.View.class));
         return modelMapper.map(item, WorkInstructionItemDTO.View.class);
     }
 
