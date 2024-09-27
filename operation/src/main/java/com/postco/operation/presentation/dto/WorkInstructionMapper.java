@@ -79,6 +79,14 @@ public class WorkInstructionMapper {
 
             }
         });
+
+        // WorkInstructionItem -> WorkInstructionItemDTO.View 매핑 추가
+        modelMapper.addMappings(new PropertyMap<WorkInstructionItem, WorkInstructionItemDTO.View>() {
+            @Override
+            protected void configure() {
+                map(source.getMaterial().getId(), destination.getMaterialId()); // material의 id를 materialId로 매핑
+            }
+        });
     }
 
     // ScheduleResultDTO.View -> WorkInstructionDTO.Create 매핑
