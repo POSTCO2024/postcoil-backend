@@ -10,6 +10,7 @@ import com.postco.operation.infra.kafka.MaterialsProducer;
 import com.postco.operation.infra.kafka.OrderProducer;
 import com.postco.operation.service.KafkaMessageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.PropertyMap;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class KafkaMessageServiceImpl implements KafkaMessageService {
@@ -34,7 +36,6 @@ public class KafkaMessageServiceImpl implements KafkaMessageService {
         List<Materials> materialsList = entityManager.createQuery(
                         "SELECT m FROM Materials m LEFT JOIN FETCH m.order", Materials.class)
                 .getResultList();
-
         // 특정 규칙 매핑 적용
         PropertyMap<Materials, MaterialDTO.View> propertyMap = new PropertyMap<>() {
             @Override

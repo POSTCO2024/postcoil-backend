@@ -19,6 +19,9 @@ public interface WorkInstructionRepository extends JpaRepository<WorkInstruction
     @Query("SELECT w FROM WorkInstruction w LEFT JOIN FETCH w.items WHERE w.id = :id")
     Optional<WorkInstruction> findByIdWithItems(@Param("id") Long id);
 
-    @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items WHERE w.process = :process")
+    @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items i LEFT JOIN FETCH i.material WHERE w.process = :process")
     List<WorkInstruction> findByProcess(String process);
+
+    @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items i LEFT JOIN FETCH i.material WHERE w.workStatus = 'COMPLETED' AND w.process = :process")
+    List<WorkInstruction> findCompletedWithItems(String process);
 }

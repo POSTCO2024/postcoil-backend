@@ -56,10 +56,10 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     private LocalDateTime endTime; // 종료 작업 시간
 
     @Column(name = "initial_thickness")
-    private double initialThickness;
+    private Double initialThickness;
 
-    @Column(name = "initial_goal_width")
-    private double initialGoalWidth;
+//    @Column(name = "initial_goal_width")
+//    private double initialGoalWidth;
 
     @Override
     public boolean equals(Object o) {
