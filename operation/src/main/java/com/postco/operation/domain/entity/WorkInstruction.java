@@ -15,7 +15,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = "items")
+//@ToString(exclude = "items")
+@ToString
 @Builder
 public class WorkInstruction implements com.postco.core.entity.Entity, Serializable {
     @Id
