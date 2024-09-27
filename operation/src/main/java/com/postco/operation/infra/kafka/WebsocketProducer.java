@@ -18,13 +18,9 @@ public class WebsocketProducer {
     private static final String TOPIC = "operation-websocket-data";
     private final KafkaProducer genericProducer;
 
-    public void sendToControl(String eventType) {
-        ControlClientDTO controlDto = ControlClientDTO.builder()
-                .factoryDashboard(coilSupplyCustom.getTotalSupplyByProcess())
-                .processDashboard(workInstructionCustom.getStatisticsInfo())
-                .build();
-
-        genericProducer.sendData(TOPIC, "control", controlDto);
+    public void sendToControl(String eventType, ControlClientDTO controlDto) {
+        String key = "control:" + eventType + ":" + System.currentTimeMillis();
+        genericProducer.sendData(TOPIC, key , controlDto);
     }
 
     public void sendToSchedule(OrderDTO.View orders) {

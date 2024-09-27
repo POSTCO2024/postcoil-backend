@@ -9,7 +9,6 @@ import com.postco.operation.service.CoilSupplyService;
 import com.postco.operation.service.MaterialUpdateService;
 import com.postco.operation.service.WorkItemService;
 import com.postco.operation.service.impl.SupplyQueueManager;
-import com.postco.operation.service.impl.OperationWebSocketService;
 import com.postco.operation.service.util.WorkSimulationUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +35,7 @@ public class CoilWorkCommandService {
     private final MaterialUpdateService materialUpdateService;
     private final TransactionTemplate transactionTemplate;
     private final SupplyQueueManager supplyQueueManager;
+    private final ClientDashboardService clientDashboardService;
 
     // 작업 지시서에서 보급 요청 시 관련 작업 수행
     // 1) 코일 보급 처리 -> 업데이트
@@ -62,8 +62,13 @@ public class CoilWorkCommandService {
                     CoilSupply coilSupply = result.getT2();
                     String equipmentCode = result.getT3();
                     return supplyQueueManager.addItemsToQueue(equipmentCode, workInstructionId, itemsToQueue)
-                            .then(supplyQueueManager.processSupplyInBackground(equipmentCode, coilSupply,
-                                    itemsToQueue.size(), this::startWorkOnItem))
+                            .doOnSuccess(success -> {
+                                supplyQueueManager.processSupplyInBackground(equipmentCode, coilSupply, itemsToQueue.size(), this::startWorkOnItem)
+                                        .doOnError(error -> log.error("백그라운드 처리 중 오류 발생", error))
+                                        .doOnSuccess(processed -> log.info("백그라운드 처리 완료"))
+                                        .subscribeOn(Schedulers.boundedElastic())
+                                        .subscribe();
+                            })
                             .thenReturn(true);
                 })
                 .onErrorResume(this::handleSupplyRequestError);
@@ -97,6 +102,7 @@ public class CoilWorkCommandService {
                         .map(item -> workItemService.startWorkItem(item.getId())
                                 .flatMap(updatedItem -> {
                                     if (updatedItem != null) {
+                                        clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_STARTED);
                                         return scheduleWorkCompletion(updatedItem)
                                                 .thenReturn(itemId);
                                     }
@@ -126,7 +132,10 @@ public class CoilWorkCommandService {
         return Mono.delay(Duration.ofMillis(presentationDuration))
                 .doOnNext(v -> log.info("작업 완료 지연 종료 - 아이템 ID: {}", itemId))
                 .then(finishWorkUpdates(itemId, materialId))
-                .doOnSuccess(v -> log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId))
+                .doOnSuccess(v -> {
+                    log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId);
+                    clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_COMPLETED);
+                })
                 .doOnError(error -> log.error("작업 완료 처리 실패 - 아이템 ID: {}, 에러: {}", itemId, error.getMessage()));
     }
 

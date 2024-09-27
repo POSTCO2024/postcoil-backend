@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @Builder
@@ -26,7 +25,6 @@ public class ControlClientDTO {
         private int totalGoalCoils;
         private int totalCompleteCoils;
         private int totalScheduledCoils;
-        private LocalDateTime startTime;
     }
 
     @Data
@@ -39,17 +37,17 @@ public class ControlClientDTO {
         private int workTotalCoils;
         private int workScheduledCoils;
         private int workTotalCompleteCoils;
-        private int workStartTime;
-        private Map<String, Integer> nextProc;
-        private Map<String, Integer> currentProgress;
-        private String equipmentStatus;
+        private LocalDateTime workStartTime;
+//        private Map<String, Integer> nextProc;
+//        private Map<String, Integer> currentProgress;
+//        private String equipmentStatus;
 
-        public void addNextProc(String nextProc, int count) {
-            this.nextProc.merge(nextProc, count, Integer::sum);
-        }
-
-        public void addCurrentProgress(String progress, int count) {
-            this.currentProgress.merge(progress, count, Integer::sum);
-        }
+//        public void addNextProc(String nextProc, int count) {
+//            this.nextProc.merge(nextProc, count, Integer::sum);
+//        }
+//
+//        public void addCurrentProgress(String progress, int count) {
+//            this.currentProgress.merge(progress, count, Integer::sum);
+//        }
     }
 }
