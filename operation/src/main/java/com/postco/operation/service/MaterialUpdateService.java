@@ -11,22 +11,17 @@ public interface MaterialUpdateService {
      * @param materialId 재료 ID
      * @param newProgress 새로운 재료 상태
      */
-    void updateMaterialProgress(Long materialId, MaterialProgress newProgress);
+    boolean updateMaterialProgress(Long materialId, MaterialProgress newProgress);
 
+    // 재료 폭, 두께 업데이트
+    boolean reduceThickAndWidth(Long materialId);
 
-    /**
-     * 작업 시작, 종료 관련 메서드
-     */
-    void startWork(Long workItemId);
-    void finishWork(Long workItemId);
+    // 재료 공정 업데이트
+    boolean updateProcess(Long materialId);
 
+    // 야드 업데이트
+    boolean updateYard(Long materialId, String workValue);
 
-    /**
-     * 재료 이송 관련 메서드
-     * 이송 요청 -> 재로 진도 J(이송 중)으로 변경
-     * 종료 상태 확인 -> 재료 진도 D(지시 대기)로 변경
-     *
-     */
-    void requestTransfer(Long materialId);
-    boolean checkTransferCompletion(Long materialId, Duration transferDuration);
+    // 배송 후 업데이트
+    boolean updateAfterDelivery(Long materialId);
 }

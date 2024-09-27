@@ -29,7 +29,6 @@ dependencies {
     // Kafka
     implementation "org.springframework.kafka:spring-kafka:${springKafkaVersion}"
     implementation "org.apache.kafka:kafka-clients:${kafkaVersion}"
-
 }
 
 // prepareKotlinBuildScriptModel 오류 방지

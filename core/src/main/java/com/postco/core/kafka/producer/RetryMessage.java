@@ -7,5 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class RetryMessage {
     private final String topic;
+    private final String key;
     private final String data;
 }

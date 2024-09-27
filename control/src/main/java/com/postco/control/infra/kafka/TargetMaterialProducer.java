@@ -11,7 +11,8 @@ public class TargetMaterialProducer {
     private static final String TOPIC = "control-targetMaterial-data";
     private final KafkaProducer genericProducer;
 
-    public void sendMaterials(TargetMaterialDTO.View materials) {
-        genericProducer.sendData(TOPIC, materials);
+    public void sendMaterials(TargetMaterialDTO.View targetMaterials) {
+        String key = String.valueOf(targetMaterials.getId());
+        genericProducer.sendData(TOPIC, key, targetMaterials);
     }
 }

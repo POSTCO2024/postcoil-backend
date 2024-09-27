@@ -10,7 +10,8 @@ import java.util.List;
 
 @Entity
 @Table(name = "test_sch_plan")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

@@ -19,6 +19,8 @@ volumes:
     driver: local
   redis_data:
     driver: local
+  mysql_data:
+    driver: local
 
 services:
   #MYSQL
@@ -37,7 +39,7 @@ services:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_0900_ai_ci
     volumes:
-      - /var/lib/mysql
+      - mysql_data:/var/lib/mysql
     networks:
       - postcoil-net
 
@@ -58,6 +60,9 @@ services:
       - CONFIG_STORAGE_TOPIC=DEBEZIUM_CONNECT_CONFIGS
       - OFFSET_STORAGE_TOPIC=DEBEZIUM_CONNECT_OFFSETS
       - STATUS_STORAGE_TOPIC=DEBEZIUM_CONNECT_STATUSES
+      - CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR=3
+      - CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR=3
+      - CONNECT_STATUS_STORAGE_REPLICATION_FACTOR=3
     networks:
       - postcoil-net
 
@@ -146,6 +151,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
       KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 6000
+      KAFKA_LOG_CLEANUP_POLICY: compact
     volumes:
       - kafka_data_1:/var/lib/kafka/data
     networks:
@@ -170,6 +176,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
       KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 6000
+      KAFKA_LOG_CLEANUP_POLICY: compact
     volumes:
       - kafka_data_2:/var/lib/kafka/data
     networks:
@@ -194,6 +201,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
       KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 6000
+      KAFKA_LOG_CLEANUP_POLICY: compact
     volumes:
       - kafka_data_3:/var/lib/kafka/data
     networks:

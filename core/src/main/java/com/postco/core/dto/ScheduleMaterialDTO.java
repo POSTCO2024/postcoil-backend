@@ -1,29 +1,37 @@
 package com.postco.core.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.List;
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ScheduleMaterialDTO implements DTO {
+    private Long id;
+    private String rollUnit;
+    private String currProc;
+    private Double temperature;
+    private Double width;
+    private Double thickness;
+    private Long schedulePlanId;
+    private String isScheduled;
+    private int sequence;
+    private String isRejected;
+    private Long expectedDuration;
+    private String workStatus;
 
-public class ScheduleMaterialDTO {
+    // 추가 필드 - maxbort 2024-09-19
+    private double goalWidth;
+    private double goalThickness;
+    private String nextProc;
 
-    @Data
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class View implements DTO {
-        private Long id; // materialId
-        private Long targetId;  // Reference to TargetMaterialDTO
-        private Long scheduleId;
-        private String scheduleNo;
-        private String workItemStatus;
-        private List<Integer> sequence;
-        private String isRejected;
-        private Long expectedItemDuration; // 작업하는데 걸리는 시간
-        private LocalDateTime startTime;
-        private LocalDateTime endTime;
-    }
+    // 추가 필드 - Sohyun Ahn 2024-09-19
+    private String materialNo;
+
+    // 추가 필드 -yerim kim 2024-09-22
+    private Long materialId;
+    private Long targetId;
 }

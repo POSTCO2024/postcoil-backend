@@ -43,9 +43,8 @@ public class Order extends BaseEntity implements com.postco.core.entity.Entity, 
     @Column(name = "order_date")
     private LocalDateTime orderDate;
 
-    private String remarks;
-
     @OneToMany(mappedBy = "order")
+    @Builder.Default
     private List<Materials> materials = new ArrayList<>();
 
     public void addMaterial(Materials material) {

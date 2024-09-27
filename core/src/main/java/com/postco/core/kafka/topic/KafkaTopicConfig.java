@@ -64,4 +64,12 @@ public class KafkaTopicConfig {
                 .replicas(3)
                 .build();
     }
+
+    @Bean
+    public NewTopic getWebsocketTopic() {
+        return TopicBuilder.name("operation-websocket-data")
+                .partitions(3)
+                .replicas(3)
+                .build();
+    }
 }

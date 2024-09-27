@@ -1,9 +1,6 @@
 package com.postco.schedule.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -22,6 +19,10 @@ public class SCHMaterial implements com.postco.core.entity.Entity{
     private Double temperature;
     private Double width;
     private Double thickness;
+
+    // 컬럼 더 추가
+    private Long targetId;
+    private Long materialId;
 
     // 필요 컬럼 추가2 - Sohyun Ahn 2024-09-19
     private String materialNo;

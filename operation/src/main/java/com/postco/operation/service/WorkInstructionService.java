@@ -30,5 +30,5 @@ public interface WorkInstructionService {
     /**
      * 작업지시서 조회
      */
-    Mono<List<WorkInstructionDTO.View>> getWorkInstructions();
+    Mono<List<WorkInstructionDTO.View>> getWorkInstructions(String process, String rollUnit);
 }

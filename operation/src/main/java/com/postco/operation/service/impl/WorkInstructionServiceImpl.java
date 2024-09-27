@@ -3,7 +3,12 @@ package com.postco.operation.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.dto.ScheduleResultDTO;
+import com.postco.operation.domain.entity.CoilSupply;
+import com.postco.operation.domain.entity.MaterialProgress;
 import com.postco.operation.domain.entity.WorkInstruction;
+import com.postco.operation.domain.entity.WorkInstructionItem;
+import com.postco.operation.domain.repository.CoilSupplyRepository;
+import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
 import com.postco.operation.presentation.dto.WorkInstructionMapper;
@@ -15,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -22,8 +28,8 @@ import reactor.util.retry.Retry;
 
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,7 +39,10 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     private final OperationRedisQueryService redisQueryService;
     private final ScheduleServiceClient serviceClient;
     private final WorkInstructionRepository workInstructionRepository;
+    private final MaterialUpdateServiceImpl materialUpdateService;
+    private final MaterialRepository materialRepository;
     private final TransactionTemplate transactionTemplate;
+    private final CoilSupplyRepository coilSupplyRepository;
     private final ObjectMapper objectMapper;
 
     private static final Duration INITIAL_DELAY = Duration.ofSeconds(5);
@@ -43,6 +52,7 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     private final AsyncTaskExecutor taskExecutor;
 
     @KafkaListener(topics = "schedule-confirm-data", groupId = "operation")
+    @Transactional
     public void handleScheduleResultMessage(String message) {
         log.info("[Kafka 수신] 카프카 메시지 수신 성공: {}", message);
         taskExecutor.execute(() -> processMessage(message));
@@ -117,23 +127,36 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     public Mono<Boolean> saveWorkInstructions(List<WorkInstructionDTO.Create> workInstructions) {
         return Mono.fromCallable(() ->
                 transactionTemplate.execute(status -> {
-                    List<WorkInstruction> entities = workInstructions.stream()
-                            .map(WorkInstructionMapper::mapToEntity)
-                            .collect(Collectors.toList());
-                    workInstructionRepository.saveAll(entities);
+                    List<WorkInstruction> savedInstructions = workInstructions.stream()
+                            .map(dto -> WorkInstructionMapper.mapToEntity(dto, materialRepository))
+                            .collect(Collectors.collectingAndThen(Collectors.toList(), workInstructionRepository::saveAll));
+
+                    // 코일 보급 현황 저장
+                    savedInstructions.forEach(instruction -> {
+                        if (coilSupplyRepository.findByWorkInstruction(instruction).isEmpty()) {
+                            CoilSupply coilSupply = new CoilSupply();
+                            coilSupply.setWorkInstruction(instruction);
+                            coilSupply.setTotalCoils(instruction.getTotalQuantity());
+                            coilSupply.setSuppliedCoils(0);
+                            coilSupply.setTotalProgressed(0);
+                            coilSupply.setTotalRejects(0);
+                            coilSupplyRepository.save(coilSupply);
+                        }
+                    });
+
+                    // 재료 상태 E 로 변경
+                    savedInstructions.stream()
+                            .flatMap(instruction -> instruction.getItems().stream())
+                            .map(WorkInstructionItem::getMaterial)
+                            .filter(Objects::nonNull)
+                            .forEach(material -> {
+                                materialUpdateService.updateMaterialProgress(material.getId(), MaterialProgress.E);
+                            });
                     return true;
                 })
         ).subscribeOn(Schedulers.boundedElastic());
     }
 
-    @Override
-    public Mono<List<WorkInstructionDTO.View>> getWorkInstructions() {
-        return Mono.fromCallable(() ->
-                workInstructionRepository.findAll().stream()
-                        .map(WorkInstructionMapper::mapToDTO)
-                        .collect(Collectors.toList())
-        ).subscribeOn(Schedulers.boundedElastic());
-    }
 
     // 랜덤 no 생성 함수 -> 작업지시서의 no 에 넣으면 됨.
     private String generateWorkNo(String processCode, String rollUnit) {
@@ -146,5 +169,20 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
                 .toString();
         String truncatedProcessCode = processCode.length() >= 2 ? processCode.substring(0, 2) : processCode;
         return String.format("W%s%s%s%s", truncatedProcessCode, sequence, randomChars, rollUnit);
+    }
+
+
+    // ============= 조회 부분 (cqrs 패턴에 따라 분리해야함.. 나중에 리팩토링.. )
+    @Override
+    public Mono<List<WorkInstructionDTO.View>> getWorkInstructions(String process, String rollUnit) {
+        return Mono.fromCallable(() -> {
+            log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process, rollUnit);
+            List<WorkInstruction> workInstructions = workInstructionRepository.findByProcessAndRollUnit(process, rollUnit);
+            List<WorkInstructionDTO.View> dtos = workInstructions.stream()
+                    .map(WorkInstructionMapper::mapToDto)
+                    .collect(Collectors.toList());
+            log.info("작업 지시서 조회 완료. 조회된 작업 지시서 수: {}", dtos.size());
+            return dtos;
+        }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
     }
 }

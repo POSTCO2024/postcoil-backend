@@ -41,13 +41,29 @@ public class WorkInstruction implements com.postco.core.entity.Entity, Serializa
     @JsonManagedReference
     private List<WorkInstructionItem> items = new ArrayList<>();
 
-    public void addItem(WorkInstructionItem item) {
-        items.add(item);
-        item.setWorkInstruction(this);
+    // ============= 연관관계 메서드 ============
+    public void updateStatus() {
+        boolean allCompleted = items.stream().allMatch(item -> item.getWorkItemStatus() == WorkStatus.COMPLETED);
+        boolean anyInProgress = items.stream().anyMatch(item -> item.getWorkItemStatus() == WorkStatus.IN_PROGRESS);
+
+        if (allCompleted) {
+            completeInstruction();
+        } else if (anyInProgress) {
+            startInstruction();
+        }
     }
 
-    public void removeItem(WorkInstructionItem item) {
-        items.remove(item);
-        item.setWorkInstruction(null);
+    public void startInstruction() {
+        if (this.workStatus != WorkStatus.IN_PROGRESS) {
+            this.workStatus = WorkStatus.IN_PROGRESS;
+            this.startTime = LocalDateTime.now();
+        }
+    }
+
+    public void completeInstruction() {
+        if (this.workStatus != WorkStatus.COMPLETED) {
+            this.workStatus = WorkStatus.COMPLETED;
+            this.endTime = LocalDateTime.now();
+        }
     }
 }
