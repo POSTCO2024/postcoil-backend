@@ -48,7 +48,7 @@ public class WorkInstructionMapper {
                 map().setMaterialId(source.getMaterialId());
                 map().setTargetId(source.getTargetId());
                 map().setInitialThickness(source.getThickness());
-                map().setInitialGoalWidth(source.getGoalWidth());
+//                map().setInitialGoalWidth(source.getGoalWidth());
                 map().setWorkItemStatus(safeValueOf(source.getWorkStatus()));
                 map().setIsRejected(source.getIsRejected());
                 map().setExpectedItemDuration(source.getExpectedDuration());
@@ -85,6 +85,8 @@ public class WorkInstructionMapper {
             @Override
             protected void configure() {
                 map(source.getMaterial().getId(), destination.getMaterialId()); // material의 id를 materialId로 매핑
+                map(source.getMaterial().getNo(), destination.getMaterialNo());
+                map(source.getInitialThickness(), destination.getInitialThickness());
             }
         });
     }
