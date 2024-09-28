@@ -2,12 +2,10 @@ package com.postco.schedule.service.impl;
 
 import com.postco.schedule.domain.SCHConfirm;
 import com.postco.schedule.domain.SCHMaterial;
-import com.postco.schedule.domain.WorkStatus;
 import com.postco.schedule.domain.repository.SCHConfirmRepository;
 import com.postco.schedule.domain.repository.SCHMaterialRepository;
 import com.postco.schedule.infra.kafka.ScheduleProducer;
 import com.postco.schedule.presentation.dto.SCHConfirmDTO;
-import com.postco.schedule.presentation.SCHForm;
 import com.postco.schedule.presentation.dto.SCHMaterialDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,51 +36,51 @@ public class ScheduleConfirmServiceImpl {
                 .collect(Collectors.toList());
     }
 
-    // IN_PROGRESS 상태인 항목 가져오기
-    public List<SCHConfirm> getInProgressSchedules(String processCode) {
-        return schConfirmRepository.findByWorkStatusAndProcess(WorkStatus.IN_PROGRESS, processCode);
-    }
+//    // IN_PROGRESS 상태인 항목 가져오기
+//    public List<SCHConfirm> getInProgressSchedules(String processCode) {
+//        return schConfirmRepository.findByWorkStatusAndProcess(WorkStatus.IN_PROGRESS, processCode);
+//    }
+//
+//    // PENDING 상태인 항목을 confirmDate로 정렬하여 가져오기
+//    public List<SCHConfirm> getPendingSchedulesByConfirmDate(String processCode) {
+//        return schConfirmRepository.findByWorkStatusAndProcessOrderByConfirmDateAsc(WorkStatus.PENDING, processCode);
+//    }
 
-    // PENDING 상태인 항목을 confirmDate로 정렬하여 가져오기
-    public List<SCHConfirm> getPendingSchedulesByConfirmDate(String processCode) {
-        return schConfirmRepository.findByWorkStatusAndProcessOrderByConfirmDateAsc(WorkStatus.PENDING, processCode);
-    }
+//    public List<SCHConfirmDTO.View> getAllConfirmedSchedulesBetweenDates(String startDate, String endDate, String processCode) {
+//        // 문자열을 LocalDateTime으로 변환
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//        LocalDateTime startDateTime = LocalDate.parse(startDate, formatter).atStartOfDay();
+//        LocalDateTime endDateTime = LocalDate.parse(endDate, formatter).atTime(23, 59, 59);
+//
+//        List<SCHConfirm> confirmedSchedules = schConfirmRepository.findByConfirmDateBetweenAndProcess(startDateTime, endDateTime, processCode);
+//        ModelMapper modelMapper = new ModelMapper();
+//
+//        return confirmedSchedules.stream()
+//                .map(confirm -> modelMapper.map(confirm, SCHConfirmDTO.View.class))
+//                .collect(Collectors.toList());
+//
+//    }
 
-    public List<SCHConfirmDTO.View> getAllConfirmedSchedulesBetweenDates(String startDate, String endDate, String processCode) {
-        // 문자열을 LocalDateTime으로 변환
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDateTime startDateTime = LocalDate.parse(startDate, formatter).atStartOfDay();
-        LocalDateTime endDateTime = LocalDate.parse(endDate, formatter).atTime(23, 59, 59);
-
-        List<SCHConfirm> confirmedSchedules = schConfirmRepository.findByConfirmDateBetweenAndProcess(startDateTime, endDateTime, processCode);
-        ModelMapper modelMapper = new ModelMapper();
-
-        return confirmedSchedules.stream()
-                .map(confirm -> modelMapper.map(confirm, SCHConfirmDTO.View.class))
-                .collect(Collectors.toList());
-
-    }
-
-    // 스케줄 확정 결과 -> id들 조회, 현재 진행중인 스케줄부터 예정된 스케줄 id list 반환
-    public List<SCHForm.InfoWithWorkStatus> getAllConfirmedScheduleIdsFromInProgressToPending(String processCode) {
-        // IN_PROGRESS 상태와 PENDING 상태의 스케줄을 모두 가져오기
-        List<SCHConfirm> inProgressSchedules = getInProgressSchedules(processCode);
-        List<SCHConfirm> pendingSchedules = getPendingSchedulesByConfirmDate(processCode);
-
-        // 두 리스트를 하나로 합치기
-        List<SCHForm.InfoWithWorkStatus> allConfirmedSchedules = new ArrayList<>();
-        // IN_PROGRESS 스케줄을 "IN_PROGRESS" 상태로 변환하여 리스트에 추가
-        allConfirmedSchedules.addAll(inProgressSchedules.stream()
-                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), "IN_PROGRESS"))
-                .collect(Collectors.toList()));
-
-        // PENDING 스케줄을 "PENDING" 상태로 변환하여 리스트에 추가
-        allConfirmedSchedules.addAll(pendingSchedules.stream()
-                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), "PENDING"))
-                .collect(Collectors.toList()));
-
-        return allConfirmedSchedules;
-    }
+//    // 스케줄 확정 결과 -> id들 조회, 현재 진행중인 스케줄부터 예정된 스케줄 id list 반환
+//    public List<SCHForm.InfoWithWorkStatus> getAllConfirmedScheduleIdsFromInProgressToPending(String processCode) {
+//        // IN_PROGRESS 상태와 PENDING 상태의 스케줄을 모두 가져오기
+//        List<SCHConfirm> inProgressSchedules = getInProgressSchedules(processCode);
+//        List<SCHConfirm> pendingSchedules = getPendingSchedulesByConfirmDate(processCode);
+//
+//        // 두 리스트를 하나로 합치기
+//        List<SCHForm.InfoWithWorkStatus> allConfirmedSchedules = new ArrayList<>();
+//        // IN_PROGRESS 스케줄을 "IN_PROGRESS" 상태로 변환하여 리스트에 추가
+//        allConfirmedSchedules.addAll(inProgressSchedules.stream()
+//                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), "IN_PROGRESS"))
+//                .collect(Collectors.toList()));
+//
+//        // PENDING 스케줄을 "PENDING" 상태로 변환하여 리스트에 추가
+//        allConfirmedSchedules.addAll(pendingSchedules.stream()
+//                .map(confirm -> new SCHForm.InfoWithWorkStatus(confirm.getId(), confirm.getScheduleNo(), "PENDING"))
+//                .collect(Collectors.toList()));
+//
+//        return allConfirmedSchedules;
+//    }
 
     public List<SCHMaterialDTO> getScheduleMaterialsByConfirmId(Long confirmId) {
         List<SCHMaterial> schMaterials = schMaterialRepository.findBySchConfirmId(confirmId);

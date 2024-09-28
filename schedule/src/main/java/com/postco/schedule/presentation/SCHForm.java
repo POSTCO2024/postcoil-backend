@@ -31,6 +31,7 @@ public class SCHForm {
     public static class Info  {
         private Long id;
         private String scheduleNo;
+        private Long scExpectedDuration;    // 추가 Sohyun Ahn 240925, 스케쥴의 예상 작업 시간 - 그래프 사이즈 width 받으려고
     }
 
     @Data
@@ -39,6 +40,7 @@ public class SCHForm {
     public static class InfoWithWorkStatus  {
         private Long id;
         private String scheduleNo;
+        private Long scExpectedDuration;
         private String workStatus;
     }
 }
