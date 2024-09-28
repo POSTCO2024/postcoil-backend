@@ -193,7 +193,7 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
         return Mono.fromCallable(() -> {
             log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
             List<WorkInstruction> workInstructions = workInstructionRepository.findByProcess(process);
-            log.info("작업지시문 : {}", workInstructions.get(0).getItems().get(0).getMaterial());
+            log.info("작업지시문 : {}", workInstructions.get(0));
             List<WorkInstructionDTO.View> dtos = workInstructions.stream()
                     .map(WorkInstructionMapper::mapToDto)
                     .collect(Collectors.toList());
@@ -208,7 +208,6 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
         return Mono.fromCallable(() -> {
             log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
             List<WorkInstruction> workInstructions = workInstructionRepository.findCompletedWithItems(process);
-            log.info("작업지시문 : {}", workInstructions.get(0).getItems().get(0).getMaterial());
             List<WorkInstructionDTO.View> dtos = workInstructions.stream()
                     .map(WorkInstructionMapper::mapToDto)
                     .collect(Collectors.toList());

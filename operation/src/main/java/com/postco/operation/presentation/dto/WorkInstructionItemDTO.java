@@ -25,7 +25,7 @@ public class WorkInstructionItemDTO {
         private String isRejected;
         private Long expectedItemDuration;
         private Double initialThickness;
-//        private double initialGoalWidth;
+        private Double initialGoalWidth;
 
     }
 
@@ -48,7 +48,7 @@ public class WorkInstructionItemDTO {
         @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         private LocalDateTime endTime;
         private Double initialThickness;
-//        private double initialGoalWidth;
+        private Double initialGoalWidth;
     }
 
     @Data

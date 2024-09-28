@@ -48,7 +48,7 @@ public class WorkInstructionMapper {
                 map().setMaterialId(source.getMaterialId());
                 map().setTargetId(source.getTargetId());
                 map().setInitialThickness(source.getThickness());
-//                map().setInitialGoalWidth(source.getGoalWidth());
+                map().setInitialGoalWidth(source.getGoalWidth());
                 map().setWorkItemStatus(safeValueOf(source.getWorkStatus()));
                 map().setIsRejected(source.getIsRejected());
                 map().setExpectedItemDuration(source.getExpectedDuration());
@@ -59,6 +59,14 @@ public class WorkInstructionMapper {
             @Override
             protected void configure() {
                 map(source.getId(), destination.getWorkInstructionId());
+                map(source.getWorkStatus(), destination.getSchStatus());
+            }
+        });
+
+        modelMapper.addMappings(new PropertyMap<WorkInstruction, WorkInstructionDTO.View>() {
+            @Override
+            protected void configure() {
+                map(source.getWorkStatus(), destination.getSchStatus());
             }
         });
 
@@ -68,7 +76,7 @@ public class WorkInstructionMapper {
             protected void configure() {
                 map(source.getMaterial().getId(), destination.getMaterialId()); // material의 id를 materialId로 매핑
                 map(source.getMaterial().getNo(), destination.getMaterialNo());
-                map(source.getInitialThickness(), destination.getInitialThickness());
+
             }
         });
     }
@@ -77,6 +85,7 @@ public class WorkInstructionMapper {
     public static WorkInstructionDTO.Create mapToWorkInstructionDTO(ScheduleResultDTO.View scheduleResult, String workNo) {
         WorkInstructionDTO.Create dto = modelMapper.map(scheduleResult, WorkInstructionDTO.Create.class);
         dto.setWorkNo(workNo);
+        log.info("스케줄의 아이템 : {]", scheduleResult.getMaterials());
         dto.setItems(scheduleResult.getMaterials() != null
                 ? mapToWorkInstructionItemDTOs(scheduleResult.getMaterials())
                 : null);

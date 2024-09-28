@@ -7,10 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -18,11 +15,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/work-instructions")
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"http://localhost:4000", "http://localhost:8081"})
 @Slf4j
 public class WorkInstructionController {
     private final WorkInstructionService workInstructionService;
 
-    @GetMapping("operation")
+    @GetMapping("/uncompletedInstructions")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructions(
             @RequestParam String process) {
         log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
@@ -31,7 +29,7 @@ public class WorkInstructionController {
                 .onErrorResume(e -> handleError("작업 지시서 조회", e));
     }
 
-    @GetMapping("getAllRecord")
+    @GetMapping("/completedInstructions")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructionsExceptFinished(
             @RequestParam String process) {
         log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);

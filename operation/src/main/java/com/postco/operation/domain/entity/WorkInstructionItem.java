@@ -58,8 +58,8 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     @Column(name = "initial_thickness")
     private Double initialThickness;
 
-//    @Column(name = "initial_goal_width")
-//    private double initialGoalWidth;
+    @Column(name = "initial_goal_width")
+    private Double initialGoalWidth;
 
     @Override
     public boolean equals(Object o) {
