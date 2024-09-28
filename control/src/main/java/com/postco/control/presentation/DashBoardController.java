@@ -148,5 +148,27 @@ public class DashBoardController {
                                         .build())));
     }
 
+    /**
+     * 공정 별 롤단위 비율
+     *
+     */
+    @GetMapping("/rollUnit")
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.RollUnitCount>>> getRollUnit(@RequestParam String currProc) {
+        return dashBoardMaterialService.getRollUnitCountByCurrProc(currProc)
+                .map(rollUnitCount -> ResponseEntity.ok(
+                        ApiResponseDTO.<Fc004aDTO.RollUnitCount>builder()
+                                .status(HttpStatus.OK.value())
+                                .resultMsg("롤 단위 카운트 조회 성공")
+                                .result(rollUnitCount) // 롤 단위 카운트 결과를 설정
+                                .build()))
+                .doOnError(e -> log.error("롤 단위 카운트 조회 중 오류 발생", e))
+                .onErrorResume(e -> Mono.just(
+                        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(ApiResponseDTO.<Fc004aDTO.RollUnitCount>builder()
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                        .resultMsg("롤 단위 카운트 조회 중 오류 발생")
+                                        .build())));
+    }
+
 }
 

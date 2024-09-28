@@ -22,7 +22,7 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     // materialId로 작업대상재 조회
     Optional<TargetMaterial> findByMaterialId(Long materialId);
 
-    // 정상재만 가져오기
+    // 작업 대상재 조회
     List<TargetMaterial> findByIsError(String isError);
 
     // 페이징된 정상재
@@ -49,5 +49,9 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     // 품종 & 재료(폭, 두께)
     @Query("SELECT tm.id FROM TargetMaterial tm WHERE tm.isError = 'N'")
     List<Long> findNormalMaterialIds();
+
+    // 롤 단위
+    @Query("SELECT tm.rollUnitName, COUNT(tm) FROM TargetMaterial tm WHERE tm.id IN :materialIds AND tm.isError = 'N' GROUP BY tm.rollUnitName")
+    List<Object[]> countByRollUnitName(@Param("materialIds") List<Long> materialIds);
 }
 

@@ -71,4 +71,14 @@ public class Fc004aDTO {
         private Map<Integer, Long> widthDistribution; // 폭 분포
         private Map<Double, Long> thicknessDistribution; // 두께 분포
     }
+
+    // 롤 단위
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @ToString
+    public static class RollUnitCount implements DTO {
+        private long ACount;
+        private long BCount;
+    }
 }
