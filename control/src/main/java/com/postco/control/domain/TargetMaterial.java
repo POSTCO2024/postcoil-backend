@@ -54,7 +54,7 @@ public class TargetMaterial implements com.postco.core.entity.Entity, Serializab
     private String rollUnitName;
 
     @Column(name = "is_error", nullable = false)
-    private String isError = "N";
+    private String isError;
 
     @Enumerated(EnumType.STRING)
     private ErrorType errorType;   // 에러 타입 종류

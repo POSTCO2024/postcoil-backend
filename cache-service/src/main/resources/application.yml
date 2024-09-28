@@ -5,6 +5,10 @@ spring:
 ---
 spring:
   profiles:
+    active: prod
+---
+spring:
+  profiles:
     active: local
 
 server:

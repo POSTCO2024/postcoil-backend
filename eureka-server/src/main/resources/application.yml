@@ -1,5 +1,12 @@
 spring:
   application:
     name: eureka-server
+
+---
+spring:
+  profiles:
+    active: prod
+---
+spring:
   profiles:
     active: local
