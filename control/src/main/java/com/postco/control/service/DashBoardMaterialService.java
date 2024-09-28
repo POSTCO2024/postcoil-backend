@@ -82,7 +82,8 @@ public class DashBoardMaterialService {
                     return calculator.calculate(filteredMaterials);
                 });
     }
-
+    
+    // 롤 단위 비율
     public Mono<Fc004aDTO.RollUnitCount> getRollUnitCountByCurrProc(String currProc) {
         return controlRedisQueryService.getRedisData()
                 .flatMap(container -> {

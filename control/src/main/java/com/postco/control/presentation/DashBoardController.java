@@ -136,8 +136,8 @@ public class DashBoardController {
     }
 
     /**
-     * 공정 별 롤단위 비율
-     *
+     * 롤 단위 비율
+     * @return 공정 별 롤 단위 개수
      */
     @GetMapping("/rollUnit")
     public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.RollUnitCount>>> getRollUnit(@RequestParam String currProc) {
