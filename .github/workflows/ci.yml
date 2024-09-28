@@ -3,10 +3,11 @@ name: CI
 on:
   push:
     branches:
-      - '*'
+      - 'feat/cicd/yerimee'
+      - 'main'
   pull_request:
     branches:
-      - '*'
+      - 'main'
 
 jobs:
   build:
@@ -25,16 +26,16 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build -Pprofile=prod
 
       - name: Run tests
-        run: ./gradlew test
+        run: ./gradlew test -Pprofile=prod
 
       - name: Generate deployment package
         run: |
           mkdir -p deployment
           cp build/libs/*.jar deployment/application.jar
-          cp Procfile deployment/
+          echo "java -Dspring.profiles.active=prod -jar application.jar" > deployment/Procfile
           cp -r .ebextensions deployment/
           cd deployment && zip -r deployment-package.zip .
 
