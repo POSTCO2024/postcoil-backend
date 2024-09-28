@@ -111,12 +111,4 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
             this.isRejected = "Y";
         }
     }
-
-    // 리젝트된 코일 처리 -> Y 로 변경
-    public void updateReject() {
-        if(this.workItemStatus == WorkStatus.PENDING) {
-            // 진행중이 아닌 코일에 대해서만 가능
-            this.isRejected = "Y";
-        }
-    }
 }
