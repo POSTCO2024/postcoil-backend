@@ -75,19 +75,6 @@ public class DashBoardController {
     }
 
 
-
-    // 품종
-    @GetMapping("/coil_type")
-    public Mono<Map<String, Long>> getCoilTypeCount(@RequestParam String currProc) {
-        return dashBoardOrderService.getCoilTypesByCurrProc(currProc);
-    }
-
-    // 고객사
-    @GetMapping("/customer_name")
-    public Mono<Map<String, Long>> getCustomerCount(@RequestParam String currProc) {
-        return dashBoardOrderService.getCustomerCountByProc(currProc);
-    }
-
     /**
      * 품종/고객사
      * @return 공정 별 품종 및 고객사 개수

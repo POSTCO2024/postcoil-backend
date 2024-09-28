@@ -15,10 +15,6 @@ import java.util.Optional;
 public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, Long> {
     Optional<TargetMaterial> findByMaterialIdAndMaterialNo(Long materialId, String materialNo);
 
-  
-    // 공정 별 작업대상재/에러재 조회
-    // List<TargetMaterial> findByIsErrorAndCriteria(String isError, String criteria);
-
     // materialId로 작업대상재 조회
     Optional<TargetMaterial> findByMaterialId(Long materialId);
 
