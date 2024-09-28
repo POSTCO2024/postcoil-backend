@@ -35,10 +35,10 @@ public interface WorkInstructionService {
     /**
      * 공정코드로만 작업지시서 조회
      */
-    public Mono<List<WorkInstructionDTO.View>> getWorkInstructionsAllByProcess(String process);
+    public Mono<List<WorkInstructionDTO.View>> getUncompletedWorkInstructions(String process);
 
     /**
      * 끝나지 않은 작업지시서 조회
      */
-    public Mono<List<WorkInstructionDTO.View>> getWorkCompletedInstructions(String process);
+    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process);
 }

@@ -20,7 +20,7 @@ public interface WorkInstructionRepository extends JpaRepository<WorkInstruction
     Optional<WorkInstruction> findByIdWithItems(@Param("id") Long id);
 
     @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items i LEFT JOIN FETCH i.material WHERE w.process = :process and w.workStatus != 'COMPLETED'")
-    List<WorkInstruction> findByProcess(String process);
+    List<WorkInstruction> findUncompletedWithItems(String process);
 
     @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items i LEFT JOIN FETCH i.material WHERE w.workStatus = 'COMPLETED' AND w.process = :process")
     List<WorkInstruction> findCompletedWithItems(String process);

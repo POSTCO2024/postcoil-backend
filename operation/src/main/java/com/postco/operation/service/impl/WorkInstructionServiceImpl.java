@@ -174,7 +174,6 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
 
     // ============= 조회 부분 (cqrs 패턴에 따라 분리해야함.. 나중에 리팩토링.. )
     @Override
-    @Transactional
     public Mono<List<WorkInstructionDTO.View>> getWorkInstructions(String process, String rollUnit) {
         return Mono.fromCallable(() -> {
             log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process, rollUnit);
@@ -189,10 +188,10 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     }
 
     @Override
-    public Mono<List<WorkInstructionDTO.View>> getWorkInstructionsAllByProcess(String process) {
+    public Mono<List<WorkInstructionDTO.View>> getUncompletedWorkInstructions(String process) {
         return Mono.fromCallable(() -> {
             log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
-            List<WorkInstruction> workInstructions = workInstructionRepository.findByProcess(process);
+            List<WorkInstruction> workInstructions = workInstructionRepository.findUncompletedWithItems(process);
             log.info("작업지시문 : {}", workInstructions.get(0));
             List<WorkInstructionDTO.View> dtos = workInstructions.stream()
                     .map(WorkInstructionMapper::mapToDto)
@@ -204,7 +203,7 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     }
 
     @Override
-    public Mono<List<WorkInstructionDTO.View>> getWorkCompletedInstructions(String process) {
+    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process) {
         return Mono.fromCallable(() -> {
             log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
             List<WorkInstruction> workInstructions = workInstructionRepository.findCompletedWithItems(process);
