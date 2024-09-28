@@ -1,0 +1,42 @@
+name: Gateway-Eureka CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-package
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 cp deployment-package.zip s3://${{ secrets.EB_BUCKET }}/gateway-eureka-${{ github.sha }}.zip
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name "postco-app" \
+            --version-label "ver-${{ github.sha }}" \
+            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="gateway-eureka-${{ github.sha }}.zip"
+          
+          aws elasticbeanstalk update-environment \
+            --environment-name "gateway-eureka-env" \
+            --version-label "ver-${{ github.sha }}"
