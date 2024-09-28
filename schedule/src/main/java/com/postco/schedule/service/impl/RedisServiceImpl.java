@@ -43,11 +43,11 @@ public class RedisServiceImpl {
     }
 
     // Redis에서 미편성된 코일 삭제
-    public Mono<Void> deleteUnassignedCoils(List<String> unassignedCoilIds) {
-        return Flux.fromIterable(unassignedCoilIds)
-                .flatMap(id -> schMaterialRedisService.deleteData(id)
-                        .doOnSuccess(result -> log.info("미편성된 코일 삭제 완료 - ID: {}", id))
-                        .doOnError(error -> log.error("Redis 삭제 중 오류 발생 - ID: {}: {}", id, error.getMessage())))
+    public Mono<Void> deleteUnassignedCoils(List<SCHMaterial> unassignedCoils) {
+        return Flux.fromIterable(unassignedCoils)
+                .flatMap(coil -> schMaterialRedisService.deleteData(coil.getId().toString())
+                        .doOnSuccess(result -> log.info("미편성된 코일 삭제 완료 - ID: {}", coil.getId().toString()))
+                        .doOnError(error -> log.error("Redis 삭제 중 오류 발생 - ID: {}: {}", coil.getId().toString(), error.getMessage())))
                 .then();
     }
 }
