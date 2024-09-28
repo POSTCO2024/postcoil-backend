@@ -31,6 +31,9 @@ public class SchedulingServiceImplRefac {
         List<SCHMaterial> unassignedCoils = redisService.fetchUnassignedCoils(processCode, rollUnit);
         materials.addAll(unassignedCoils);
 
+        // 불러온 미편성 코일 삭제
+        redisService.deleteUnassignedCoils(unassignedCoils).subscribe();
+
         // ProcessCode와 RollUnit에 해당하는 제약조건 및 우선순위 조회
         List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
         List<ConstraintInsertionDTO> constraintInsertionList = constraintInsertionService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
@@ -144,6 +147,9 @@ public class SchedulingServiceImplRefac {
     // 미편성 코일을 다시 스케줄에 삽입
     private List<SCHMaterial> insertUnassignedCoilsBackToSchedule(List<SCHMaterial> scheduledCoils, List<SCHMaterial> unassignedCoils,
                                                                   List<ConstraintInsertionDTO> constraintInsertionList) {
+        // 불러온 미편성 코일 삭제
+        redisService.deleteUnassignedCoils(unassignedCoils).subscribe();
+
         List<SCHMaterial> finalCoilList = new ArrayList<>(scheduledCoils);
         List<SCHMaterial> remainingUnassignedCoils = new ArrayList<>();
         Double flagWidth = 50.0;
