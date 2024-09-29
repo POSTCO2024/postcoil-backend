@@ -24,9 +24,9 @@ jobs:
       - name: Build Gateway
         run: |
           cd gateway
-          ../gradlew clean build -x test -Dspring.profiles.active=prod
+          ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p deployment
-          cp build/libs/*.jar deployment/application.jar
+          find build/libs -name '*.jar' -exec cp {} deployment/application.jar \;
           echo "java -Dspring.profiles.active=prod -jar application.jar" > deployment/Procfile
           cp -r ../.ebextensions deployment/
           cd deployment && zip -r gateway-package.zip .
@@ -34,9 +34,9 @@ jobs:
       - name: Build Eureka
         run: |
           cd eureka-server
-          ../gradlew clean build -x test -Dspring.profiles.active=prod
+          ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p deployment
-          cp build/libs/*.jar deployment/application.jar
+          find build/libs -name '*.jar' -exec cp {} deployment/application.jar \;
           echo "java -Dspring.profiles.active=prod -jar application.jar" > deployment/Procfile
           cp -r ../.ebextensions deployment/
           cd deployment && zip -r eureka-package.zip .
@@ -45,8 +45,8 @@ jobs:
         run: |
           for service in control operation schedule cache-service; do
             cd $service
-            ../gradlew clean build -x test -Dspring.profiles.active=prod
-            cp build/libs/*.jar application.jar
+            ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
+            find build/libs -name '*.jar' -exec cp {} application.jar \;
             docker build -t $service:${GITHUB_SHA::7} .
             cd ..
           done
