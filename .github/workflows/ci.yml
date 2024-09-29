@@ -43,18 +43,13 @@ jobs:
 
       - name: Build business apps and create Docker images
         run: |
-          for service in control operation schedule; do
+          for service in control operation schedule cache-service; do
             cd $service
             ../gradlew clean build -x test -Dspring.profiles.active=prod
+            cp build/libs/*.jar application.jar
             docker build -t $service:${GITHUB_SHA::7} .
             cd ..
           done
-
-      - name: Create Redis Docker image
-        run: |
-          cd cache-service
-          docker build -t redis:${GITHUB_SHA::7} .
-          cd ..
 
       - name: Upload Gateway artifact
         uses: actions/upload-artifact@v4
@@ -70,7 +65,7 @@ jobs:
 
       - name: Save Docker images
         run: |
-          docker save redis:${GITHUB_SHA::7} control:${GITHUB_SHA::7} operation:${GITHUB_SHA::7} schedule:${GITHUB_SHA::7} > docker-images.tar
+          docker save control:${GITHUB_SHA::7} operation:${GITHUB_SHA::7} schedule:${GITHUB_SHA::7} cache-service:${GITHUB_SHA::7} > docker-images.tar
 
       - name: Upload Docker images artifact
         uses: actions/upload-artifact@v4
