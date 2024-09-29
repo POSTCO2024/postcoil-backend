@@ -7,34 +7,33 @@ on:
       - completed
 
 jobs:
-
   deploy:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Download artifacts
+      - name: Download Gateway artifact
         uses: actions/download-artifact@v4
         with:
           name: gateway-package
-          path: gateway
+          path: .
 
-      - name: Download artifacts
+      - name: Download Eureka artifact
         uses: actions/download-artifact@v4
         with:
           name: eureka-package
-          path: eureka
+          path: .
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Upload to S3
         run: |
-          aws s3 cp gateway/gateway-package.zip s3://${{ secrets.EB_BUCKET }}/gateway-package.zip
-          aws s3 cp eureka/eureka-package.zip s3://${{ secrets.EB_BUCKET }}/eureka-package.zip
+          aws s3 cp gateway-package.zip s3://${{ secrets.EB_BUCKET }}/gateway-package.zip
+          aws s3 cp eureka-package.zip s3://${{ secrets.EB_BUCKET }}/eureka-package.zip
 
       - name: Deploy to Elastic Beanstalk
         run: |

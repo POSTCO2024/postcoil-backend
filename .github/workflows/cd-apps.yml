@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Download Docker images
+      - name: Download Docker images artifact
         uses: actions/download-artifact@v4
         with:
           name: docker-images
@@ -31,7 +31,7 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Push images to ECR
+      - name: Push Docker images to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
@@ -41,10 +41,10 @@ jobs:
             docker push $ECR_REGISTRY/$ECR_REPOSITORY:$service-${GITHUB_SHA::7}
           done
 
-      - name: Deploy to ECS
+      - name: Deploy services to ECS
         run: |
           for service in control operation schedule; do
             aws ecs update-service --cluster postco-cluster --service $service-service --force-new-deployment
           done
-          
+
           aws ecs update-service --cluster postco-cluster --service redis-service --force-new-deployment
