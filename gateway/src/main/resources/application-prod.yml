@@ -1,9 +1,9 @@
 spring:
+  application:
+    name: eureka-server
   config:
     activate:
       on-profile: prod
-  application:
-    name: gateway
 
 server:
   port: ${GATEWAY_PORT:80}
@@ -20,6 +20,7 @@ eureka:
     hostname: ${EUREKA_INSTANCE_HOSTNAME}
     prefer-ip-address: false
 
+---
 spring:
   cloud:
     gateway:
