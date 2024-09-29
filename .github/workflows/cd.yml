@@ -34,4 +34,7 @@ jobs:
             --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eb-package-${{ github.sha }}.zip"
           aws elasticbeanstalk update-environment \
             --environment-name gateway-eureka-redis-env \
-            --version-label eb-package-${{ github.sha }}
+            --version-label eb-package-${{ github.sha }} \
+            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=GATEWAY_PORT,Value=${{ secrets.GATEWAY_PORT }} \
+            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=EUREKA_INSTANCE_HOSTNAME,Value=${{ secrets.EUREKA_INSTANCE_HOSTNAME }} \
+            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=EUREKA_PORT,Value=${{ secrets.EUREKA_PORT }}
