@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [ 'main' ]
+  pull_request:
+    branches: [ 'main' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'corretto'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Gateway
+        run: |
+          cd gateway
+          ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
+          mkdir -p deployment
+          find build/libs -name '*.jar' -exec cp {} deployment/application.jar \;
+          echo "java -Dspring.profiles.active=prod -jar application.jar" > deployment/Procfile
+          cp -r ../.ebextensions deployment/
+          cd deployment && zip -r gateway-package.zip .
+
+      - name: Build Eureka
+        run: |
+          cd eureka-server
+          ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
+          mkdir -p deployment
+          find build/libs -name '*.jar' -exec cp {} deployment/application.jar \;
+          echo "java -Dspring.profiles.active=prod -jar application.jar" > deployment/Procfile
+          cp -r ../.ebextensions deployment/
+          cd deployment && zip -r eureka-package.zip .
+
+      - name: Build business apps and create Docker images
+        run: |
+          for service in control operation schedule cache-service; do
+            cd $service
+            ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
+            find build/libs -name '*.jar' -exec cp {} application.jar \;
+            docker build -t $service:${GITHUB_SHA::7} .
+            cd ..
+          done
+
+      - name: Upload Gateway artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gateway-package
+          path: gateway/deployment/gateway-package.zip
+
+      - name: Upload Eureka artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eureka-package
+          path: eureka-server/deployment/eureka-package.zip
+
+      - name: Save Docker images
+        run: |
+          docker save control:${GITHUB_SHA::7} operation:${GITHUB_SHA::7} schedule:${GITHUB_SHA::7} cache-service:${GITHUB_SHA::7} > docker-images.tar
+
+      - name: Upload Docker images artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: docker-images.tar

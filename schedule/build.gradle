@@ -44,7 +44,7 @@ openapi3 {
     description = "API Documentation for ${project.name} with Spring Rest Docs and Swagger UI"
     version = "${project.version}"
     format = "yaml"
-    outputDirectory = 'src/main/resources/static/docs'
+    outputDirectory = file("$buildDir/resources/main/static/docs")
 }
 
 def querydslDir = "$buildDir/generated/querydsl"

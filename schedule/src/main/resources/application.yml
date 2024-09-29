@@ -8,6 +8,10 @@ feature-flags:
     enabled: false  # 카프카 비활성화
 
 ---
+spring:
+  profiles:
+    active: prod
+---
 # 로컬 프로필 설정
 spring:
   profiles:

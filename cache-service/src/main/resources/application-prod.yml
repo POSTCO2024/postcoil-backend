@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: redis-service
+  profiles:
+    active: prod
+
+  redis:
+    host: postco-redis-cluster.xc9lbq.0001.apn2.cache.amazonaws.com
+    port: 6379
+    lettuce:
+      pool:
+        max-active: 8  # 최대 활성 커넥션 수
+        max-idle: 8     # 최대 유휴 커넥션 수
+        min-idle: 0     # 최소 유휴 커넥션 수
+      timeout: 3000  # 타임아웃 (밀리초 단위)
+    ssl: false  # SSL이 비활성화된 상태
+
+logging:
+  level:
+    root: INFO

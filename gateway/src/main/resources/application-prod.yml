@@ -1,0 +1,116 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  application:
+    name: gateway
+
+server:
+  port: ${GATEWAY_PORT:80}
+
+eureka:
+  client:
+    healthcheck:
+      enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_INSTANCE_HOSTNAME}:${EUREKA_PORT:8761}/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME}
+    prefer-ip-address: false
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:6050"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - name: GlobalFilter
+          args:
+            baseMessage: Spring Cloud Gateway Global Filter
+            preLogger: true
+            postLogger: true
+      routes:
+        - id: operation
+          uri: lb://OPERATION
+          predicates:
+            - Path=/operation/**
+          filters:
+            - StripPrefix=1
+            - name: CustomFilter
+              args:
+                baseMessage: Spring Cloud Gateway Custom Filter
+                preLogger: true
+                postLogger: true
+        - id: control
+          uri: lb://CONTROL
+          predicates:
+            - Path=/control/**
+          filters:
+            - StripPrefix=1
+            - name: CustomFilter
+              args:
+                baseMessage: Spring Cloud Gateway Custom Filter
+                preLogger: true
+                postLogger: true
+        - id: schedule
+          uri: lb://SCHEDULE
+          predicates:
+            - Path=/schedule/**
+          filters:
+            - StripPrefix=1
+            - name: CustomFilter
+              args:
+                baseMessage: Spring Cloud Gateway Custom Filter
+                preLogger: true
+                postLogger: true
+        - id: operation-api-docs
+          uri: lb://OPERATION
+          predicates:
+            - Path=/v3/api-docs/operation
+          filters:
+            - RewritePath=/v3/api-docs/operation, /v3/api-docs
+        - id: control-api-docs
+          uri: lb://CONTROL
+          predicates:
+            - Path=/v3/api-docs/control
+          filters:
+            - RewritePath=/v3/api-docs/control, /v3/api-docs
+        - id: schedule-api-docs
+          uri: lb://SCHEDULE
+          predicates:
+            - Path=/v3/api-docs/schedule
+          filters:
+            - RewritePath=/v3/api-docs/schedule, /v3/api-docs
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: control
+        url: /v3/api-docs/control
+      - name: operation
+        url: /v3/api-docs/operation
+      - name: schedule
+        url: /v3/api-docs/schedule
+    path: /swagger-ui.html
+  api-docs:
+    enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: WARN
+    reactor.netty: WARN
+    org.springframework.web.socket: WARN
