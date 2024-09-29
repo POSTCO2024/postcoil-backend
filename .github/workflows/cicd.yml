@@ -54,3 +54,4 @@ jobs:
         with:
           name: eb-package
           path: eb-package.zip
+          retention-days: 1
