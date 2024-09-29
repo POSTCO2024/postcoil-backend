@@ -194,6 +194,7 @@ public class WorkInstructionMapper {
         return modelMapper.map(item, WorkInstructionItemDTO.Message.class);
     }
 
+
     private static WorkStatus safeValueOf(String status) {
         try {
             return status != null ? WorkStatus.valueOf(status) : null;
