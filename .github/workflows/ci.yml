@@ -2,19 +2,13 @@ name: CI
 
 on:
   push:
-    branches: ['feat/cicd/yerimee', 'main']
+    branches: [ 'feat/cicd/yerimee', 'main' ]
   pull_request:
-    branches: ['main']
-
-env:
-  AWS_REGION: ap-northeast-2
-  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
-  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+    branches: [ 'main' ]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -27,65 +21,59 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build and package services
+      - name: Build Gateway
         run: |
-          function build_service() {
-            local service=$1
-            echo "Building $service"
+          cd gateway
+          ../gradlew clean build -x test -Dspring.profiles.active=prod
+          mkdir -p deployment
+          cp build/libs/*.jar deployment/application.jar
+          echo "java -Dspring.profiles.active=prod -jar application.jar" > deployment/Procfile
+          cp -r ../.ebextensions deployment/
+          cd deployment && zip -r gateway-package.zip .
+
+      - name: Build Eureka
+        run: |
+          cd eureka-server
+          ../gradlew clean build -x test -Dspring.profiles.active=prod
+          mkdir -p deployment
+          cp build/libs/*.jar deployment/application.jar
+          echo "java -Dspring.profiles.active=prod -jar application.jar" > deployment/Procfile
+          cp -r ../.ebextensions deployment/
+          cd deployment && zip -r eureka-package.zip .
+
+      - name: Build business apps and create Docker images
+        run: |
+          for service in control operation schedule; do
             cd $service
             ../gradlew clean build -x test -Dspring.profiles.active=prod
-            mkdir -p deployment
-            cp build/libs/*.jar deployment/application.jar
-            echo "java -Dspring.profiles.active=prod -jar application.jar" > deployment/Procfile
-            cp -r ../.ebextensions deployment/
-            (cd deployment && zip -r ${service}-package.zip .)
+            docker build -t $service:${GITHUB_SHA::7} .
             cd ..
-          }
-
-          build_service "gateway"
-          build_service "eureka-server"
-
-          for service in control operation schedule cache-service; do
-            build_service $service
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$service-${GITHUB_SHA::7} $service
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$service-${GITHUB_SHA::7}
           done
 
-      - name: Upload artifacts and deploy to S3
+      - name: Create Redis Docker image
         run: |
-          for service in gateway eureka-server; do
-            aws s3 cp ${service}/deployment/${service}-package.zip s3://${{ secrets.EB_BUCKET }}/${service}-package-${GITHUB_SHA::7}.zip
-          
-            echo "Uploaded ${service}-package-${GITHUB_SHA::7}.zip to S3"
-          
-            actions/upload-artifact@v4 <<EOF
-          {
-            "name": "${service}-package",
-            "path": "${service}/deployment/${service}-package.zip"
-          }
-          EOF
-          done
+          cd cache-service
+          docker build -t redis:${GITHUB_SHA::7} .
+          cd ..
 
-      - name: Update deployment info
-        run: |
-          echo "GITHUB_SHA=${GITHUB_SHA}" > deployment_info.txt
-          for service in control operation schedule cache-service; do
-            echo "${service}=${ECR_REGISTRY}/${ECR_REPOSITORY}:${service}-${GITHUB_SHA::7}" >> deployment_info.txt
-          done
-
-      - name: Upload deployment info
+      - name: Upload Gateway artifact
         uses: actions/upload-artifact@v4
         with:
-          name: deployment-info
-          path: deployment_info.txt
+          name: gateway-package
+          path: gateway/deployment/gateway-package.zip
+
+      - name: Upload Eureka artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: eureka-package
+          path: eureka-server/deployment/eureka-package.zip
+
+      - name: Save Docker images
+        run: |
+          docker save redis:${GITHUB_SHA::7} control:${GITHUB_SHA::7} operation:${GITHUB_SHA::7} schedule:${GITHUB_SHA::7} > docker-images.tar
+
+      - name: Upload Docker images artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: docker-images.tar

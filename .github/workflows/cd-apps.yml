@@ -1,43 +1,50 @@
-name: CD Pipeline - Business Services
+name: CD - Business Apps
 
 on:
   workflow_run:
-    workflows: ["CI Pipeline"]
+    workflows: ["CI"]
     types:
       - completed
 
-env:
-  AWS_REGION: ap-northeast-2
-  EB_APPLICATION_NAME: postco-app
-  EB_BUSINESS_ENVIRONMENT: business-services-env
-  ECR_REPOSITORY: your-ecr-repository-name
-
 jobs:
-  deploy-business-services:
+  deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Check out the repository
-        uses: actions/checkout@v2
+      - name: Download Docker images
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
+          path: .
+
+      - name: Load Docker images
+        run: docker load < docker-images.tar
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ap-northeast-2
 
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Push images to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          for service in redis control operation schedule; do
+            docker tag $service:${GITHUB_SHA::7} $ECR_REGISTRY/$ECR_REPOSITORY:$service-${GITHUB_SHA::7}
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$service-${GITHUB_SHA::7}
+          done
 
-      - name: Deploy to Elastic Beanstalk
+      - name: Deploy to ECS
         run: |
-          aws elasticbeanstalk update-environment --application-name ${{ env.EB_APPLICATION_NAME }} --environment-name ${{ env.EB_BUSINESS_ENVIRONMENT }} --version-label ${{ github.sha }}
+          for service in control operation schedule; do
+            aws ecs update-service --cluster postco-cluster --service $service-service --force-new-deployment
+          done
+          
+          aws ecs update-service --cluster postco-cluster --service redis-service --force-new-deployment
