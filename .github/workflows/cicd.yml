@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ 'main' ]
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,9 +18,11 @@ jobs:
           java-version: '11'
           distribution: 'corretto'
 
+      # Gradle 파일에 실행 권한을 부여합니다.
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      # Gateway 빌드
       - name: Build Gateway
         run: |
           cd gateway
@@ -28,6 +30,7 @@ jobs:
           mkdir -p ../deployment/gateway
           find build/libs -name '*.jar' -exec cp {} ../deployment/gateway/application.jar \;
 
+      # Eureka 빌드
       - name: Build Eureka
         run: |
           cd eureka-server
@@ -35,12 +38,14 @@ jobs:
           mkdir -p ../deployment/eureka
           find build/libs -name '*.jar' -exec cp {} ../deployment/eureka/application.jar \;
 
+      # Cache Service 빌드
       - name: Build Cache Service
         run: |
           ./gradlew :cache-service:clean :cache-service:build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p deployment/cache-service
           find cache-service/build/libs -name '*.jar' -exec cp {} deployment/cache-service/application.jar \;
 
+      # 배포 패키지 준비
       - name: Prepare deployment package
         run: |
           cp -r .ebextensions deployment/
@@ -49,9 +54,29 @@ jobs:
           echo "java -jar cache-service/application.jar &" >> deployment/Procfile
           cd deployment && zip -r ../eb-package.zip .
 
+      # Elastic Beanstalk 패키지 업로드
       - name: Upload Elastic Beanstalk package
         uses: actions/upload-artifact@v4
         with:
           name: eb-package
           path: eb-package.zip
-          retention-days: 1
+
+      # AWS 인증 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # S3에 업로드하고 Elastic Beanstalk에 배포
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws s3 cp eb-package.zip s3://${{ secrets.EB_BUCKET }}/eb-package-${{ github.sha }}.zip
+          aws elasticbeanstalk create-application-version \
+            --application-name postco-app \
+            --version-label eb-package-${{ github.sha }} \
+            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eb-package-${{ github.sha }}.zip"
+          aws elasticbeanstalk update-environment \
+            --environment-name gateway-eureka-redis-env \
+            --version-label eb-package-${{ github.sha }}
