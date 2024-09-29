@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/management/schedule")
+@RequestMapping("api/v2/management/schedule")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:4000", allowCredentials = "true") // test용
 public class ManagementController {

@@ -2,7 +2,6 @@ package com.postco.schedule.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
 import com.postco.schedule.domain.SCHPlan;
-import com.postco.schedule.presentation.dto.SCHConfirmDTO;
 import com.postco.schedule.presentation.dto.SCHMaterialDTO;
 import com.postco.schedule.presentation.dto.SCHPlanDTO;
 import com.postco.schedule.service.impl.PlanAfterWorkServiceImpl;
@@ -115,70 +114,10 @@ public class ScheduleController {
                 .onErrorResume(e -> handleError("Kafka 전송 처리", e));
     }
 
-    // GET : fs003 Request
-    @GetMapping("/result/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<SCHForm.InfoWithWorkStatus>>> getScheduleResultsId(@PathVariable String processCode) {
-        // processCode가 오면, confirm - id, scheduleNo, workStatus 보내기
-        List<SCHForm.InfoWithWorkStatus> results = scheduleConfirmService.getAllConfirmedScheduleIdsFromInProgressToPending(processCode);
-
-        ApiResponseDTO<List<SCHForm.InfoWithWorkStatus>> response = ApiResponseDTO.<List<SCHForm.InfoWithWorkStatus>>builder()
-                .status(HttpStatus.OK.value())
-                .resultMsg(HttpStatus.OK.getReasonPhrase())
-                .result(results)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
-
-    // GET : fs003 Request2
-    @GetMapping("/result/schedule")
-    public ResponseEntity<ApiResponseDTO<List<SCHMaterialDTO>>> getScheduleResultMaterials(@RequestParam("id") Long confirmId) {
-        List<SCHMaterialDTO> results = scheduleConfirmService.getScheduleMaterialsByConfirmId(confirmId);
-
-        ApiResponseDTO<List<SCHMaterialDTO>> response = ApiResponseDTO.<List<SCHMaterialDTO>>builder()
-                .status(HttpStatus.OK.value())
-                .resultMsg(HttpStatus.OK.getReasonPhrase())
-                .result(results)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
-
-    // TODO: fs003 WebSocket 통신 / (작업완료, 작업대기, 보급대기, 보급완료) 어떻게 보는지
-
-    // GET : fs004 Request
-    @GetMapping("/timeline/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<SCHConfirmDTO.View>>> getScheduleResultsIdByDates(@PathVariable String processCode, @RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) {
-        List<SCHConfirmDTO.View> confirmedSchedules = scheduleConfirmService.getAllConfirmedSchedulesBetweenDates(startDate, endDate, processCode);
-
-        ApiResponseDTO<List<SCHConfirmDTO.View>> response = ApiResponseDTO.<List<SCHConfirmDTO.View>>builder()
-                .status(HttpStatus.OK.value())
-                .resultMsg(HttpStatus.OK.getReasonPhrase())
-                .result(confirmedSchedules)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
-
-    // GET : fs004 Request2
-    @GetMapping("/timeline/schedule")
-    public ResponseEntity<ApiResponseDTO<List<SCHMaterialDTO>>> getScheduleMaterials(@RequestParam("id") Long confirmId) {
-        List<SCHMaterialDTO> results = scheduleConfirmService.getScheduleMaterialsByConfirmId(confirmId);
-
-        ApiResponseDTO<List<SCHMaterialDTO>> response = ApiResponseDTO.<List<SCHMaterialDTO>>builder()
-                .status(HttpStatus.OK.value())
-                .resultMsg(HttpStatus.OK.getReasonPhrase())
-                .result(results)
-                .build();
-
-        return ResponseEntity.ok(response);
-    }
-
-    // =================================================================
-
     // 중복되는 응답을 하나의 메서드로 분리함
     // 다른 컨트롤러 메서드에서는 아직 적용 안함
     // 참고해서 재활용 하면 좋습니다.
+    // by Yerim Kim
     private Mono<ResponseEntity<ApiResponseDTO<Boolean>>> createSuccessResponseAndLog(boolean result, String message, String operation) {
         ResponseEntity<ApiResponseDTO<Boolean>> response = ResponseEntity.ok(ApiResponseDTO.<Boolean>builder()
                 .status(HttpStatus.OK.value())
