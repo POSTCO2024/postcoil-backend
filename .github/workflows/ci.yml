@@ -21,37 +21,32 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Gateway, Eureka, and Cache Service
+      - name: Build Gateway
         run: |
-          ./gradlew :gateway:build :eureka-server:build :cache-service:build -x test -Dspring.profiles.active=prod --warning-mode all
-          mkdir -p deployment
-          cp gateway/build/libs/*.jar deployment/gateway.jar
-          cp eureka-server/build/libs/*.jar deployment/eureka.jar
-          cp cache-service/build/libs/*.jar deployment/cache-service.jar
-          echo "java -Dserver.port=5000 -jar gateway.jar" > deployment/Procfile
-          echo "java -jar eureka.jar &" >> deployment/Procfile
-          echo "java -jar cache-service.jar &" >> deployment/Procfile
-          mkdir -p deployment/.ebextensions
-          cat << EOF > deployment/.ebextensions/01_env.config
-          option_settings:
-            aws:elasticbeanstalk:application:environment:
-              SERVER_PORT: '5000'
-              SPRING_PROFILES_ACTIVE: prod
-              EUREKA_INSTANCE_HOSTNAME: \${EUREKA_INSTANCE_HOSTNAME}
-              EUREKA_PORT: '8761'
-              REDIS_HOST: \${REDIS_HOST}
-              REDIS_PORT: \${REDIS_PORT}
-            aws:elasticbeanstalk:container:java:
-              JAVA_TOOL_OPTIONS: "-Dfile.encoding=UTF-8"
-            aws:elasticbeanstalk:container:java:xray:
-              XRayEnabled: 'false'
-            aws:elasticbeanstalk:environment:proxy:staticfiles:
-              /static: static
-          
-          container_commands:
-            01_set_time_zone:
-              command: "ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime"
-          EOF
+          cd gateway
+          ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
+          mkdir -p ../deployment/gateway
+          find build/libs -name '*.jar' -exec cp {} ../deployment/gateway/application.jar \;
+
+      - name: Build Eureka
+        run: |
+          cd eureka-server
+          ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
+          mkdir -p ../deployment/eureka
+          find build/libs -name '*.jar' -exec cp {} ../deployment/eureka/application.jar \;
+
+      - name: Build Cache Service
+        run: |
+          ./gradlew :cache-service:clean :cache-service:build -x test -Dspring.profiles.active=prod --warning-mode all
+          mkdir -p deployment/cache-service
+          find cache-service/build/libs -name '*.jar' -exec cp {} deployment/cache-service/application.jar \;
+
+      - name: Prepare deployment package
+        run: |
+          cp -r .ebextensions deployment/
+          echo "java -Dserver.port=5000 -jar gateway/application.jar" > deployment/Procfile
+          echo "java -jar eureka/application.jar &" >> deployment/Procfile
+          echo "java -jar cache-service/application.jar &" >> deployment/Procfile
           cd deployment && zip -r ../eb-package.zip .
 
       - name: Upload Elastic Beanstalk package
