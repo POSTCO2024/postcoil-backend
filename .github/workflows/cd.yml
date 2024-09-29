@@ -27,11 +27,11 @@ jobs:
 
       - name: Deploy to Elastic Beanstalk
         run: |
-          aws s3 cp eb-package.zip s3://${{ secrets.EB_BUCKET }}/eb-package.zip
+          aws s3 cp eb-package.zip s3://${{ secrets.EB_BUCKET }}/eb-package-${{ github.sha }}.zip
           aws elasticbeanstalk create-application-version \
             --application-name postco-app \
             --version-label eb-package-${{ github.sha }} \
-            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eb-package.zip"
+            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eb-package-${{ github.sha }}.zip"
           aws elasticbeanstalk update-environment \
             --environment-name gateway-eureka-redis-env \
-            --version-label eb-package
+            --version-label eb-package-${{ github.sha }}
