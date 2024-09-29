@@ -92,24 +92,24 @@ public class ControlController {
 //
 //        return erorrMaterialList;
 
-    /**
-     * 에러 패스를 통해 에러재를 정상재로 변환한다.
-     * 에러 여부(isError)는 업데이트 되며 에러이유(errorType)은 그대로 둔다.
-     * 다시 에러재로 추출될 경우, 에러이유는 업데이트 된다.
-     *
-     * @Param 에러패스 할 재료(material_id)
-     * @return
-     */
-    @PutMapping("/errorpass")
-    public ResponseEntity<ApiResponseDTO<Map<String, Long>>> ErrorPass(@RequestBody List<Long> error_material_ids) {
-        log.info("에러패스를 진행합니다. " + error_material_ids);
-        errorPassService.errorPass(error_material_ids);
-
-        Map<String, Long> result = ErrorMaterialMapper.errorPassIds(error_material_ids);
-        ApiResponseDTO<Map<String, Long>> response = new ApiResponseDTO<>(200,"Success",result);
-
-        return ResponseEntity.ok(response);
-    }
+//    /**
+//     * 에러 패스를 통해 에러재를 정상재로 변환한다.
+//     * 에러 여부(isError)는 업데이트 되며 에러이유(errorType)은 그대로 둔다.
+//     * 다시 에러재로 추출될 경우, 에러이유는 업데이트 된다.
+//     *
+//     * @Param 에러패스 할 재료(material_id)
+//     * @return
+//     */
+//    @PutMapping("/errorpass")
+//    public ResponseEntity<ApiResponseDTO<Map<String, Long>>> ErrorPass(@RequestBody List<Long> error_material_ids) {
+//        log.info("에러패스를 진행합니다. " + error_material_ids);
+//        errorPassService.errorPass(error_material_ids);
+//
+//        Map<String, Long> result = ErrorMaterialMapper.errorPassIds(error_material_ids);
+//        ApiResponseDTO<Map<String, Long>> response = new ApiResponseDTO<>(200,"Success",result);
+//
+//        return ResponseEntity.ok(response);
+//    }
 
 
 //    /**

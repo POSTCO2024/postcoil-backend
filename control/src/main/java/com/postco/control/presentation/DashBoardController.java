@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/dashboard")
+@RequestMapping("/api/v1/control/dashboard")
 @CrossOrigin(origins = "http://localhost:4000")
 @RequiredArgsConstructor
 public class DashBoardController {
@@ -74,19 +74,6 @@ public class DashBoardController {
                 ));
     }
 
-
-
-    // 품종
-    @GetMapping("/coil_type")
-    public Mono<Map<String, Long>> getCoilTypeCount(@RequestParam String currProc) {
-        return dashBoardOrderService.getCoilTypesByCurrProc(currProc);
-    }
-
-    // 고객사
-    @GetMapping("/customer_name")
-    public Mono<Map<String, Long>> getCustomerCount(@RequestParam String currProc) {
-        return dashBoardOrderService.getCustomerCountByProc(currProc);
-    }
 
     /**
      * 품종/고객사
@@ -145,6 +132,28 @@ public class DashBoardController {
                                 .body(ApiResponseDTO.<Fc004aDTO.WidthThicknessCount>builder()
                                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                         .resultMsg("폭 및 두께 분포 조회 중 오류 발생")
+                                        .build())));
+    }
+
+    /**
+     * 롤 단위 비율
+     * @return 공정 별 롤 단위 개수
+     */
+    @GetMapping("/rollUnit")
+    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.RollUnitCount>>> getRollUnit(@RequestParam String currProc) {
+        return dashBoardMaterialService.getRollUnitCountByCurrProc(currProc)
+                .map(rollUnitCount -> ResponseEntity.ok(
+                        ApiResponseDTO.<Fc004aDTO.RollUnitCount>builder()
+                                .status(HttpStatus.OK.value())
+                                .resultMsg("롤 단위 카운트 조회 성공")
+                                .result(rollUnitCount) // 롤 단위 카운트 결과를 설정
+                                .build()))
+                .doOnError(e -> log.error("롤 단위 카운트 조회 중 오류 발생", e))
+                .onErrorResume(e -> Mono.just(
+                        ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(ApiResponseDTO.<Fc004aDTO.RollUnitCount>builder()
+                                        .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                                        .resultMsg("롤 단위 카운트 조회 중 오류 발생")
                                         .build())));
     }
 

@@ -9,7 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -80,4 +82,44 @@ public class DashBoardMaterialService {
                     return calculator.calculate(filteredMaterials);
                 });
     }
+    
+    // 롤 단위 비율
+    public Mono<Fc004aDTO.RollUnitCount> getRollUnitCountByCurrProc(String currProc) {
+        return controlRedisQueryService.getRedisData()
+                .flatMap(container -> {
+                    List<Long> materialIds = container.getMaterials().stream()
+                            .filter(material -> currProc.equals(material.getCurrProc())) // 공정(currProc) 필터링
+                            .map(MaterialDTO.View::getId) // ID 추출
+                            .collect(Collectors.toList());
+
+                    // repository에서 조회
+                    List<Object[]> results = targetMaterialRepository.countByRollUnitName(materialIds);
+                    System.out.print(results);
+
+                    Map<String, Long> rollUnitCountMap = new HashMap<>();
+
+                    for (Object[] result : results) {
+                        String rollUnitName = (String) result[0];
+                        Long count = (Long) result[1];
+
+                        // 롤 유닛 이름에 따라 카운트를 맵에 저장
+                        rollUnitCountMap.put(rollUnitName, count);
+                    }
+
+                    // A와 B의 카운트를 각각 추출
+                    long aCount = rollUnitCountMap.getOrDefault("A", 0L);
+                    long bCount = rollUnitCountMap.getOrDefault("B", 0L);
+
+                    // DTO 생성
+                    Fc004aDTO.RollUnitCount rollUnitCount = Fc004aDTO.RollUnitCount.builder()
+                            .ACount(aCount)
+                            .BCount(bCount)
+                            .build();
+
+                    return Mono.just(rollUnitCount);
+                });
+
+    }
+
+
 }
