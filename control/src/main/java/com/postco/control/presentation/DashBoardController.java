@@ -17,7 +17,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/dashboard")
+@RequestMapping("/api/v1/control/dashboard")
 @CrossOrigin(origins = "http://localhost:4000")
 @RequiredArgsConstructor
 public class DashBoardController {

@@ -17,7 +17,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/target-materials")
+@RequestMapping("/api/v1/control/target-materials")
 @CrossOrigin(origins = {"http://localhost:4000", "http://localhost:8081"})
 @RequiredArgsConstructor
 public class TargetMaterialController {

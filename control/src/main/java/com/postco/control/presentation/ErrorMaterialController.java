@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @CrossOrigin(origins = {"http://localhost:4000", "http://localhost:8081"})
-@RequestMapping("/api/v1/error-materials")
+@RequestMapping("/api/v1/control/error-materials")
 @RequiredArgsConstructor
 public class ErrorMaterialController {
     private final ErrorMaterialQueryServiceImpl errorMaterialQueryService;
