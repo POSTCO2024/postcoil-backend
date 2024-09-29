@@ -5,8 +5,8 @@ spring:
     active: prod
 
   redis:
-    host: postco-redis-cluster.xc9lbq.0001.apn2.cache.amazonaws.com
-    port: 6379
+    host: ${REDIS_HOST:postco-redis-cluster.xc9lbq.0001.apn2.cache.amazonaws.com}
+    port: ${REDIS_PORT:6379}
     lettuce:
       pool:
         max-active: 8  # 최대 활성 커넥션 수
