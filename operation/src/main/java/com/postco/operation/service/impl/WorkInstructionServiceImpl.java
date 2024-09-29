@@ -178,6 +178,35 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
         return Mono.fromCallable(() -> {
             log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process, rollUnit);
             List<WorkInstruction> workInstructions = workInstructionRepository.findByProcessAndRollUnit(process, rollUnit);
+            log.info("작업지시문 : {}", workInstructions.get(0).getItems().get(0).getMaterial());
+            List<WorkInstructionDTO.View> dtos = workInstructions.stream()
+                    .map(WorkInstructionMapper::mapToDto)
+                    .collect(Collectors.toList());
+            log.info("작업 지시서 조회 완료. 조회된 작업 지시서 수: {}", dtos.size());
+            return dtos;
+        }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
+    }
+
+    @Override
+    public Mono<List<WorkInstructionDTO.View>> getUncompletedWorkInstructions(String process) {
+        return Mono.fromCallable(() -> {
+            log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
+            List<WorkInstruction> workInstructions = workInstructionRepository.findUncompletedWithItems(process);
+            log.info("작업지시문 : {}", workInstructions.get(0));
+            List<WorkInstructionDTO.View> dtos = workInstructions.stream()
+                    .map(WorkInstructionMapper::mapToDto)
+                    .collect(Collectors.toList());
+            log.info("작업 지시서 조회 완료. 조회된 작업 지시서 수: {}", dtos.size());
+            log.info("매핑된 작업지시문 : {}", dtos);
+            return dtos;
+        }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
+    }
+
+    @Override
+    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process) {
+        return Mono.fromCallable(() -> {
+            log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
+            List<WorkInstruction> workInstructions = workInstructionRepository.findCompletedWithItems(process);
             List<WorkInstructionDTO.View> dtos = workInstructions.stream()
                     .map(WorkInstructionMapper::mapToDto)
                     .collect(Collectors.toList());

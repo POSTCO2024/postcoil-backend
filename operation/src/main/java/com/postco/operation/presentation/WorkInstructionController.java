@@ -7,28 +7,33 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/work-instructions")
+@RequestMapping("/api/v2/work-instructions")
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"http://localhost:4000", "http://localhost:8081"})
 @Slf4j
 public class WorkInstructionController {
     private final WorkInstructionService workInstructionService;
 
-    @GetMapping
+    @GetMapping("/uncompleted")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructions(
-            @RequestParam String process,
-            @RequestParam String rollUnit) {
-        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process, rollUnit);
-        return workInstructionService.getWorkInstructions(process, rollUnit)
+            @RequestParam String process) {
+        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
+        return workInstructionService.getUncompletedWorkInstructions(process)
+                .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
+                .onErrorResume(e -> handleError("작업 지시서 조회", e));
+    }
+
+    @GetMapping("/completed")
+    public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructionsExceptFinished(
+            @RequestParam String process) {
+        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
+        return workInstructionService.getCompletedWorkInstructions(process)
                 .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
                 .onErrorResume(e -> handleError("작업 지시서 조회", e));
     }

@@ -24,6 +24,9 @@ public class WorkInstructionItemDTO {
         private int sequence;
         private String isRejected;
         private Long expectedItemDuration;
+        private Double initialThickness;
+        private Double initialGoalWidth;
+
     }
 
     @Data
@@ -34,6 +37,7 @@ public class WorkInstructionItemDTO {
     public static class View implements DTO {
         private Long id;
         private Long materialId;
+        private String materialNo;
         private Long targetId;
         private String workItemStatus;
         private int sequence;
@@ -41,6 +45,8 @@ public class WorkInstructionItemDTO {
         private Long expectedItemDuration;
         private LocalDateTime startTime;
         private LocalDateTime endTime;
+        private Double initialThickness;
+        private Double initialGoalWidth;
     }
 
     @Data
