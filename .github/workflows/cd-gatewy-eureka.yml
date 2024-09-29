@@ -1,27 +1,21 @@
-name: CD - Gateway and Eureka
+name: CD
 
 on:
   workflow_run:
     workflows: ["CI"]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
-      - name: Download Gateway artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: gateway-package
-          path: .
-
-      - name: Download Eureka artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: eureka-package
-          path: .
+          name: deployment-packages
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -30,18 +24,59 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Upload to S3
-        run: |
-          aws s3 cp gateway-package.zip s3://${{ secrets.EB_BUCKET }}/gateway-package.zip
-          aws s3 cp eureka-package.zip s3://${{ secrets.EB_BUCKET }}/eureka-package.zip
-
       - name: Deploy to Elastic Beanstalk
         run: |
+          # Combine artifacts into a single package
+          zip -r eb-package.zip *.zip
+
+          # Upload to S3
+          aws s3 cp eb-package.zip s3://${{ secrets.EB_BUCKET }}/eb-package-${{ github.sha }}.zip
+
+          # Create new Elastic Beanstalk application version
           aws elasticbeanstalk create-application-version \
             --application-name postco-app \
-            --version-label gateway-eureka-${GITHUB_SHA::7} \
-            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="gateway-package.zip"
-          
+            --version-label ${{ github.sha }} \
+            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eb-package-${{ github.sha }}.zip"
+
+          # Update Elastic Beanstalk environment
           aws elasticbeanstalk update-environment \
             --environment-name gateway-eureka-redis-env \
-            --version-label gateway-eureka-${GITHUB_SHA::7}
+            --version-label ${{ github.sha }}
+
+      - name: Update Elastic Beanstalk environment configuration
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name gateway-eureka-redis-env \
+            --option-settings file://eb-options.json
+
+      - name: Create eb-options.json
+        run: |
+          cat << EOF > eb-options.json
+          [
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "EUREKA_INSTANCE_HOSTNAME",
+              "Value": "${{ secrets.EUREKA_INSTANCE_HOSTNAME }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "GATEWAY_PORT",
+              "Value": "80"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "EUREKA_PORT",
+              "Value": "8761"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "SPRING_REDIS_HOST",
+              "Value": "${{ secrets.REDIS_HOST }}"
+            },
+            {
+              "Namespace": "aws:elasticbeanstalk:application:environment",
+              "OptionName": "SPRING_REDIS_PORT",
+              "Value": "${{ secrets.REDIS_PORT }}"
+            }
+          ]
+          EOF
