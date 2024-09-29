@@ -40,5 +40,5 @@ public interface WorkInstructionService {
     /**
      * 끝나지 않은 작업지시서 조회
      */
-    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process);
+    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process, String startDate, String endDate);
 }
