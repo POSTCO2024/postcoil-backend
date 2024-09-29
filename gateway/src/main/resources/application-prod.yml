@@ -1,27 +1,25 @@
 spring:
-  application:
-    name: gateway
----
-spring:
   config:
     activate:
       on-profile: prod
+  application:
+    name: gateway
 
 server:
-  port: 80
+  port: ${GATEWAY_PORT:80}
 
 eureka:
   client:
     healthcheck:
       enabled: true
     service-url:
-      defaultZone: http://${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+      defaultZone: http://${EUREKA_INSTANCE_HOSTNAME}:${EUREKA_PORT:8761}/eureka/
     fetch-registry: true
     register-with-eureka: true
   instance:
     hostname: ${EUREKA_INSTANCE_HOSTNAME}
     prefer-ip-address: false
----
+
 spring:
   cloud:
     gateway:
@@ -47,7 +45,7 @@ spring:
             postLogger: true
       routes:
         - id: operation
-          uri: lb://OPERATION  # 로드밸런서 기반 서비스 연결
+          uri: lb://OPERATION
           predicates:
             - Path=/operation/**
           filters:
@@ -79,7 +77,6 @@ spring:
                 baseMessage: Spring Cloud Gateway Custom Filter
                 preLogger: true
                 postLogger: true
-
         - id: operation-api-docs
           uri: lb://OPERATION
           predicates:
@@ -98,19 +95,6 @@ spring:
             - Path=/v3/api-docs/schedule
           filters:
             - RewritePath=/v3/api-docs/schedule, /v3/api-docs
-
-      httpclient:
-        websocket:
-          max-frame-payload-length: 65536
-          max-initial-line-length: 65536
-          max-header-size: 65536
-          proxy:
-            connect-timeout: 60000
-            read-timeout: 60000
-          write-timeout: 60000
-      global-filter:
-        websocket-routing:
-          enabled: true
 
 springdoc:
   swagger-ui:
