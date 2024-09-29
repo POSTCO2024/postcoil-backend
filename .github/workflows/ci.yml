@@ -44,9 +44,20 @@ jobs:
       - name: Prepare deployment package
         run: |
           cp -r .ebextensions deployment/
-          echo "java -Dserver.port=5000 -jar gateway/application.jar" > deployment/Procfile
-          echo "java -jar eureka/application.jar &" >> deployment/Procfile
-          echo "java -jar cache-service/application.jar &" >> deployment/Procfile
+
+          # Create start.sh
+          cat << 'EOF' > deployment/start.sh
+          #!/bin/bash
+          java -jar eureka/application.jar &
+          java -jar cache-service/application.jar &
+          java -Dserver.port=5000 -jar gateway/application.jar
+          EOF
+
+          chmod +x deployment/start.sh
+
+          # Create Procfile
+          echo "web: bash start.sh" > deployment/Procfile
+
           cd deployment && zip -r ../eb-package.zip .
 
       - name: Upload Elastic Beanstalk package
