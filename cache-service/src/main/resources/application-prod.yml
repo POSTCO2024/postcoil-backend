@@ -5,7 +5,7 @@ spring:
     active: prod
 
   redis:
-    host: ${REDIS_HOST:postco-redis-cluster.xc9lbq.0001.apn2.cache.amazonaws.com}
+    host: ${REDIS_HOST}
     port: ${REDIS_PORT:6379}
     lettuce:
       pool:
@@ -14,6 +14,14 @@ spring:
         min-idle: 0     # 최소 유휴 커넥션 수
       timeout: 3000  # 타임아웃 (밀리초 단위)
     ssl: false  # SSL이 비활성화된 상태
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT:8761}/eureka/
+  instance:
+    prefer-ip-address: true
+    ip-address: ${HOSTNAME}
 
 logging:
   level:

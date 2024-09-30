@@ -6,14 +6,14 @@ spring:
       on-profile: prod
 
 server:
-  port: ${EUREKA_PORT:8761}
+  port: ${SERVER_PORT:8761}
 
 eureka:
   instance:
-    hostname: ${EUREKA_INSTANCE_HOSTNAME}
-    preferIpAddress: false
+    hostname: ${HOSTNAME}
+    preferIpAddress: true
   client:
     registerWithEureka: false
     fetchRegistry: false
     serviceUrl:
-      defaultZone: http://${EUREKA_INSTANCE_HOSTNAME}:${server.port}/eureka/
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/

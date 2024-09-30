@@ -27,6 +27,7 @@ jobs:
           ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p ../deployment/gateway
           find build/libs -name '*.jar' -exec cp {} ../deployment/gateway/application.jar \;
+          cp -r ../.ebextensions ../deployment/gateway/
 
       - name: Build Eureka
         run: |
@@ -34,35 +35,27 @@ jobs:
           ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p ../deployment/eureka
           find build/libs -name '*.jar' -exec cp {} ../deployment/eureka/application.jar \;
+          cp -r ../.ebextensions ../deployment/eureka/
 
       - name: Build Cache Service
         run: |
           ./gradlew :cache-service:clean :cache-service:build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p deployment/cache-service
           find cache-service/build/libs -name '*.jar' -exec cp {} deployment/cache-service/application.jar \;
+          cp -r .ebextensions deployment/cache-service/
 
-      - name: Prepare deployment package
+      - name: Prepare deployment packages
         run: |
-          cp -r .ebextensions deployment/
+          cd deployment/gateway && zip -r ../../gateway-package.zip .
+          cd ../eureka && zip -r ../../eureka-package.zip .
+          cd ../cache-service && zip -r ../../cache-service-package.zip .
 
-          # Create start.sh
-          cat << 'EOF' > deployment/start.sh
-          #!/bin/bash
-          java -jar eureka/application.jar &
-          java -jar cache-service/application.jar &
-          java -Dserver.port=5000 -jar gateway/application.jar
-          EOF
-
-          chmod +x deployment/start.sh
-
-          # Create Procfile
-          echo "web: bash start.sh" > deployment/Procfile
-
-          cd deployment && zip -r ../eb-package.zip .
-
-      - name: Upload Elastic Beanstalk package
+      - name: Upload Elastic Beanstalk packages
         uses: actions/upload-artifact@v4
         with:
-          name: eb-package
-          path: eb-package.zip
+          name: eb-packages
+          path: |
+            gateway-package.zip
+            eureka-package.zip
+            cache-service-package.zip
           retention-days: 1

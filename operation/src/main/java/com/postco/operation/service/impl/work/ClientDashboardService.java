@@ -27,5 +27,4 @@ public class ClientDashboardService {
         log.info("Sent monitoring data for event: {}", eventType);
 
     }
-
 }

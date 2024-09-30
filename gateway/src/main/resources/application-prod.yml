@@ -1,34 +1,18 @@
 spring:
   application:
-    name: eureka-server
+    name: gateway
+  main:
+    web-application-type: reactive
   config:
     activate:
       on-profile: prod
-
-server:
-  port: ${GATEWAY_PORT:80}
-
-eureka:
-  client:
-    healthcheck:
-      enabled: true
-    service-url:
-      defaultZone: http://${EUREKA_INSTANCE_HOSTNAME}:${EUREKA_PORT:8761}/eureka/
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    hostname: ${EUREKA_INSTANCE_HOSTNAME}
-    prefer-ip-address: false
-
----
-spring:
   cloud:
     gateway:
       globalcors:
         corsConfigurations:
           '[/**]':
             allowedOrigins:
-              - "http://localhost:6050"
+              - "*"
             allowedMethods:
               - GET
               - POST
@@ -96,6 +80,21 @@ spring:
             - Path=/v3/api-docs/schedule
           filters:
             - RewritePath=/v3/api-docs/schedule, /v3/api-docs
+
+server:
+  port: ${SERVER_PORT:8080}
+
+eureka:
+  client:
+    healthcheck:
+      enabled: true
+    service-url:
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT:8761}/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+    ip-address: ${PRIVATE_IP_ADDRESS}
 
 springdoc:
   swagger-ui:
