@@ -93,8 +93,7 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
   instance:
-    prefer-ip-address: true
-    ip-address: ${PRIVATE_IP_ADDRESS}
+    prefer-ip-address: false
 
 springdoc:
   swagger-ui:
