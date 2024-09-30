@@ -21,6 +21,7 @@ public class ClientDashboardService {
         ControlClientDTO controlDto = ControlClientDTO.builder()
                 .factoryDashboard(coilSupplyCustom.getTotalSupplyByProcess())
                 .processDashboard(workInstructionCustom.getStatisticsInfo())
+                .totalDashboard(workInstructionCustom.getCurrentInfo())
                 .build();
 
         websocketProducer.sendToControl(String.valueOf(eventType), controlDto);

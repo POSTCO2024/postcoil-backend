@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface WorkInstructionRepositoryCustom {
     List<ControlClientDTO.StatisticsInfo> getStatisticsInfo();
+    List<ControlClientDTO.CurrentInfo> getCurrentInfo();
 }

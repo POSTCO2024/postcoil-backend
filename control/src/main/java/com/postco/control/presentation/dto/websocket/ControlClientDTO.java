@@ -1,4 +1,4 @@
-package com.postco.operation.presentation.dto.websocket;
+package com.postco.control.presentation.dto.websocket;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,18 +53,10 @@ public class ControlClientDTO {
         private Map<String, Integer> currProc = new HashMap<>(); // 초기화 추가
         //        private String equipmentStatus;
         private Long workInstructionId;
-
-        public void addNextProc(String nextProc, int count) {
-            this.nextProc.merge(nextProc, count, Integer::sum);
-        }
-
-        public void addCurrentProgress(String progress, int count) {
-            this.currProc.merge(progress, count, Integer::sum);
-        }
     }
-
-
-
-
-
 }
+
+
+
+
+
