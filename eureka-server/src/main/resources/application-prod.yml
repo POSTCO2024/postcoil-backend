@@ -11,7 +11,7 @@ server:
 eureka:
   instance:
     hostname: ${EUREKA_HOST:localhost}
-    preferIpAddress: false
+    preferIpAddress: true
   client:
     registerWithEureka: false
     fetchRegistry: false
