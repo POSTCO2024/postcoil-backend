@@ -90,8 +90,6 @@ eureka:
       defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT:8761}/eureka/
   instance:
     preferIpAddress: true
-    hostname: ${EUREKA_HOST}
-    nonSecurePort: ${SERVER_PORT:8080}
 
 springdoc:
   swagger-ui:
