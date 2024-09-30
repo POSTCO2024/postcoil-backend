@@ -18,6 +18,10 @@ jobs:
           java-version: '11'
           distribution: 'corretto'
 
+      - name: Set environment variables
+        run: |
+          echo "EUREKA_HOST=${{ secrets.EUREKA_HOST }}" >> $GITHUB_ENV
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
