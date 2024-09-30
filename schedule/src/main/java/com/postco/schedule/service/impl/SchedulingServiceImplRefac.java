@@ -56,6 +56,8 @@ public class SchedulingServiceImplRefac {
         List<SCHMaterial> finalCoilList = insertUnassignedCoilsBackToSchedule(filteredCoils, unassignedCoilsAfterProcessing, constraintInsertionList);
         printCurrentState(finalCoilList, "미편성 삽입 후");
 
+        AtomicInteger sequence = new AtomicInteger(1); // 시퀀스 시작 값을 1로 설정
+        finalCoilList.forEach(coil -> coil.setSequence(sequence.getAndIncrement()));
         return finalCoilList;  // 최종 편성된 코일 반환
     }
 
@@ -183,9 +185,7 @@ public class SchedulingServiceImplRefac {
         if (!remainingUnassignedCoils.isEmpty()) {
             redisService.saveUnassignedCoils(remainingUnassignedCoils).subscribe();
         }
-        AtomicInteger sequence = new AtomicInteger(1); // 시퀀스 시작 값을 1로 설정
 
-        finalCoilList.forEach(coil -> coil.setSequence(sequence.getAndIncrement()));
         return finalCoilList;
     }
 
