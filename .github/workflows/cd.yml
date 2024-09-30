@@ -25,6 +25,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Wait for Gateway Environment to be Ready
+        run: |
+          while [[ $(aws elasticbeanstalk describe-environments --environment-name gateway-env --query 'Environments[0].Status' --output text) != "Ready" ]]; do
+            echo "Waiting for Gateway environment to be ready..."
+            sleep 30
+          done
+
       - name: Deploy Gateway to Elastic Beanstalk
         run: |
           aws s3 cp gateway-package.zip s3://${{ secrets.EB_BUCKET }}/gateway-${{ github.sha }}.zip
@@ -35,6 +42,13 @@ jobs:
           aws elasticbeanstalk update-environment \
             --environment-name gateway-env \
             --version-label gateway-${{ github.sha }}
+
+      - name: Wait for Eureka Environment to be Ready
+        run: |
+          while [[ $(aws elasticbeanstalk describe-environments --environment-name eureka-redis-env --query 'Environments[0].Status' --output text) != "Ready" ]]; do
+            echo "Waiting for Eureka environment to be ready..."
+            sleep 30
+          done
 
       - name: Deploy Eureka to Elastic Beanstalk
         run: |
