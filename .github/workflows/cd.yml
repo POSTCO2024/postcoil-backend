@@ -50,24 +50,14 @@ jobs:
             sleep 30
           done
 
-      - name: Deploy Eureka to Elastic Beanstalk
+      - name: Deploy Eureka and Cache Service to Elastic Beanstalk
         run: |
-          aws s3 cp eureka-package.zip s3://${{ secrets.EB_BUCKET }}/eureka-${{ github.sha }}.zip
+          aws s3 cp eureka-cache-package.zip s3://${{ secrets.EB_BUCKET }}/eureka-cache-${{ github.sha }}.zip
           aws elasticbeanstalk create-application-version \
             --application-name postco-app \
-            --version-label eureka-${{ github.sha }} \
-            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eureka-${{ github.sha }}.zip"
+            --version-label eureka-cache-${{ github.sha }} \
+            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eureka-cache-${{ github.sha }}.zip"
           aws elasticbeanstalk update-environment \
             --environment-name eureka-redis-env \
-            --version-label eureka-${{ github.sha }}
+            --version-label eureka-cache-${{ github.sha }}
 
-      - name: Deploy Cache Service to Elastic Beanstalk
-        run: |
-          aws s3 cp cache-service-package.zip s3://${{ secrets.EB_BUCKET }}/cache-service-${{ github.sha }}.zip
-          aws elasticbeanstalk create-application-version \
-            --application-name postco-app \
-            --version-label cache-service-${{ github.sha }} \
-            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="cache-service-${{ github.sha }}.zip"
-          aws elasticbeanstalk update-environment \
-            --environment-name eureka-redis-env \
-            --version-label cache-service-${{ github.sha }}
