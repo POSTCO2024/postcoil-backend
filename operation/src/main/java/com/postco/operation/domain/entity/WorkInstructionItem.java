@@ -62,6 +62,9 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     @Column(name = "initial_goal_width")
     private Double initialGoalWidth;
 
+    @Column(name = "initial_width")
+    private Double initialWidth;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

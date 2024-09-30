@@ -52,6 +52,7 @@ public class WorkInstructionMapper {
                 map().setWorkItemStatus(safeValueOf(source.getWorkStatus()));
                 map().setIsRejected(source.getIsRejected());
                 map().setExpectedItemDuration(source.getExpectedDuration());
+                map().setInitialWidth(source.getWidth());
             }
         });
 
@@ -81,6 +82,8 @@ public class WorkInstructionMapper {
                 map(source.getMaterial().getTemperature(), destination.getTemperature());
                 map(source.getMaterial().getWeight(), destination.getWeight());
                 map(source.getMaterial().getLength(), destination.getLength());
+                map(source.getMaterial().getWidth(), destination.getWidth());
+                map(source.getMaterial().getThickness(), destination.getThickness());
 
             }
         });
