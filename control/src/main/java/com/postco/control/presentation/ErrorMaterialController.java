@@ -6,6 +6,7 @@ import com.postco.control.service.ErrorPassService;
 import com.postco.control.service.SearchMaterialService;
 import com.postco.control.service.impl.ErrorMaterialQueryServiceImpl;
 import com.postco.core.dto.ApiResponseDTO;
+import com.postco.websocket.service.CoilService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,8 @@ public class ErrorMaterialController {
     private final ErrorMaterialQueryServiceImpl errorMaterialQueryService;
     private final ErrorPassService errorPassService;
     private final SearchMaterialService searchMaterialService;
+    private final CoilService coilService;
+
 
     /**
      * 공정 별 에러재 조회
@@ -90,9 +93,12 @@ public class ErrorMaterialController {
     @PostMapping("/comment/{id}")
     public ResponseEntity<ApiResponseDTO<String>> errorComment(@PathVariable Long id, @RequestBody Map<String, String> request) {
         String comment = request.get("comment");
+        String materialNo = request.get("materialNo");
         System.out.println(comment);
         errorPassService.errorComment(id, comment);
         ApiResponseDTO<String> response = new ApiResponseDTO<>(200, "에러재 코멘트 성공", "true");
+        log.info("에러재 코멘트 : {}", "코멘트가 등록되었습니다");
+        coilService.directMessageToClient("/topic/errorMessage", request);
         return ResponseEntity.ok(response);
     }
 

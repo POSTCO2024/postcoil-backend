@@ -27,9 +27,9 @@ public class CoilService {
                 .build();
     }
 
-    // 로직에서 바로 메시지 전송, 특정한 주체한테 못넘김
-    public void directMessageToClient(String message) {
-        messagingTemplate.convertAndSend("/topic/coilData", message);
+    // 로직에서 바로 메시지 전송
+    public <T> void directMessageToClient(String destination, T message) {
+        messagingTemplate.convertAndSend(destination, message);
     }
 
     // 정해진 시간마다 메시지 전송,

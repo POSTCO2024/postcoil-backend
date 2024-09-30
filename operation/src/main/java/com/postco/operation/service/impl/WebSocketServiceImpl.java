@@ -20,7 +20,7 @@ public class WebSocketServiceImpl implements WebSocketService {
 
     @Override
     public List<Materials> findMaterials() {
-        coilService.directMessageToClient(materialRepository.findAll().toString());
+        coilService.directMessageToClient("undecided", materialRepository.findAll().toString());
         return null;
     }
 }
