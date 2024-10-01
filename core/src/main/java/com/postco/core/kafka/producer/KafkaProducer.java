@@ -42,7 +42,7 @@ public class KafkaProducer {
             future.addCallback(new ListenableFutureCallback<>() {
                 @Override
                 public void onSuccess(SendResult<String, String> result) {
-                    log.info("[Kafka 전송 성공] 토픽 {}로 데이터를 전송했습니다. 키: {}, 오프셋: {}", topic, key, result.getRecordMetadata().offset());
+                    log.info("[Kafka 전송 성공] 토픽 {}로 데이터를 전송했습니다. 키: {}, 오프셋: {}, json: {}", topic, key, result.getRecordMetadata().offset(), jsonData);
                 }
 
                 @Override
