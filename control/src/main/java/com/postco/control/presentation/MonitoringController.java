@@ -16,7 +16,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/monitoring")
+@RequestMapping("/api/v1/control/monitoring")
 @CrossOrigin(origins = "http://localhost:4000")
 @RequiredArgsConstructor
 public class MonitoringController {
