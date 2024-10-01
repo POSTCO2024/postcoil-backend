@@ -31,4 +31,7 @@ public interface WorkInstructionRepository extends JpaRepository<WorkInstruction
     List<WorkInstruction> findCompletedWithItems(@Param("process") String process,
                                                  @Param("startDate") LocalDateTime startDate,
                                                  @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items i LEFT JOIN FETCH i.material WHERE w.workStatus = 'IN_PROGRESS'")
+    List<WorkInstruction> findInProgressWorkInstructions();
 }

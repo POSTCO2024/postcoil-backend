@@ -11,7 +11,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.function.Function;
 public class SupplyQueueManager {
     private static final String EQUIPMENT_QUEUE_KEY_PREFIX = "equipmentQueue:";
     private static final String WORK_INSTRUCTION_QUEUE_KEY_PREFIX = "workInstructionQueue:";
-    private static final long DELAY_IN_SECONDS = 2L;                  // 설비 앞까지 오는 시간dt
+    private static final long DELAY_IN_SECONDS = 3L;                  // 설비 앞까지 오는 시간dt
 
     private final ReactiveRedisTemplate<String, String> redisTemplate;
     private final CoilSupplyService coilSupplyService;

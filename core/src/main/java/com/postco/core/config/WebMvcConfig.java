@@ -10,6 +10,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
+                .allowedOrigins("http://localhost:8080", "http://localhost:8081",
+                        "http://localhost:8086", "http://localhost:8087", "http://localhost:4000")      // 배포 시, 실 주소로 바꾸어야 함.
+                .allowedMethods("OPTIONS", "GET", "POST", "PUT", "DELETE");
                 .allowedOrigins(
                         "http://localhost:8080",   // 여러 출처를 허용
                         "http://localhost:8086",
