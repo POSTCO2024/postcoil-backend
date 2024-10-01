@@ -5,7 +5,6 @@ import com.postco.operation.domain.repository.CoilSupplyRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
 import com.postco.operation.presentation.dto.websocket.ClientDTO;
-import com.postco.operation.presentation.dto.websocket.WebSocketMessageType;
 import com.postco.operation.service.CoilSupplyService;
 import com.postco.operation.service.MaterialUpdateService;
 import com.postco.operation.service.WorkItemService;
@@ -46,6 +45,12 @@ public class CoilWorkCommandService {
     // 1) 코일 보급 처리 -> 업데이트
     // 2) 코일 작업 시작 및 종료
     public Mono<Boolean> requestSupply(Long workInstructionId, int supplyCount) {
+        // 웹소켓으로 정보 전달
+        Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
+        socketData.subscribe(data -> {
+            log.info("보낼 웹소켓 정보 보급 클릭시 : {}", data); // 실제 데이터를 로깅
+            coilService.directMessageToClient("/topic/work-instruction", data); // 데이터를 전송
+        });
         return Mono.fromCallable(() ->
                         transactionTemplate.execute(status -> {
                             WorkInstruction workInstruction = workInstructionRepository.findByIdWithItems(workInstructionId)
@@ -107,7 +112,13 @@ public class CoilWorkCommandService {
                         .map(item -> workItemService.startWorkItem(item.getId())
                                 .flatMap(updatedItem -> {
                                     if (updatedItem != null) {
-                                        clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_STARTED);
+                                        //clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_STARTED);
+                                        // 웹소켓으로 정보 전달
+                                        Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
+                                        socketData.subscribe(data -> {
+                                            log.info("보낼 웹소켓 정보 작업시작시 : {}", data); // 실제 데이터를 로깅
+                                            coilService.directMessageToClient("/topic/work-instruction", data); // 데이터를 전송
+                                        });
                                         return scheduleWorkCompletion(updatedItem)
                                                 .thenReturn(itemId);
                                     }
@@ -139,13 +150,13 @@ public class CoilWorkCommandService {
                 .then(finishWorkUpdates(itemId, materialId))
                 .doOnSuccess(v -> {
                     log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId);
-                    clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_COMPLETED);
+                    // clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_COMPLETED);
 
                     // 웹소켓으로 정보 전달
                     Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
                     socketData.subscribe(data -> {
-                        log.info("보낼 웹소켓 정보 : {}", data); // 실제 데이터를 로깅
-                        coilService.directMessageToClient("/topic/monitoring", data); // 데이터를 전송
+                        log.info("보낼 웹소켓 정보 작업완료 시 : {}", data); // 실제 데이터를 로깅
+                        coilService.directMessageToClient("/topic/work-instruction", data); // 데이터를 전송
                     });
                 })
                 .doOnError(error -> log.error("작업 완료 처리 실패 - 아이템 ID: {}, 에러: {}", itemId, error.getMessage()));
