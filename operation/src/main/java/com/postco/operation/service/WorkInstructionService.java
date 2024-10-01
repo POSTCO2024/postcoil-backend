@@ -48,4 +48,9 @@ public interface WorkInstructionService {
      * 끝나지 않은 작업지시서 조회
      */
     public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process, String startDate, String endDate);
+
+    /**
+     * 웹소켓용 진행중인 작업지시서 조회
+     */
+    public Mono<List<ClientDTO>> getInProgressWorkInstructions();
 }

@@ -4,12 +4,15 @@ import com.postco.operation.domain.entity.*;
 import com.postco.operation.domain.repository.CoilSupplyRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
+import com.postco.operation.presentation.dto.websocket.ClientDTO;
 import com.postco.operation.presentation.dto.websocket.WebSocketMessageType;
 import com.postco.operation.service.CoilSupplyService;
 import com.postco.operation.service.MaterialUpdateService;
 import com.postco.operation.service.WorkItemService;
 import com.postco.operation.service.impl.SupplyQueueManager;
+import com.postco.operation.service.impl.WorkInstructionServiceImpl;
 import com.postco.operation.service.util.WorkSimulationUtil;
+import com.postco.websocket.service.CoilService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,8 @@ public class CoilWorkCommandService {
     private final TransactionTemplate transactionTemplate;
     private final SupplyQueueManager supplyQueueManager;
     private final ClientDashboardService clientDashboardService;
+    private final WorkInstructionServiceImpl workInstructionService;
+    private final CoilService coilService;
 
     // 작업 지시서에서 보급 요청 시 관련 작업 수행
     // 1) 코일 보급 처리 -> 업데이트
@@ -135,6 +140,13 @@ public class CoilWorkCommandService {
                 .doOnSuccess(v -> {
                     log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId);
                     clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_COMPLETED);
+
+                    // 웹소켓으로 정보 전달
+                    Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
+                    socketData.subscribe(data -> {
+                        log.info("보낼 웹소켓 정보 : {}", data); // 실제 데이터를 로깅
+                        coilService.directMessageToClient("/topic/monitoring", data); // 데이터를 전송
+                    });
                 })
                 .doOnError(error -> log.error("작업 완료 처리 실패 - 아이템 ID: {}, 에러: {}", itemId, error.getMessage()));
     }
