@@ -79,6 +79,24 @@ public class WorkInstructionMapper {
 
             }
         });
+
+        // WorkInstructionItem -> WorkInstructionItemDTO.Message 매핑 추가
+        modelMapper.addMappings(new PropertyMap<WorkInstructionItem, WorkInstructionItemDTO.Message>() {
+            @Override
+            protected void configure() {
+                map(source.getWorkInstruction().getId(), destination.getWorkItemId());
+                map(source.getMaterial().getId(), destination.getMaterialId()); // material의 id를 materialId로 매핑
+                map(source.getMaterial().getNo(), destination.getMaterialNo());
+                map(source.getMaterial().getPreProc(), destination.getPreProc());
+                map(source.getMaterial().getNextProc(), destination.getNextProc());
+                map(source.getMaterial().getTemperature(), destination.getTemperature());
+                map(source.getMaterial().getWeight(), destination.getWeight());
+                map(source.getMaterial().getLength(), destination.getLength());
+                map(source.getMaterial().getWidth(), destination.getWidth());
+                map(source.getMaterial().getThickness(), destination.getThickness());
+                map(source.getMaterial().getCoilTypeCode(),destination.getCoilTypeCode());
+            }
+        });
     }
 
     // ScheduleResultDTO.View -> WorkInstructionDTO.Create 매핑
@@ -161,14 +179,15 @@ public class WorkInstructionMapper {
 
     // WorkInstructionItem 엔티티 -> WorkInstructionItemDTO.View 매핑
     public static WorkInstructionItemDTO.View mapToItemDto(WorkInstructionItem item) {
-        log.info("mapToDto : {}", modelMapper.map(item, WorkInstructionItemDTO.View.class));
+        log.info("mapToItemDto : {}", modelMapper.map(item, WorkInstructionItemDTO.View.class));
         return modelMapper.map(item, WorkInstructionItemDTO.View.class);
     }
 
+    // WorkInstructionItem 엔티티 -> WorkInstructionItemDTO.Message 매핑
     public static WorkInstructionItemDTO.Message mapToItemMessageDto(WorkInstructionItem item) {
+        log.info("mapToItemMessageDto : {}", modelMapper.map(item, WorkInstructionItemDTO.Message.class));
         return modelMapper.map(item, WorkInstructionItemDTO.Message.class);
     }
-
 
     private static WorkStatus safeValueOf(String status) {
         try {
