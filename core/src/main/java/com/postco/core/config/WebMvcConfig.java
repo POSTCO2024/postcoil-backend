@@ -13,7 +13,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "http://localhost:8080",   // 여러 출처를 허용
                         "http://localhost:8086",
+                        "http://localhost:8081",
                         "http://localhost:8084",
+                        "http://localhost:8086",
+                        "http://localhost:8087",
                         "http://localhost:6050",
                         "http://localhost:4000"
                 )
