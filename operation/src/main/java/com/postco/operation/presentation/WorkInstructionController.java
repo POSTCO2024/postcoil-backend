@@ -2,6 +2,7 @@ package com.postco.operation.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
+import com.postco.operation.presentation.dto.websocket.ClientDTO;
 import com.postco.operation.service.WorkInstructionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,18 +16,31 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v2/work-instructions")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:4000", "http://localhost:8081"})
+@CrossOrigin(origins = {"http://localhost:4000", "http://localhost:8084"}, allowCredentials = "true") // test용
 @Slf4j
 public class WorkInstructionController {
     private final WorkInstructionService workInstructionService;
 
+    // 삭제 Sohyun Ahn 241001
+//    @GetMapping("/uncompleted")
+//    public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructions(
+//            @RequestParam String process) {
+//        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
+//        return workInstructionService.getUncompletedWorkInstructions(process)
+//                .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
+//                .onErrorResume(e -> handleError("작업 지시서 조회", e));
+//    }
+
+    /*
+     * 추가 Sohyun Ahn 240930,
+     */
     @GetMapping("/uncompleted")
-    public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructions(
+    public Mono<ResponseEntity<ApiResponseDTO<List<ClientDTO>>>> getWorkInstructionsBeforeWebSocket(
             @RequestParam String process) {
-        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
-        return workInstructionService.getUncompletedWorkInstructions(process)
-                .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
-                .onErrorResume(e -> handleError("작업 지시서 조회", e));
+        log.info("작업 지시서 및 현재 진행 상황 통계 조회 요청. 공정: {}", process);
+        return workInstructionService.getUncompletedWorkInstructionsBeforeWebSocket(process)
+                .flatMap(clientDTO -> createSuccessResponseAndLog(clientDTO, "작업 지시서 및 현재 진행 상황 통계 조회 성공", "작업 지시서 조회"))
+                .onErrorResume(e -> handleError("작업 지시서 및 현재 진행 상황 통계 조회", e));
     }
 
     @GetMapping("/completed")

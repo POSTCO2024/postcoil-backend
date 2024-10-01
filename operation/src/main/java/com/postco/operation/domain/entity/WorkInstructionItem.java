@@ -26,6 +26,7 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     private Long id;
 
     @ManyToOne(fetch = LAZY)
+//    @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "work_instruction_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private WorkInstruction workInstruction;

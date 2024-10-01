@@ -1,10 +1,8 @@
 package com.postco.operation.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.postco.core.dto.DTO;
 import com.postco.operation.domain.entity.WorkStatus;
-import com.postco.operation.service.util.LocalDateTimeDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -66,9 +64,9 @@ public class WorkInstructionDTO {
         private int totalQuantity;
         private Long expectedDuration;
 
-        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+//        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         private LocalDateTime startTime;
-        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+//        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         private LocalDateTime endTime;
 
         private String schStatus;

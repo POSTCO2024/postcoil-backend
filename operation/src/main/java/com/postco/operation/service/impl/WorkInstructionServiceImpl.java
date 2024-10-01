@@ -2,6 +2,7 @@ package com.postco.operation.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.postco.core.dto.CoilSupplyDTO;
 import com.postco.core.dto.ScheduleResultDTO;
 import com.postco.operation.domain.entity.CoilSupply;
 import com.postco.operation.domain.entity.MaterialProgress;
@@ -11,7 +12,9 @@ import com.postco.operation.domain.repository.CoilSupplyRepository;
 import com.postco.operation.domain.repository.MaterialRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
+import com.postco.operation.presentation.dto.WorkInstructionItemDTO;
 import com.postco.operation.presentation.dto.WorkInstructionMapper;
+import com.postco.operation.presentation.dto.websocket.ClientDTO;
 import com.postco.operation.service.WorkInstructionService;
 import com.postco.operation.service.client.ScheduleServiceClient;
 import com.postco.operation.service.redis.OperationRedisQueryService;
@@ -32,7 +35,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -203,6 +208,62 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
             log.info("매핑된 작업지시문 : {}", dtos);
             return dtos;
         }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
+    }
+
+    /*
+     * 추가 Sohyun Ahn 240930,
+     */
+    @Transactional
+    @Override
+    public Mono<List<ClientDTO>> getUncompletedWorkInstructionsBeforeWebSocket(String process) {
+        return Mono.fromCallable(() -> {
+            // 작업 지시서 조회
+            List<WorkInstruction> workInstructions = workInstructionRepository.findUncompletedWithItems(process);
+            log.info("조회된 작업 지시서 수: {}", workInstructions.size());
+
+            return workInstructions.stream()
+                    .map(workInstruction -> {
+                        // WorkInstruction을 ClientDTO.Message로 매핑
+                        WorkInstructionDTO.Message workInstructionMessage = WorkInstructionMapper.mapToMessageDto(workInstruction);
+
+                        log.info("작업 지시서 매핑 성공: {}", workInstructionMessage);
+
+                        // CoilSupply 가져오기
+                        Optional<CoilSupply> optionalCoilSupply = coilSupplyRepository.findByWorkInstructionIdWithWorkInstruction(workInstruction.getId());
+                        CoilSupplyDTO.Message coilSupplyMessage = optionalCoilSupply.map(coilSupply -> CoilSupplyDTO.Message.builder()
+                                        .coilSupplyId(coilSupply.getId())
+                                        .workInstructionId(coilSupply.getWorkInstruction().getId())
+                                        .workStatus(String.valueOf(coilSupply.getWorkInstruction().getWorkStatus()))
+                                        .totalCoils(coilSupply.getTotalCoils())
+                                        .suppliedCoils(coilSupply.getSuppliedCoils())
+                                        .totalProgressed(coilSupply.getTotalProgressed())
+                                        .totalRejects(coilSupply.getTotalRejects())
+                                        .build())
+                                .orElse(null);
+
+                        log.info("현재 진행 상황 통계 매핑 성공: {}", coilSupplyMessage);
+
+                        // CoilTypeCode를 그룹화하여 카운트 (items에서 coilTypeCode 추출)
+                        Map<String, Integer> countCoilTypeCode = workInstructionMessage.getItems().stream()
+                                .collect(Collectors.groupingBy(
+                                        WorkInstructionItemDTO.Message::getCoilTypeCode, // 그룹화 기준
+                                        Collectors.summingInt(item -> 1) // 각 그룹의 개수 카운트
+                                ));
+
+                        log.info("coilTypeCode 카운트 결과: {}", countCoilTypeCode);
+
+                        // ClientDTO 생성
+                        return ClientDTO.builder()
+                                .workInstructions(workInstructionMessage)
+                                .coilSupply(coilSupplyMessage)
+                                .countCoilTypeCode(countCoilTypeCode)
+                                .build();
+
+                    })
+                    .collect(Collectors.toList()); // 리스트로 반환
+        }).subscribeOn(Schedulers.boundedElastic())
+        .doOnSuccess(result -> log.info("작업 지시서 조회 완료. 반환된 ClientDTO 수: {}", result.size()))
+        .doOnError(error -> log.error("작업 지시서 조회 중 오류 발생", error));
     }
 
     @Override
