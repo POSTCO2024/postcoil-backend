@@ -31,9 +31,9 @@ public class WorkInstructionController {
 
     @GetMapping("/completed")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructionsExceptFinished(
-            @RequestParam String process) {
+            @RequestParam("process") String process, @RequestParam("startDate") String startDate, @RequestParam("endDate") String endDate) {
         log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
-        return workInstructionService.getCompletedWorkInstructions(process)
+        return workInstructionService.getCompletedWorkInstructions(process, startDate, endDate)
                 .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
                 .onErrorResume(e -> handleError("작업 지시서 조회", e));
     }

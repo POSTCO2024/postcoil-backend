@@ -47,6 +47,11 @@ public class WorkInstructionItemDTO {
         private LocalDateTime endTime;
         private Double initialThickness;
         private Double initialGoalWidth;
+        private Double temperature;
+        private String preProc;
+        private String nextProc;
+        private Double weight;
+        private Double length;
     }
 
     @Data

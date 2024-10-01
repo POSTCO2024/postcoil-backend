@@ -76,6 +76,11 @@ public class WorkInstructionMapper {
             protected void configure() {
                 map(source.getMaterial().getId(), destination.getMaterialId()); // material의 id를 materialId로 매핑
                 map(source.getMaterial().getNo(), destination.getMaterialNo());
+                map(source.getMaterial().getPreProc(), destination.getPreProc());
+                map(source.getMaterial().getNextProc(), destination.getNextProc());
+                map(source.getMaterial().getTemperature(), destination.getTemperature());
+                map(source.getMaterial().getWeight(), destination.getWeight());
+                map(source.getMaterial().getLength(), destination.getLength());
 
             }
         });
