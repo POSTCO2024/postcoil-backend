@@ -18,11 +18,9 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone:
-        defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT:8761}/eureka/
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT:8761}/eureka/
   instance:
-    prefer-ip-address: true
-    ip-address: ${HOSTNAME}
+    preferIpAddress: true
 
 logging:
   level:

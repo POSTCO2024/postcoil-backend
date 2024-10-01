@@ -31,6 +31,9 @@ import reactor.util.retry.Retry;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -264,10 +267,15 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
     }
 
     @Override
-    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process) {
+    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process, String startDate, String endDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDateTime startDateTime = LocalDate.parse(startDate, formatter).atStartOfDay();
+        LocalDateTime endDateTime = LocalDate.parse(endDate, formatter).atTime(23, 59, 59);
+        log.info("시간 변환 start : {} , end : {}", startDateTime, endDateTime);
         return Mono.fromCallable(() -> {
             log.info("작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}", process);
-            List<WorkInstruction> workInstructions = workInstructionRepository.findCompletedWithItems(process);
+            List<WorkInstruction> workInstructions = workInstructionRepository.findCompletedWithItems(process, startDateTime, endDateTime);
+            log.info("repository 를 통한 조회 : {}", workInstructions);
             List<WorkInstructionDTO.View> dtos = workInstructions.stream()
                     .map(WorkInstructionMapper::mapToDto)
                     .collect(Collectors.toList());

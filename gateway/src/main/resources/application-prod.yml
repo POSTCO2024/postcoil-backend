@@ -86,14 +86,10 @@ server:
 
 eureka:
   client:
-    healthcheck:
-      enabled: true
-    service-url:
+    serviceUrl:
       defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT:8761}/eureka/
-    fetch-registry: true
-    register-with-eureka: true
   instance:
-    prefer-ip-address: true
+    preferIpAddress: true
 
 springdoc:
   swagger-ui:

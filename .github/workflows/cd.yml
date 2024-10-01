@@ -45,7 +45,7 @@ jobs:
 
       - name: Wait for Eureka Environment to be Ready
         run: |
-          while [[ $(aws elasticbeanstalk describe-environments --environment-name eureka-redis-env --query 'Environments[0].Status' --output text) != "Ready" ]]; do
+          while [[ $(aws elasticbeanstalk describe-environments --environment-name eureka-private-env --query 'Environments[0].Status' --output text) != "Ready" ]]; do
             echo "Waiting for Eureka environment to be ready..."
             sleep 30
           done
@@ -58,16 +58,16 @@ jobs:
             --version-label eureka-${{ github.sha }} \
             --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eureka-${{ github.sha }}.zip"
           aws elasticbeanstalk update-environment \
-            --environment-name eureka-redis-env \
+            --environment-name eureka-private-env \
             --version-label eureka-${{ github.sha }}
 
-      - name: Deploy Cache Service to Elastic Beanstalk
-        run: |
-          aws s3 cp cache-service-package.zip s3://${{ secrets.EB_BUCKET }}/cache-service-${{ github.sha }}.zip
-          aws elasticbeanstalk create-application-version \
-            --application-name postco-app \
-            --version-label cache-service-${{ github.sha }} \
-            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="cache-service-${{ github.sha }}.zip"
-          aws elasticbeanstalk update-environment \
-            --environment-name eureka-redis-env \
-            --version-label cache-service-${{ github.sha }}
+#      - name: Deploy Cache Service to Elastic Beanstalk
+#        run: |
+#          aws s3 cp cache-service-package.zip s3://${{ secrets.EB_BUCKET }}/cache-service-${{ github.sha }}.zip
+#          aws elasticbeanstalk create-application-version \
+#            --application-name postco-app \
+#            --version-label cache-service-${{ github.sha }} \
+#            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="cache-service-${{ github.sha }}.zip"
+#          aws elasticbeanstalk update-environment \
+#            --environment-name eureka-redis-env \
+#            --version-label cache-service-${{ github.sha }}

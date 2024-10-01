@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 @EnableDiscoveryClient
 @OpenAPIDefinition(info = @Info(title = "Control API", version = "1.0", description = "Control Service API"))
 @EntityScan(basePackages = "com.postco.control.domain")
-@ComponentScan(basePackages = {"com.postco.control", "com.postco.core"})
+@ComponentScan(basePackages = {"com.postco.control", "com.postco.core", "com.postco.websocket"})
 @Import(RedisConfig.class)
 @EnableJpaAuditing
 @Slf4j
