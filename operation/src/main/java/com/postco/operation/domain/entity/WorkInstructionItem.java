@@ -26,6 +26,7 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
     private Long id;
 
     @ManyToOne(fetch = LAZY)
+//    @ManyToOne
     @JsonBackReference
     @JoinColumn(name = "work_instruction_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private WorkInstruction workInstruction;
@@ -60,6 +61,9 @@ public class WorkInstructionItem implements com.postco.core.entity.Entity, Seria
 
     @Column(name = "initial_goal_width")
     private Double initialGoalWidth;
+
+    @Column(name = "initial_width")
+    private Double initialWidth;
 
     @Override
     public boolean equals(Object o) {

@@ -38,7 +38,4 @@ public class ClientDashboardService {
         websocketProducer.sendToControl(String.valueOf(eventType), controlDto);
         log.info("Sent monitoring data for currSch event: {}", eventType);
     }
-
-
-
 }

@@ -23,7 +23,7 @@ public class WorkInstruction implements com.postco.core.entity.Entity, Serializa
     @Column(name = "work_instruction_id")
     private Long id;
     private String workNo;
-    private String scheduleId;
+    private Long scheduleId; // String -> Long 변경, 240930 Sohyun Ahn
     private String scheduleNo;
     private String process;
     private String rollUnit;

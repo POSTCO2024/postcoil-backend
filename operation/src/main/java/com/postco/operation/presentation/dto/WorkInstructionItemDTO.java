@@ -1,10 +1,8 @@
 package com.postco.operation.presentation.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.postco.core.dto.DTO;
 import com.postco.operation.domain.entity.WorkStatus;
-import com.postco.operation.service.util.LocalDateTimeDeserializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +24,7 @@ public class WorkInstructionItemDTO {
         private Long expectedItemDuration;
         private Double initialThickness;
         private Double initialGoalWidth;
+        private Double initialWidth;
 
     }
 
@@ -47,6 +46,15 @@ public class WorkInstructionItemDTO {
         private LocalDateTime endTime;
         private Double initialThickness;
         private Double initialGoalWidth;
+        private Double initialWidth;
+        private Double temperature;
+        private String preProc;
+        private String nextProc;
+        private Double weight;
+        private Double length;
+        private Double width;
+        private Double thickness;
+
     }
 
     @Data
@@ -57,16 +65,25 @@ public class WorkInstructionItemDTO {
     public static class Message implements DTO {
         private Long workItemId;
         private Long materialId;
+        private String materialNo;
         private Long targetId;
         private String workItemStatus;
         private int sequence;
         private String isRejected;
         private Long expectedItemDuration;
-        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         private LocalDateTime startTime;
-        @JsonDeserialize(using = LocalDateTimeDeserializer.class)
         private LocalDateTime endTime;
+        private Double initialThickness;
+        private Double initialGoalWidth;
+        private Double initialWidth;
+        private Double temperature;
+        private String preProc;
+        private String nextProc;
+        private Double weight;
+        private Double length;
+        private Double width;
+        private Double thickness;
+        private String coilTypeCode;
+
     }
-
-
 }

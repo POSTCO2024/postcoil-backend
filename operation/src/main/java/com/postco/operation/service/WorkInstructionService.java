@@ -2,6 +2,7 @@ package com.postco.operation.service;
 
 import com.postco.core.dto.ScheduleResultDTO;
 import com.postco.operation.presentation.dto.WorkInstructionDTO;
+import com.postco.operation.presentation.dto.websocket.ClientDTO;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -38,7 +39,13 @@ public interface WorkInstructionService {
     public Mono<List<WorkInstructionDTO.View>> getUncompletedWorkInstructions(String process);
 
     /**
+     * 추가) Sohyun Ahn 240930,
+     * websocket전 작업지시서와 코일 공급 통계 반환
+     */
+    public Mono<List<ClientDTO>> getUncompletedWorkInstructionsBeforeWebSocket(String process);
+
+    /**
      * 끝나지 않은 작업지시서 조회
      */
-    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process);
+    public Mono<List<WorkInstructionDTO.View>> getCompletedWorkInstructions(String process, String startDate, String endDate);
 }

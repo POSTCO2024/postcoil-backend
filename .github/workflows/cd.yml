@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Download Elastic Beanstalk package
+      - name: Download Elastic Beanstalk packages
         uses: actions/download-artifact@v4
         with:
-          name: eb-package
+          name: eb-packages
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -25,16 +25,49 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Deploy to Elastic Beanstalk
+      - name: Wait for Gateway Environment to be Ready
         run: |
-          aws s3 cp eb-package.zip s3://${{ secrets.EB_BUCKET }}/eb-package-${{ github.sha }}.zip
+          while [[ $(aws elasticbeanstalk describe-environments --environment-name gateway-env --query 'Environments[0].Status' --output text) != "Ready" ]]; do
+            echo "Waiting for Gateway environment to be ready..."
+            sleep 30
+          done
+
+      - name: Deploy Gateway to Elastic Beanstalk
+        run: |
+          aws s3 cp gateway-package.zip s3://${{ secrets.EB_BUCKET }}/gateway-${{ github.sha }}.zip
           aws elasticbeanstalk create-application-version \
             --application-name postco-app \
-            --version-label eb-package-${{ github.sha }} \
-            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eb-package-${{ github.sha }}.zip"
+            --version-label gateway-${{ github.sha }} \
+            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="gateway-${{ github.sha }}.zip"
           aws elasticbeanstalk update-environment \
-            --environment-name gateway-eureka-redis-env \
-            --version-label eb-package-${{ github.sha }} \
-            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=GATEWAY_PORT,Value=${{ secrets.GATEWAY_PORT }} \
-            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=EUREKA_INSTANCE_HOSTNAME,Value=${{ secrets.EUREKA_INSTANCE_HOSTNAME }} \
-            --option-settings Namespace=aws:elasticbeanstalk:application:environment,OptionName=EUREKA_PORT,Value=${{ secrets.EUREKA_PORT }}
+            --environment-name gateway-env \
+            --version-label gateway-${{ github.sha }}
+
+      - name: Wait for Eureka Environment to be Ready
+        run: |
+          while [[ $(aws elasticbeanstalk describe-environments --environment-name eureka-private-env --query 'Environments[0].Status' --output text) != "Ready" ]]; do
+            echo "Waiting for Eureka environment to be ready..."
+            sleep 30
+          done
+
+      - name: Deploy Eureka to Elastic Beanstalk
+        run: |
+          aws s3 cp eureka-package.zip s3://${{ secrets.EB_BUCKET }}/eureka-${{ github.sha }}.zip
+          aws elasticbeanstalk create-application-version \
+            --application-name postco-app \
+            --version-label eureka-${{ github.sha }} \
+            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="eureka-${{ github.sha }}.zip"
+          aws elasticbeanstalk update-environment \
+            --environment-name eureka-private-env \
+            --version-label eureka-${{ github.sha }}
+
+#      - name: Deploy Cache Service to Elastic Beanstalk
+#        run: |
+#          aws s3 cp cache-service-package.zip s3://${{ secrets.EB_BUCKET }}/cache-service-${{ github.sha }}.zip
+#          aws elasticbeanstalk create-application-version \
+#            --application-name postco-app \
+#            --version-label cache-service-${{ github.sha }} \
+#            --source-bundle S3Bucket="${{ secrets.EB_BUCKET }}",S3Key="cache-service-${{ github.sha }}.zip"
+#          aws elasticbeanstalk update-environment \
+#            --environment-name eureka-redis-env \
+#            --version-label cache-service-${{ github.sha }}

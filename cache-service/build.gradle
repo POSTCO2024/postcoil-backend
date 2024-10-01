@@ -12,6 +12,9 @@ dependencies {
     // Spring Validation
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    // Eureka - client
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
     // Reactor Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'io.projectreactor:reactor-test'
