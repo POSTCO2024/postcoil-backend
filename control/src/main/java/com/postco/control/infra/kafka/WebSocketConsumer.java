@@ -1,105 +1,87 @@
 package com.postco.control.infra.kafka;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.postco.control.service.WebsocketService;
 import com.postco.control.presentation.dto.websocket.ControlClientDTO;
 import com.postco.control.presentation.dto.websocket.WebSocketMessageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class WebSocketConsumer {
 
-    private final ObjectMapper objectMapper;
     private final WebsocketService websocketService;
 
-    @KafkaListener(topics = "#{__listener.getTopic()}", groupId = "#{__listener.getGroupId()}", autoStartup = "#{__listener.isKafkaEnabled()}", containerFactory = "kafkaListenerContainerFactory")
-    public void consumeMessages(List<String> records) {
-        log.info(records.toString());
-        records.forEach(record -> {
-            log.info("Received message - value: {}", record);
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .registerModule(new JavaTimeModule())
+            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
 
-            ControlClientDTO data = deserializeMessage(record);
-            if (data != null) {
-                String eventTypeStr = extractEventTypeFromKey(record); // 필요에 따라 key 추출 로직 조정
-                WebSocketMessageType eventType = WebSocketMessageType.fromString(eventTypeStr);
-                if (eventType != null) {
-                    websocketService.sendMessage(data, eventType);
-                    log.info("[WebSocket 전송 성공] 이벤트 타입: {}, 데이터: {}", eventType, data);
-                } else {
-                    log.warn("[WebSocket 전송 실패] 유효하지 않은 이벤트 타입: {}", eventTypeStr);
-                }
-            }
-        });
-    }
+    @KafkaListener(topics = "operation-websocket-data", groupId = "control-group")
+    public void consumeMessage(String message) {
+        log.info("Received message: {}", message);
 
-//    public void consumeMessages(List<String> records) {
-//        Map<String, ControlClientDTO> dataMap = records.stream()
-//                .map(record -> {
-//                    ControlClientDTO data = deserializeMessage(record.value());
-//                    return data != null ? Map.entry(record.key(), data) : null;
-//                })
-//                .filter(Objects::nonNull)
-//                .collect(Collectors.toMap(
-//                        Map.Entry::getKey,
-//                        Map.Entry::getValue,
-//                        (v1, v2) -> v2  // 중복 키의 경우 최신 값을 유지
-//                ));
-//
-//        dataMap.forEach((key, data) -> {
-//            String eventTypeStr = extractEventTypeFromKey(key);
-//            WebSocketMessageType eventType = WebSocketMessageType.fromString(eventTypeStr);
-//            if (eventType != null) {
-//                websocketService.sendMessage(data, eventType);
-//                log.info("[WebSocket 전송 성공] 이벤트 타입: {}, 데이터: {}", eventType, data);
-//            } else {
-//                log.warn("[WebSocket 전송 실패] 유효하지 않은 이벤트 타입: {}", eventTypeStr);
-//            }
-//        });
-//    }
-
-    private ControlClientDTO deserializeMessage(String message) {
         try {
-            return objectMapper.readValue(message, ControlClientDTO.class);
+            // JSON 문자열을 JsonNode로 파싱
+            JsonNode rootNode = objectMapper.readTree(message);
+
+            // 각 대시보드 노드 추출
+            JsonNode factoryDashboardNode = rootNode.get("factoryDashboard");
+            JsonNode processDashboardNode = rootNode.get("processDashboard");
+            JsonNode totalDashboardNode = rootNode.get("totalDashboard");
+
+            // 각 노드를 DTO 리스트로 역직렬화
+            List<ControlClientDTO.TotalSupply> factoryDashboard = objectMapper.readValue(
+                    factoryDashboardNode.toString(),
+                    new TypeReference<List<ControlClientDTO.TotalSupply>>() {}
+            );
+
+            List<ControlClientDTO.StatisticsInfo> processDashboard = objectMapper.readValue(
+                    processDashboardNode.toString(),
+                    new TypeReference<List<ControlClientDTO.StatisticsInfo>>() {}
+            );
+
+            List<ControlClientDTO.CurrentInfo> totalDashboard = objectMapper.readValue(
+                    totalDashboardNode.toString(),
+                    new TypeReference<List<ControlClientDTO.CurrentInfo>>() {}
+            );
+
+            // ControlClientDTO 객체 생성 및 필드 설정
+            ControlClientDTO controlClientDTO = new ControlClientDTO();
+            controlClientDTO.setFactoryDashboard(factoryDashboard);
+            controlClientDTO.setProcessDashboard(processDashboard);
+            controlClientDTO.setTotalDashboard(totalDashboard);
+
+            // 필요한 작업 수행 (예: WebSocket으로 전송)
+            processControlClientDTO(controlClientDTO);
+
         } catch (JsonProcessingException e) {
-           // log.error("[역직렬화 실패] 메시지 역직렬화 중 오류 발생: {}", message, e);
-            return null;
+            log.error("JSON 처리 중 오류 발생", e);
         }
     }
 
-    private String extractEventTypeFromKey(String key) {
-        // 키 형식이 "control:{eventType}:{timestamp}"인 경우 이벤트 타입 추출
-        String[] parts = key.split(":");
-        if (parts.length >= 2) {
-            return parts[1];
-        } else {
-            log.warn("유효하지 않은 키 형식: {}", key);
-            return null;
-        }
-    }
+    private void processControlClientDTO(ControlClientDTO data) {
+        // 이벤트 타입 설정 (필요에 따라 조정)
+        WebSocketMessageType eventType = WebSocketMessageType.WORK_STARTED; // 적절한 이벤트 타입 설정
 
-    // Kafka 설정을 위한 메서드들
-    public boolean isKafkaEnabled() {
-        // 실제 설정 값을 반환하도록 구현 필요
-        return true;
-    }
-
-    public String getTopic() {
-        return "operation-websocket-data";
-    }
-
-    public String getGroupId() {
-        return "control-group";
+        // WebSocket으로 메시지 전송
+        websocketService.sendMessage(data, eventType);
+        log.info("[WebSocket 전송 성공] 이벤트 타입: {}, 데이터: {}", eventType, data);
     }
 }

@@ -4,6 +4,6 @@ import com.postco.operation.presentation.dto.websocket.ControlClientDTO;
 
 import java.util.List;
 
-public interface WorkInstructionRepositoryCustom {
-    List<ControlClientDTO.StatisticsInfo> getStatisticsInfo();
+public interface MaterialRepositoryCustom {
+    public List<ControlClientDTO.CurrentInfo> getCurrentInfo();
 }

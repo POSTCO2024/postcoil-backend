@@ -1,5 +1,6 @@
 package com.postco.control.presentation.dto.websocket;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,19 +12,18 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class ControlClientDTO {
-    private List<TotalSupply> factoryDashboard;      // 공장별 작업대상재 대시보드 용
-    private List<StatisticsInfo> processDashboard;   // 공정별 작업대상재 대시보드 용
-    private List<CurrentInfo> totalDashboard; // 공정별 작업대상재 분석용
+    private List<TotalSupply> factoryDashboard;
+    private List<StatisticsInfo> processDashboard;
+    private List<CurrentInfo> totalDashboard;
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class TotalSupply {        // 편성된 모든 것에 대한 통계 수치
+    public static class TotalSupply {
         private String process;
         private Integer totalGoalCoils;
         private Integer totalCompleteCoils;
@@ -32,31 +32,24 @@ public class ControlClientDTO {
 
     @Data
     @Builder
-    @AllArgsConstructor
     @NoArgsConstructor
-    public static class StatisticsInfo {     // 현재 작업중인 작업지시서에 대한 수치
+    @AllArgsConstructor
+    public static class StatisticsInfo {
         private String process;
-        // 2024-09-27 추가됨
         private Integer workTotalCoils;
         private Integer workScheduledCoils;
         private Integer workTotalCompleteCoils;
-        private LocalDateTime workStartTime;
-
-    }
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")  // 날짜 형식 지정
+        private LocalDateTime workStartTime;    }
 
     @Data
     @Builder
-    @AllArgsConstructor
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class CurrentInfo {
-        private Map<String, Integer> nextProc = new HashMap<>(); // 초기화 추가
-        private Map<String, Integer> currProc = new HashMap<>(); // 초기화 추가
-        //        private String equipmentStatus;
+        private Map<String, Integer> nextProc = new HashMap<>();
+        private Map<String, Integer> currProcess = new HashMap<>(); // Change to String for material progress
+        private String currProc;
         private Long workInstructionId;
     }
 }
-
-
-
-
-

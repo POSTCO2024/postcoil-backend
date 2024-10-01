@@ -23,6 +23,16 @@ public class WebsocketProducer {
         genericProducer.sendData(TOPIC, key , controlDto);
     }
 
+    public void sendToControlCurrSch(String eventType, ControlClientDTO controlClientDTO){
+        String key = "control:" + eventType + ":" + System.currentTimeMillis();
+        genericProducer.sendData(TOPIC, key, controlClientDTO);
+    }
+    public void sendToControltotalData(String eventType, ControlClientDTO controlClientDTO){
+        String key = "control:" + eventType + ":" + System.currentTimeMillis();
+        genericProducer.sendData(TOPIC, key, controlClientDTO);
+    }
+
+
     public void sendToSchedule(OrderDTO.View orders) {
         String key = String.valueOf(orders.getId());
         genericProducer.sendData(TOPIC, key, orders);

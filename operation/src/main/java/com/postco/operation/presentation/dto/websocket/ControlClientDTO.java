@@ -1,5 +1,7 @@
 package com.postco.operation.presentation.dto.websocket;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.postco.operation.domain.entity.MaterialProgress;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,6 +42,7 @@ public class ControlClientDTO {
         private Integer workTotalCoils;
         private Integer workScheduledCoils;
         private Integer workTotalCompleteCoils;
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime workStartTime;
 
     }
@@ -49,8 +52,9 @@ public class ControlClientDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class CurrentInfo {
-        private Map<String, Integer> nextProc = new HashMap<>(); // 초기화 추가
-        private Map<String, Integer> currProc = new HashMap<>(); // 초기화 추가
+        private Map<String, Integer> nextProc = new HashMap<>(); // 초기화 추가\
+        private Map<MaterialProgress, Integer> currProcess = new HashMap<>();
+        private String currProc; // 초기화 추가
         //        private String equipmentStatus;
         private Long workInstructionId;
 
@@ -58,8 +62,8 @@ public class ControlClientDTO {
             this.nextProc.merge(nextProc, count, Integer::sum);
         }
 
-        public void addCurrentProgress(String progress, int count) {
-            this.currProc.merge(progress, count, Integer::sum);
+        public void addCurrentProgress(MaterialProgress progress, int count) {
+            this.currProcess.merge(progress, count, Integer::sum);
         }
     }
 
