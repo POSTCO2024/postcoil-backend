@@ -27,9 +27,12 @@ public class SchedulingServiceImplRefac {
     public List<SCHMaterial> planSchedule(List<SCHMaterial> materials, String processCode) {
         String rollUnit = materials.get(0).getRollUnit();
 
-        // Redis에서 미편성된 코일 불러오기
-        List<SCHMaterial> unassignedCoils = redisService.fetchUnassignedCoils(processCode, rollUnit);
-        materials.addAll(unassignedCoils);
+//        // Redis에서 미편성된 코일 불러오기
+//        List<SCHMaterial> unassignedCoils = redisService.fetchUnassignedCoils(processCode, rollUnit);
+//        materials.addAll(unassignedCoils);
+//
+//        // 불러온 미편성 코일 삭제
+//        redisService.deleteUnassignedCoils(unassignedCoils).subscribe();
 
         // ProcessCode와 RollUnit에 해당하는 제약조건 및 우선순위 조회
         List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
@@ -53,6 +56,8 @@ public class SchedulingServiceImplRefac {
         List<SCHMaterial> finalCoilList = insertUnassignedCoilsBackToSchedule(filteredCoils, unassignedCoilsAfterProcessing, constraintInsertionList);
         printCurrentState(finalCoilList, "미편성 삽입 후");
 
+        AtomicInteger sequence = new AtomicInteger(1); // 시퀀스 시작 값을 1로 설정
+        finalCoilList.forEach(coil -> coil.setSequence(sequence.getAndIncrement()));
         return finalCoilList;  // 최종 편성된 코일 반환
     }
 
@@ -144,6 +149,9 @@ public class SchedulingServiceImplRefac {
     // 미편성 코일을 다시 스케줄에 삽입
     private List<SCHMaterial> insertUnassignedCoilsBackToSchedule(List<SCHMaterial> scheduledCoils, List<SCHMaterial> unassignedCoils,
                                                                   List<ConstraintInsertionDTO> constraintInsertionList) {
+        // 불러온 미편성 코일 삭제
+        redisService.deleteUnassignedCoils(unassignedCoils).subscribe();
+
         List<SCHMaterial> finalCoilList = new ArrayList<>(scheduledCoils);
         List<SCHMaterial> remainingUnassignedCoils = new ArrayList<>();
         Double flagWidth = 50.0;
@@ -177,9 +185,7 @@ public class SchedulingServiceImplRefac {
         if (!remainingUnassignedCoils.isEmpty()) {
             redisService.saveUnassignedCoils(remainingUnassignedCoils).subscribe();
         }
-        AtomicInteger sequence = new AtomicInteger(1); // 시퀀스 시작 값을 1로 설정
 
-        finalCoilList.forEach(coil -> coil.setSequence(sequence.getAndIncrement()));
         return finalCoilList;
     }
 
