@@ -123,6 +123,7 @@ public class RegisterServiceImpl {
                     return material != null && isCALProcess(material);  // CAL 공정 필터링
                 })
                 .map(targetMaterial -> convertToSCHMaterial(targetMaterial, materialMap, equipmentMap))  // SCHMaterial 객체로 변환
+                .distinct()  // 중복된 SCHMaterial 제거
                 .collect(Collectors.toList());
     }
 

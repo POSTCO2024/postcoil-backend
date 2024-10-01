@@ -27,12 +27,12 @@ public class SchedulingServiceImplRefac {
     public List<SCHMaterial> planSchedule(List<SCHMaterial> materials, String processCode) {
         String rollUnit = materials.get(0).getRollUnit();
 
-        // Redis에서 미편성된 코일 불러오기
-        List<SCHMaterial> unassignedCoils = redisService.fetchUnassignedCoils(processCode, rollUnit);
-        materials.addAll(unassignedCoils);
-
-        // 불러온 미편성 코일 삭제
-        redisService.deleteUnassignedCoils(unassignedCoils).subscribe();
+//        // Redis에서 미편성된 코일 불러오기
+//        List<SCHMaterial> unassignedCoils = redisService.fetchUnassignedCoils(processCode, rollUnit);
+//        materials.addAll(unassignedCoils);
+//
+//        // 불러온 미편성 코일 삭제
+//        redisService.deleteUnassignedCoils(unassignedCoils).subscribe();
 
         // ProcessCode와 RollUnit에 해당하는 제약조건 및 우선순위 조회
         List<PriorityDTO> priorities = priorityService.findAllByProcessCodeAndRollUnit(processCode, rollUnit);
