@@ -15,6 +15,17 @@ spring:
       timeout: 3000  # 타임아웃 (밀리초 단위)
     ssl: false  # SSL이 비활성화된 상태
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKER}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: redis-cache
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
 eureka:
   client:
     serviceUrl:
