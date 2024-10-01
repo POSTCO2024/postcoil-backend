@@ -10,10 +10,16 @@ server:
 
 eureka:
   instance:
-    hostname: ${EUREKA_HOST}
+    hostname: ${EUREKA_HOST:localhost}
     preferIpAddress: true
   client:
     registerWithEureka: false
     fetchRegistry: false
     serviceUrl:
-      defaultZone: http://${EUREKA_HOST}:${SERVER_PORT}/eureka/
+      defaultZone: http://${EUREKA_HOST:localhost}:${SERVER_PORT:8761}/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
