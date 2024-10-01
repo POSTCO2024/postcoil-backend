@@ -102,7 +102,7 @@ public class WorkInstructionMapper {
                 map(source.getMaterial().getLength(), destination.getLength());
                 map(source.getMaterial().getWidth(), destination.getWidth());
                 map(source.getMaterial().getThickness(), destination.getThickness());
-                map(source.getMaterial().getCoilTypeCode(),destination.getCoilTypeCode());
+                map(source.getMaterial().getCoilTypeCode(), destination.getCoilTypeCode());
             }
         });
     }
@@ -196,7 +196,6 @@ public class WorkInstructionMapper {
         log.info("mapToItemMessageDto : {}", modelMapper.map(item, WorkInstructionItemDTO.Message.class));
         return modelMapper.map(item, WorkInstructionItemDTO.Message.class);
     }
-
 
     private static WorkStatus safeValueOf(String status) {
         try {
