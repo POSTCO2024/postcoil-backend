@@ -29,7 +29,7 @@ jobs:
         run: |
           aws s3 cp gateway-package.zip s3://${{ secrets.EB_GATEWAY_BUCKET }}/gateway-${{ github.sha }}.zip
           aws elasticbeanstalk create-application-version \
-            --application-name postco-gateway \
+            --application-name gateway \
             --version-label gateway-${{ github.sha }} \
             --source-bundle S3Bucket="${{ secrets.EB_GATEWAY_BUCKET }}",S3Key="gateway-${{ github.sha }}.zip"
           aws elasticbeanstalk update-environment \
@@ -40,9 +40,9 @@ jobs:
         run: |
           aws s3 cp eureka-package.zip s3://${{ secrets.EB_EUREKA_BUCKET }}/eureka-${{ github.sha }}.zip
           aws elasticbeanstalk create-application-version \
-            --application-name postco-eureka \
+            --application-name eureka \
             --version-label eureka-${{ github.sha }} \
             --source-bundle S3Bucket="${{ secrets.EB_EUREKA_BUCKET }}",S3Key="eureka-${{ github.sha }}.zip"
           aws elasticbeanstalk update-environment \
-            --environment-name eureka-private-env \
+            --environment-name eureka-env \
             --version-label eureka-${{ github.sha }}
