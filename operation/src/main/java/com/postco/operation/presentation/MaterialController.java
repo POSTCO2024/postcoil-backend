@@ -1,7 +1,6 @@
 package com.postco.operation.presentation;
 
 import com.postco.operation.service.KafkaMessageService;
-import com.postco.operation.service.impl.MaterialUpdateServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,5 +24,4 @@ public class MaterialController {
         kafkaMessageService.sendOrders();
         return ResponseEntity.ok("All orders sent successfully");
     }
-
 }
