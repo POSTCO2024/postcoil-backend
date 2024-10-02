@@ -5,6 +5,7 @@ import com.postco.operation.domain.repository.CoilSupplyRepository;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
 import com.postco.operation.presentation.dto.websocket.ClientDTO;
+import com.postco.operation.presentation.dto.websocket.WebSocketMessageType;
 import com.postco.operation.service.CoilSupplyService;
 import com.postco.operation.service.MaterialUpdateService;
 import com.postco.operation.service.WorkItemService;
@@ -112,7 +113,8 @@ public class CoilWorkCommandService {
                         .map(item -> workItemService.startWorkItem(item.getId())
                                 .flatMap(updatedItem -> {
                                     if (updatedItem != null) {
-                                        //clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_STARTED);
+                                        // 관제로 웹소켓 통해 정보 전달
+                                        clientDashboardService.sendAnalyticsDashboardStartData(WebSocketMessageType.WORK_STARTED);
                                         // 웹소켓으로 정보 전달
                                         Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
                                         socketData.subscribe(data -> {
@@ -150,7 +152,8 @@ public class CoilWorkCommandService {
                 .then(finishWorkUpdates(itemId, materialId))
                 .doOnSuccess(v -> {
                     log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId);
-                    // clientDashboardService.sendDashboardData(WebSocketMessageType.WORK_COMPLETED);
+                    // 작업 완료 시 관제로 데이터 전송
+                    clientDashboardService.sendAnalyticsDashboardEndData(WebSocketMessageType.WORK_COMPLETED);
 
                     // 웹소켓으로 정보 전달
                     Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
