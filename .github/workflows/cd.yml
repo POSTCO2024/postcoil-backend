@@ -27,6 +27,13 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Download Dockerrun.aws.json
+        uses: actions/download-artifact@v4
+        with:
+          name: dockerrun
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
@@ -69,11 +76,6 @@ jobs:
             docker tag postco-apps:$service-${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/postco-apps:$service-${{ github.sha }}
             docker push ${{ secrets.ECR_REGISTRY }}/postco-apps:$service-${{ github.sha }}
           done
-
-      - name: Update Dockerrun.aws.json
-        run: |
-          sed -i 's|<ECR_REGISTRY>|${{ secrets.ECR_REGISTRY }}|g' Dockerrun.aws.json
-          sed -i 's|<TAG>|${{ github.sha }}|g' Dockerrun.aws.json
 
       - name: Deploy business services to Elastic Beanstalk
         run: |

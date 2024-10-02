@@ -69,3 +69,15 @@ jobs:
           name: docker-images
           path: "*-image.tar"
           retention-days: 1
+
+      - name: Update Dockerrun.aws.json
+        run: |
+          sed -i 's|<ECR_REGISTRY>|${{ secrets.ECR_REGISTRY }}|g' Dockerrun.aws.json
+          sed -i 's|<TAG>|${{ github.sha }}|g' Dockerrun.aws.json
+
+      - name: Upload Dockerrun.aws.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: dockerrun
+          path: Dockerrun.aws.json
+          retention-days: 1
