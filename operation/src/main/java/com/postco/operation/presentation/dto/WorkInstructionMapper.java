@@ -13,7 +13,6 @@ import org.modelmapper.PropertyMap;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +33,6 @@ public class WorkInstructionMapper {
             protected void configure() {
                 skip(destination.getWorkNo());
                 map(source.getId(), destination.getScheduleId());
-                map().setStartTime(LocalDateTime.now());
                 map().setWorkStatus(safeValueOf(source.getWorkStatus()));
                 map().setTotalQuantity(source.getQuantity());
                 map().setExpectedDuration(source.getScExpectedDuration());
