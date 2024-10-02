@@ -16,8 +16,10 @@ public class WebsocketService {
 
     // 메시지를 이벤트 타입에 따라 전송
     public void sendMessage(ControlClientDTO controlDto, WebSocketMessageType eventType) {
+        log.info("Send Complete!!");
         String destination = getWebSocketDestination(eventType); // 이벤트에 맞는 목적지를 가져옴
         messagingTemplate.convertAndSend(destination, controlDto); // 해당 목적지로 메시지 전송
+
         log.info("Sent WebSocket message to {}: eventType={}, data={}", destination, eventType, controlDto);
     }
 
@@ -32,4 +34,6 @@ public class WebsocketService {
                 return "/topic/controlData"; // 기본 경로
         }
     }
+
+
 }

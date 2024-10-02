@@ -5,7 +5,6 @@ import com.postco.operation.domain.repository.impl.MaterialCustomImpl;
 import com.postco.operation.domain.repository.impl.WorkInstructionCustomImpl;
 import com.postco.operation.infra.kafka.WebsocketProducer;
 import com.postco.operation.presentation.dto.websocket.ControlClientDTO;
-import com.postco.operation.presentation.dto.websocket.DashBoardClientDTO;
 import com.postco.operation.presentation.dto.websocket.WebSocketMessageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +19,7 @@ public class ClientDashboardService {
     private final WebsocketProducer websocketProducer;
     private final MaterialCustomImpl materialCustom;
 
-    public void sendAnalyticsDashboardStartData(WebSocketMessageType eventType) {
+    public void sendDashboardStartData(WebSocketMessageType eventType) {
         ControlClientDTO controlDto = ControlClientDTO.builder()
                 .factoryDashboard(coilSupplyCustom.getTotalSupplyByProcess())
                 .processDashboard(workInstructionCustom.getStatisticsInfo())
@@ -30,7 +29,7 @@ public class ClientDashboardService {
         websocketProducer.sendToControlWorkStart(String.valueOf(eventType), controlDto);
         log.info("Sent monitoring data for event: {}", eventType);
     }
-    public void sendAnalyticsDashboardEndData(WebSocketMessageType eventType) {
+    public void sendDashboardEndData(WebSocketMessageType eventType) {
         ControlClientDTO controlDto = ControlClientDTO.builder()
                 .factoryDashboard(coilSupplyCustom.getTotalSupplyByProcess())
                 .processDashboard(workInstructionCustom.getStatisticsInfo())
@@ -39,6 +38,5 @@ public class ClientDashboardService {
         websocketProducer.sendToControlWorkEnd(String.valueOf(eventType), controlDto);
         log.info("Sent monitoring data for event: {}", eventType);
     }
-
 
 }

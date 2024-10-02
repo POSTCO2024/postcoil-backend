@@ -114,7 +114,7 @@ public class CoilWorkCommandService {
                                 .flatMap(updatedItem -> {
                                     if (updatedItem != null) {
                                         // 관제로 웹소켓 통해 정보 전달
-                                        clientDashboardService.sendAnalyticsDashboardStartData(WebSocketMessageType.WORK_STARTED);
+                                        clientDashboardService.sendDashboardStartData(WebSocketMessageType.WORK_STARTED);
                                         // 웹소켓으로 정보 전달
                                         Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
                                         socketData.subscribe(data -> {
@@ -153,7 +153,7 @@ public class CoilWorkCommandService {
                 .doOnSuccess(v -> {
                     log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId);
                     // 작업 완료 시 관제로 데이터 전송
-                    clientDashboardService.sendAnalyticsDashboardEndData(WebSocketMessageType.WORK_COMPLETED);
+                    clientDashboardService.sendDashboardEndData(WebSocketMessageType.WORK_COMPLETED);
 
                     // 웹소켓으로 정보 전달
                     Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
