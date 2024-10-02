@@ -25,7 +25,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Gateway
+      - name: Build Gateway and Eureka
         run: |
           cd gateway
           ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
@@ -33,18 +33,26 @@ jobs:
           find build/libs -name '*.jar' -exec cp {} ../deployment/gateway/application.jar \;
           cp -r ../.ebextensions ../deployment/gateway/
 
-      - name: Build Eureka
-        run: |
-          cd eureka-server
+          cd ../eureka-server
           ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p ../deployment/eureka
           find build/libs -name '*.jar' -exec cp {} ../deployment/eureka/application.jar \;
           cp -r ../.ebextensions ../deployment/eureka/
 
-      - name: Prepare deployment packages
+      - name: Prepare ZIP packages
         run: |
           cd deployment/gateway && zip -r ../../gateway-package.zip .
           cd ../eureka && zip -r ../../eureka-package.zip .
+
+      - name: Build Docker images
+        run: |
+          for service in operation control schedule cache-service; do
+            cd $service
+            ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
+            docker build -t postco-apps:$service-${{ github.sha }} .
+            docker save postco-apps:$service-${{ github.sha }} > ../$service-image.tar
+            cd ..
+          done
 
       - name: Upload Elastic Beanstalk packages
         uses: actions/upload-artifact@v4
@@ -53,4 +61,11 @@ jobs:
           path: |
             gateway-package.zip
             eureka-package.zip
+          retention-days: 1
+
+      - name: Upload Docker images
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-images
+          path: "*-image.tar"
           retention-days: 1

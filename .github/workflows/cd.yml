@@ -11,10 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download Elastic Beanstalk packages
         uses: actions/download-artifact@v4
         with:
           name: eb-packages
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Docker images
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-images
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -46,3 +55,34 @@ jobs:
           aws elasticbeanstalk update-environment \
             --environment-name eureka-env \
             --version-label eureka-${{ github.sha }}
+
+      - name: Load Docker images
+        run: |
+          for image in *-image.tar; do
+            docker load < $image
+          done
+
+      - name: Push Docker images to ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+          for service in operation control schedule cache-service; do
+            docker tag postco-apps:$service-${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/postco-apps:$service-${{ github.sha }}
+            docker push ${{ secrets.ECR_REGISTRY }}/postco-apps:$service-${{ github.sha }}
+          done
+
+      - name: Update Dockerrun.aws.json
+        run: |
+          sed -i 's|<ECR_REGISTRY>|${{ secrets.ECR_REGISTRY }}|g' Dockerrun.aws.json
+          sed -i 's|<TAG>|${{ github.sha }}|g' Dockerrun.aws.json
+
+      - name: Deploy business services to Elastic Beanstalk
+        run: |
+          zip -r business-package.zip Dockerrun.aws.json .ebextensions
+          aws s3 cp business-package.zip s3://${{ secrets.EB_BUSINESS_BUCKET }}/business-${{ github.sha }}.zip
+          aws elasticbeanstalk create-application-version \
+            --application-name business \
+            --version-label business-${{ github.sha }} \
+            --source-bundle S3Bucket="${{ secrets.EB_BUSINESS_BUCKET }}",S3Key="business-${{ github.sha }}.zip"
+          aws elasticbeanstalk update-environment \
+            --environment-name business-env \
+            --version-label business-${{ github.sha }}

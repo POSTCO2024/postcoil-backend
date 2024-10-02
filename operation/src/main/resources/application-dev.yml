@@ -4,6 +4,11 @@ spring:
     activate:
       on-profile: dev
 
+feature-flags:
+  kafka:
+    enabled: true
+
+
 ---
 spring:
   datasource:

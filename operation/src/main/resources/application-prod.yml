@@ -1,15 +1,16 @@
-# 실제 운영되는 환경입니다.
 spring:
-  config:
-    activate:
-      on-profile: prod
+  application:
+    name: operation
+  profiles:
+    active: prod
 
 ---
 spring:
   datasource:
-    url: jdbc:mysql://postcoil-db.cva0yysaozpe.ap-northeast-2.rds.amazonaws.com:3306/operation
+    url: jdbc:mysql://${DB_URL}:3306/operation
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -19,6 +20,21 @@ spring:
         show_sql: false
         properties:
           hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
+
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKER}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: ${spring.application.name}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
 logging:
   level:
