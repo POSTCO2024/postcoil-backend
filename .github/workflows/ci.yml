@@ -31,13 +31,13 @@ jobs:
           ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p ../deployment/gateway
           find build/libs -name '*.jar' -exec cp {} ../deployment/gateway/application.jar \;
-          cp -r ../.ebextensions ../deployment/gateway/
+          cp -r .ebextensions ../deployment/gateway/
 
           cd ../eureka-server
           ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
           mkdir -p ../deployment/eureka
           find build/libs -name '*.jar' -exec cp {} ../deployment/eureka/application.jar \;
-          cp -r ../.ebextensions ../deployment/eureka/
+          cp -r .ebextensions ../deployment/eureka/
 
       - name: Prepare ZIP packages
         run: |
