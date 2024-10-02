@@ -15,21 +15,18 @@ import org.springframework.stereotype.Service;
 public class WebsocketProducer {
     private final CoilSupplyCustomImpl coilSupplyCustom;
     private final WorkInstructionCustomImpl workInstructionCustom;
-    private static final String TOPIC = "operation-websocket-data";
+    private static final String TOPIC = "operation-websocket-data-start";
+    private static final String END_TOPIC = "operation-websocket-data-end";
     private final KafkaProducer genericProducer;
 
-    public void sendToControl(String eventType, ControlClientDTO controlDto) {
+    public void sendToControlWorkStart(String eventType, ControlClientDTO controlDto) {
         String key = "control:" + eventType + ":" + System.currentTimeMillis();
         genericProducer.sendData(TOPIC, key , controlDto);
     }
 
-    public void sendToControlCurrSch(String eventType, ControlClientDTO controlClientDTO){
+    public void sendToControlWorkEnd(String eventType, ControlClientDTO controlClientDTO){
         String key = "control:" + eventType + ":" + System.currentTimeMillis();
-        genericProducer.sendData(TOPIC, key, controlClientDTO);
-    }
-    public void sendToControltotalData(String eventType, ControlClientDTO controlClientDTO){
-        String key = "control:" + eventType + ":" + System.currentTimeMillis();
-        genericProducer.sendData(TOPIC, key, controlClientDTO);
+        genericProducer.sendData(END_TOPIC, key, controlClientDTO);
     }
 
 

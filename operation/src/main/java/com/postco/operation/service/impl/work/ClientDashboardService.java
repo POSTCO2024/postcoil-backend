@@ -19,23 +19,24 @@ public class ClientDashboardService {
     private final WebsocketProducer websocketProducer;
     private final MaterialCustomImpl materialCustom;
 
-    public void sendDashboardData(WebSocketMessageType eventType) {
+    public void sendDashboardStartData(WebSocketMessageType eventType) {
         ControlClientDTO controlDto = ControlClientDTO.builder()
                 .factoryDashboard(coilSupplyCustom.getTotalSupplyByProcess())
                 .processDashboard(workInstructionCustom.getStatisticsInfo())
                 .totalDashboard(materialCustom.getCurrentInfo())
                 .build();
 
-        websocketProducer.sendToControl(String.valueOf(eventType), controlDto);
+        websocketProducer.sendToControlWorkStart(String.valueOf(eventType), controlDto);
+        log.info("Sent monitoring data for event: {}", eventType);
+    }
+    public void sendDashboardEndData(WebSocketMessageType eventType) {
+        ControlClientDTO controlDto = ControlClientDTO.builder()
+                .factoryDashboard(coilSupplyCustom.getTotalSupplyByProcess())
+                .processDashboard(workInstructionCustom.getStatisticsInfo())
+                .totalDashboard(materialCustom.getCurrentInfo())
+                .build();
+        websocketProducer.sendToControlWorkEnd(String.valueOf(eventType), controlDto);
         log.info("Sent monitoring data for event: {}", eventType);
     }
 
-
-    public void sendCurrSchData(WebsocketProducer eventType){
-        ControlClientDTO controlDto = ControlClientDTO.builder()
-                        .processDashboard(workInstructionCustom.getStatisticsInfo())
-                .build();
-        websocketProducer.sendToControl(String.valueOf(eventType), controlDto);
-        log.info("Sent monitoring data for currSch event: {}", eventType);
-    }
 }
