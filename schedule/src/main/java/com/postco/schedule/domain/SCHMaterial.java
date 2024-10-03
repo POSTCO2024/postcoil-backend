@@ -22,6 +22,7 @@ public class SCHMaterial implements com.postco.core.entity.Entity{
 
     // 컬럼 더 추가
     private Long targetId;
+    @Column(unique = true)  // materialId를 유니크 제약조건으로 설정
     private Long materialId;
 
     // 필요 컬럼 추가2 - Sohyun Ahn 2024-09-19
