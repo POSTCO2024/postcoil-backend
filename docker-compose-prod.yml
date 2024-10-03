@@ -1,0 +1,45 @@
+version: '1'
+services:
+  operation:
+    image: ${ECR_REGISTRY}/postco-apps:operation-${TAG}
+    mem_limit: 512m
+    ports:
+      - "8085:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://${EUREKA_HOST}:8761/eureka/
+    volumes:
+      - /var/app/logs:/app/logs
+
+  control:
+    image: ${ECR_REGISTRY}/postco-apps:control-${TAG}
+    mem_limit: 512m
+    ports:
+      - "8086:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://${EUREKA_HOST}:8761/eureka/
+    volumes:
+      - /var/app/logs:/app/logs
+
+  schedule:
+    image: ${ECR_REGISTRY}/postco-apps:schedule-${TAG}
+    mem_limit: 512m
+    ports:
+      - "8087:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://${EUREKA_HOST}:8761/eureka/
+    volumes:
+      - /var/app/logs:/app/logs
+
+  cache-service:
+    image: ${ECR_REGISTRY}/postco-apps:cache-service-${TAG}
+    mem_limit: 512m
+    ports:
+      - "8088:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://${EUREKA_HOST}:8761/eureka/
+    volumes:
+      - /var/app/logs:/app/logs

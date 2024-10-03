@@ -27,10 +27,10 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Download Dockerrun.aws.json
+      - name: Download docker-compose.yml
         uses: actions/download-artifact@v4
         with:
-          name: dockerrun
+          name: docker-compose
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -77,15 +77,16 @@ jobs:
             docker push ${{ secrets.ECR_REPOSITORY }}/postco-apps:$service-${{ github.sha }}
           done
 
-      - name: Update Dockerrun.aws.json
+      - name: Update docker-compose.yml with actual values
         run: |
-          sed -i 's|<ECR_REPOSITORY>|${{ secrets.ECR_REPOSITORY }}|g' Dockerrun.aws.json
-          sed -i 's|<TAG>|${{ github.sha }}|g' Dockerrun.aws.json
+          sed -i 's|${ECR_REGISTRY}|${{ secrets.ECR_REPOSITORY }}|g' docker-compose-prod.yml
+          sed -i 's|${TAG}|${{ github.sha }}|g' docker-compose-prod.yml
+          sed -i 's|${EUREKA_HOST}|${{ secrets.EUREKA_HOST }}|g' docker-compose-prod.yml
 
       - name: Deploy business services to Elastic Beanstalk
         run: |
-          zip -r business-package.zip Dockerrun.aws.json .ebextensions
-          aws s3 cp business-package.zip s3://${{ secrets.EB_BUSINESS_BUCKET }}/business-${{ github.sha }}.zip --acl public-read --force
+          zip -r business-package.zip docker-compose-prod.yml .ebextensions
+          aws s3 cp business-package.zip s3://${{ secrets.EB_BUSINESS_BUCKET }}/business-${{ github.sha }}.zip
           aws elasticbeanstalk create-application-version \
             --application-name business \
             --version-label business-${{ github.sha }} \

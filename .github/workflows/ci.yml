@@ -70,14 +70,15 @@ jobs:
           path: "*-image.tar"
           retention-days: 1
 
-      - name: Update Dockerrun.aws.json
+      - name: Prepare docker-compose.yml
         run: |
-          sed -i 's|<ECR_REGISTRY>|${{ secrets.ECR_REGISTRY }}|g' Dockerrun.aws.json
-          sed -i 's|<TAG>|${{ github.sha }}|g' Dockerrun.aws.json
+          sed -i 's|${ECR_REGISTRY}|${{ secrets.ECR_REGISTRY }}|g' docker-compose.yml
+          sed -i 's|${TAG}|${{ github.sha }}|g' docker-compose.yml
+          sed -i 's|${EUREKA_HOST}|${{ secrets.EUREKA_HOST }}|g' docker-compose.yml
 
-      - name: Upload Dockerrun.aws.json
+      - name: Upload docker-compose.yml
         uses: actions/upload-artifact@v4
         with:
-          name: dockerrun
-          path: Dockerrun.aws.json
+          name: docker-compose
+          path: docker-compose.yml
           retention-days: 1
