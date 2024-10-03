@@ -2,7 +2,7 @@ package com.postco.operation.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
 import com.postco.operation.presentation.dto.WorkScheduleSummaryDTO;
-import com.postco.operation.service.MoritoringService;
+import com.postco.operation.service.MonitoringService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +23,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MonitoringController {
     @Autowired
-    private final MoritoringService moritoringService;
+    private final MonitoringService monitoringService;
 
     @GetMapping("/summary")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkScheduleSummaryDTO>>>> getWorkScheduleSummary() {
-        return moritoringService.getWorkScheduleSummary()
+        return monitoringService.getWorkScheduleSummary()
                 .map(result -> {
                     ApiResponseDTO<List<WorkScheduleSummaryDTO>> response = ApiResponseDTO.<List<WorkScheduleSummaryDTO>>builder()
                             .status(HttpStatus.OK.value())
