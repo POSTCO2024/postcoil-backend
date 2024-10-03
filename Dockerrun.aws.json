@@ -1,5 +1,5 @@
 {
-  "AWSEBDockerrunVersion": "2",
+  "AWSEBDockerrunVersion": "3",
   "volumes": [
     {
       "name": "logs",
@@ -8,7 +8,7 @@
       }
     }
   ],
-  "containerDefinitions": [
+  "services": [
     {
       "name": "operation",
       "image": "<ECR_REGISTRY>/postco-apps:operation-<TAG>",
