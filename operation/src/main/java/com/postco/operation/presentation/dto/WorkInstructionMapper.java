@@ -90,7 +90,7 @@ public class WorkInstructionMapper {
         modelMapper.addMappings(new PropertyMap<WorkInstructionItem, WorkInstructionItemDTO.Message>() {
             @Override
             protected void configure() {
-                map(source.getWorkInstruction().getId(), destination.getWorkItemId());
+                map(source.getId(), destination.getWorkItemId());
                 map(source.getMaterial().getId(), destination.getMaterialId()); // material의 id를 materialId로 매핑
                 map(source.getMaterial().getNo(), destination.getMaterialNo());
                 map(source.getMaterial().getPreProc(), destination.getPreProc());

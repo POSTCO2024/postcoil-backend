@@ -4,7 +4,9 @@ import com.postco.operation.domain.entity.WorkInstruction;
 import com.postco.operation.domain.entity.WorkInstructionItem;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
+import com.postco.operation.presentation.dto.websocket.ClientDTO;
 import com.postco.operation.service.WorkItemService;
+import com.postco.websocket.service.CoilService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,6 +24,8 @@ public class WorkItemServiceImpl implements WorkItemService {
     private final WorkItemRepository workItemRepository;
     private final WorkInstructionRepository workInstructionRepository;
     private final TransactionTemplate transactionTemplate;
+    private final WorkInstructionServiceImpl workInstructionService;
+    private final CoilService coilService;
 
     @Override
     @Transactional
@@ -32,6 +38,11 @@ public class WorkItemServiceImpl implements WorkItemService {
             workItemRepository.save(item);
 
             log.info("작업 아이템 리젝트 처리 완료. ID: {}", itemId);
+            Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
+            socketData.subscribe(data -> {
+                log.info("보낼 웹소켓 정보 작업시작시 : {}", data); // 실제 데이터를 로깅
+                coilService.directMessageToClient("/topic/work-instruction", data); // 데이터를 전송
+            });
             return true;
         } catch (Exception e) {
             log.error("작업 아이템 리젝트 처리 중 오류 발생. ID: {}", itemId, e);
