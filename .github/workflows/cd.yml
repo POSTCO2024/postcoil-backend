@@ -43,7 +43,13 @@ jobs:
 
       - name: Deploy Gateway to Elastic Beanstalk
         run: |
-          aws s3 cp gateway-package.zip s3://${{ secrets.EB_GATEWAY_BUCKET }}/gateway-${{ github.sha }}.zip
+          # Delete existing application version
+          aws elasticbeanstalk delete-application-version \
+            --application-name gateway \
+            --version-label gateway-${{ github.sha }} \
+            --delete-source-bundle
+          # Upload new version
+          aws s3 cp gateway-package.zip s3://${{ secrets.EB_GATEWAY_BUCKET }}/gateway-${{ github.sha }}.zip --force
           aws elasticbeanstalk create-application-version \
             --application-name gateway \
             --version-label gateway-${{ github.sha }} \
@@ -54,7 +60,13 @@ jobs:
 
       - name: Deploy Eureka to Elastic Beanstalk
         run: |
-          aws s3 cp eureka-package.zip s3://${{ secrets.EB_EUREKA_BUCKET }}/eureka-${{ github.sha }}.zip
+          # Delete existing application version
+          aws elasticbeanstalk delete-application-version \
+            --application-name eureka \
+            --version-label eureka-${{ github.sha }} \
+            --delete-source-bundle
+          # Upload new version
+          aws s3 cp eureka-package.zip s3://${{ secrets.EB_EUREKA_BUCKET }}/eureka-${{ github.sha }}.zip --force
           aws elasticbeanstalk create-application-version \
             --application-name eureka \
             --version-label eureka-${{ github.sha }} \
@@ -79,8 +91,14 @@ jobs:
 
       - name: Deploy business services to Elastic Beanstalk
         run: |
+          # Delete existing application version
+          aws elasticbeanstalk delete-application-version \
+            --application-name business \
+            --version-label business-${{ github.sha }} \
+            --delete-source-bundle
+          # Create and upload new version
           zip -r business-package.zip Dockerrun.aws.json .ebextensions
-          aws s3 cp business-package.zip s3://${{ secrets.EB_BUSINESS_BUCKET }}/business-${{ github.sha }}.zip --acl public-read --force
+          aws s3 cp business-package.zip s3://${{ secrets.EB_BUSINESS_BUCKET }}/business-${{ github.sha }}.zip --force
           aws elasticbeanstalk create-application-version \
             --application-name business \
             --version-label business-${{ github.sha }} \
