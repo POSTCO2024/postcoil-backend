@@ -1,127 +1,51 @@
 {
-  "AWSEBDockerrunVersion": "3",
-  "volumes": [
-    {
-      "name": "logs",
-      "host": {
-        "sourcePath": "/var/app/logs"
-      }
-    }
-  ],
-  "services": [
+  "AWSEBDockerrunVersion": "1",
+  "containerDefinitions": [
     {
       "name": "operation",
-      "image": "<ECR_REGISTRY>/postco-apps:operation-<TAG>",
+      "image": "${ECR_REGISTRY}/postco-apps:operation-${TAG}",
       "essential": true,
       "memory": 512,
       "portMappings": [
         {
-          "hostPort": 8085,
-          "containerPort": 8080
-        }
-      ],
-      "environment": [
-        {
-          "name": "SPRING_PROFILES_ACTIVE",
-          "value": "prod"
-        },
-        {
-          "name": "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE",
-          "value": "http://${EUREKA_HOST}:8761/eureka/"
-        }
-      ],
-      "mountPoints": [
-        {
-          "sourceVolume": "logs",
-          "containerPath": "/app/logs",
-          "readOnly": false
+          "containerPort": 8080,
+          "hostPort": 8085
         }
       ]
     },
     {
       "name": "control",
-      "image": "<ECR_REGISTRY>/postco-apps:control-<TAG>",
+      "image": "${ECR_REGISTRY}/postco-apps:control-${TAG}",
       "essential": true,
       "memory": 512,
       "portMappings": [
         {
-          "hostPort": 8086,
-          "containerPort": 8080
-        }
-      ],
-      "environment": [
-        {
-          "name": "SPRING_PROFILES_ACTIVE",
-          "value": "prod"
-        },
-        {
-          "name": "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE",
-          "value": "http://${EUREKA_HOST}:8761/eureka/"
-        }
-      ],
-      "mountPoints": [
-        {
-          "sourceVolume": "logs",
-          "containerPath": "/app/logs",
-          "readOnly": false
+          "containerPort": 8080,
+          "hostPort": 8086
         }
       ]
     },
     {
       "name": "schedule",
-      "image": "<ECR_REGISTRY>/postco-apps:schedule-<TAG>",
+      "image": "${ECR_REGISTRY}/postco-apps:schedule-${TAG}",
       "essential": true,
       "memory": 512,
       "portMappings": [
         {
-          "hostPort": 8087,
-          "containerPort": 8080
-        }
-      ],
-      "environment": [
-        {
-          "name": "SPRING_PROFILES_ACTIVE",
-          "value": "prod"
-        },
-        {
-          "name": "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE",
-          "value": "http://${EUREKA_HOST}:8761/eureka/"
-        }
-      ],
-      "mountPoints": [
-        {
-          "sourceVolume": "logs",
-          "containerPath": "/app/logs",
-          "readOnly": false
+          "containerPort": 8080,
+          "hostPort": 8087
         }
       ]
     },
     {
       "name": "cache-service",
-      "image": "<ECR_REGISTRY>/postco-apps:cache-service-<TAG>",
+      "image": "${ECR_REGISTRY}postco-apps:cache-service-${TAG}",
       "essential": true,
       "memory": 512,
       "portMappings": [
         {
-          "hostPort": 8088,
-          "containerPort": 8080
-        }
-      ],
-      "environment": [
-        {
-          "name": "SPRING_PROFILES_ACTIVE",
-          "value": "prod"
-        },
-        {
-          "name": "EUREKA_CLIENT_SERVICEURL_DEFAULTZONE",
-          "value": "http://${EUREKA_HOST}:8761/eureka/"
-        }
-      ],
-      "mountPoints": [
-        {
-          "sourceVolume": "logs",
-          "containerPath": "/app/logs",
-          "readOnly": false
+          "containerPort": 8080,
+          "hostPort": 8088
         }
       ]
     }
