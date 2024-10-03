@@ -42,7 +42,13 @@ jobs:
 
       - name: Deploy Gateway to Elastic Beanstalk
         run: |
+          aws s3 rm s3://${{ secrets.EB_GATEWAY_BUCKET }}/gateway-*.zip
           aws s3 cp gateway-package.zip s3://${{ secrets.EB_GATEWAY_BUCKET }}/gateway-${{ github.sha }}.zip
+          VERSIONS_TO_DELETE=$(aws elasticbeanstalk describe-application-versions --application-name gateway --query 'ApplicationVersions[?starts_with(VersionLabel, `gateway-`)].VersionLabel' --output text)
+          for VERSION in $VERSIONS_TO_DELETE
+          do
+            aws elasticbeanstalk delete-application-version --application-name gateway --version-label $VERSION --delete-source-bundle
+          done
           aws elasticbeanstalk create-application-version \
             --application-name gateway \
             --version-label gateway-${{ github.sha }} \
@@ -53,7 +59,13 @@ jobs:
 
       - name: Deploy Eureka to Elastic Beanstalk
         run: |
+          aws s3 rm s3://${{ secrets.EB_EUREKA_BUCKET }}/eureka-*.zip
           aws s3 cp eureka-package.zip s3://${{ secrets.EB_EUREKA_BUCKET }}/eureka-${{ github.sha }}.zip
+          VERSIONS_TO_DELETE=$(aws elasticbeanstalk describe-application-versions --application-name eureka --query 'ApplicationVersions[?starts_with(VersionLabel, `eureka-`)].VersionLabel' --output text)
+          for VERSION in $VERSIONS_TO_DELETE
+          do
+            aws elasticbeanstalk delete-application-version --application-name eureka --version-label $VERSION --delete-source-bundle
+          done
           aws elasticbeanstalk create-application-version \
             --application-name eureka \
             --version-label eureka-${{ github.sha }} \
@@ -70,16 +82,22 @@ jobs:
 
       - name: Push Docker images to ECR
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
           for service in operation control schedule cache-service; do
-            docker tag postco-apps:$service-${{ github.sha }} ${{ secrets.ECR_REGISTRY }}/postco-apps:$service-${{ github.sha }}
-            docker push ${{ secrets.ECR_REGISTRY }}/postco-apps:$service-${{ github.sha }}
+            docker tag postco-apps:$service-${{ github.sha }} ${{ secrets.ECR_REPOSITORY }}/postco-apps:$service-${{ github.sha }}
+            docker push ${{ secrets.ECR_REPOSITORY }}/postco-apps:$service-${{ github.sha }}
           done
 
       - name: Deploy business services to Elastic Beanstalk
         run: |
+          aws s3 rm s3://${{ secrets.EB_BUSINESS_BUCKET }}/business-*.zip
           zip -r business-package.zip Dockerrun.aws.json .ebextensions
           aws s3 cp business-package.zip s3://${{ secrets.EB_BUSINESS_BUCKET }}/business-${{ github.sha }}.zip --acl public-read --force
+          VERSIONS_TO_DELETE=$(aws elasticbeanstalk describe-application-versions --application-name business --query 'ApplicationVersions[?starts_with(VersionLabel, `business-`)].VersionLabel' --output text)
+          for VERSION in $VERSIONS_TO_DELETE
+          do
+            aws elasticbeanstalk delete-application-version --application-name business --version-label $VERSION --delete-source-bundle
+          done
           aws elasticbeanstalk create-application-version \
             --application-name business \
             --version-label business-${{ github.sha }} \
