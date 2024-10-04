@@ -30,7 +30,7 @@ jobs:
       - name: Download docker-compose.yml
         uses: actions/download-artifact@v4
         with:
-          name: docker-compose
+          name: docker-compose-prod
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
