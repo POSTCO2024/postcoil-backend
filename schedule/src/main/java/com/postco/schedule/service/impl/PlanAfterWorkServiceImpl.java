@@ -37,9 +37,10 @@ public class PlanAfterWorkServiceImpl {
     //      프론트에서 드래그 앤 드롭 할 때마다 업데이트 하지 않음.
     //      확정을 눌러야만 해당 변경사항으로 업데이트 및 기록 저장됨. (매번 트랜잭션을 날리는 것은 부담 )
     @Transactional
-    public boolean confirmScheduleWithNewMaterials(List<SCHForm> schForms) {
+    public List<SCHConfirm> confirmScheduleWithNewMaterials(List<SCHForm> schForms) {
 
         try {
+            List<SCHConfirm> schConfirms = new ArrayList<>();
             List<SCHHistory> histories = new ArrayList<>();
 
             for (SCHForm schForm : schForms) {
@@ -73,6 +74,7 @@ public class PlanAfterWorkServiceImpl {
 
                 // 3. 확정 DB 저장에 저장.
                 SCHConfirm schConfirm = saveScheduleConfirm(schPlan, confirmBy);
+                schConfirms.add(schConfirm);
                 log.info("스케줄 확정 정보 저장 완료. 확정 ID: {}", schConfirm.getId());
 
             }
@@ -81,7 +83,7 @@ public class PlanAfterWorkServiceImpl {
             log.info("모든 변경 이력 추가 완료.");
 
             log.info("모든 스케줄 업데이트 및 확정 완료.");
-            return true;
+            return schConfirms;
         } catch (Exception e) {
             log.error("스케줄 업데이트 및 확정 중 오류 발생.", e);
             throw new RuntimeException("스케줄 업데이트 및 확정 실패", e);
