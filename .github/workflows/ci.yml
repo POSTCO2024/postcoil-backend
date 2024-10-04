@@ -27,10 +27,16 @@ jobs:
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
           echo "KAFKA_BROKER=${{ secrets.KAFKA_BROKER }}" >> $GITHUB_ENV
-          echo "SPRING_PROFILES_ACTIVE=prod" >> $GITHUB_ENV  # prod 프로파일 활성화
+          echo "SPRING_PROFILES_ACTIVE=prod" >> $GITHUB_ENV
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
+
+      - name: Remove spring.profiles.active from application.yml
+        run: |
+          for service in operation control schedule cache-service; do
+            sed -i '/spring\.profiles\.active/d' $service/src/main/resources/application.yml
+          done
 
       - name: Build Docker images for each service
         run: |

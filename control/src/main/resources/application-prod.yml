@@ -1,9 +1,6 @@
 spring:
   application:
     name: control
-  config:
-    activate:
-      on-profile: prod
 
 feature-flags:
   kafka:
