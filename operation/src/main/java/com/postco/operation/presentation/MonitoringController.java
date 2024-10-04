@@ -1,17 +1,16 @@
 package com.postco.operation.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
+import com.postco.operation.presentation.dto.AnalysisDashboardClientDTO;
 import com.postco.operation.presentation.dto.WorkScheduleSummaryDTO;
 import com.postco.operation.service.MonitoringService;
+import com.postco.operation.service.impl.work.ClientDashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -24,6 +23,8 @@ import java.util.List;
 public class MonitoringController {
     @Autowired
     private final MonitoringService monitoringService;
+    private final ClientDashboardService clientDashboardService;
+
 
     @GetMapping("/summary")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkScheduleSummaryDTO>>>> getWorkScheduleSummary() {
@@ -44,5 +45,11 @@ public class MonitoringController {
                                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                         .resultMsg("일일 작업 진행현황 조회 중 오류 발생")
                                         .build())));
+    }
+
+    @GetMapping("/analyze")
+    public ResponseEntity<AnalysisDashboardClientDTO> getFirstStatus(@RequestParam String SchProcess) {
+        AnalysisDashboardClientDTO firstStatus = clientDashboardService.sendFirstStatus(SchProcess);
+        return ResponseEntity.ok(firstStatus);
     }
 }

@@ -16,8 +16,8 @@ import java.util.Map;
 @AllArgsConstructor
 public class ControlClientDTO {
     private List<TotalSupply> factoryDashboard;
-    private List<StatisticsInfo> processDashboard;
-    private List<CurrentInfo> totalDashboard;
+//    private List<StatisticsInfo> processDashboard;
+//    private List<CurrentInfo> totalDashboard;
 
     @Data
     @Builder

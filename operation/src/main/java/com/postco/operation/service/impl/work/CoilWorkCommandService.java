@@ -113,8 +113,17 @@ public class CoilWorkCommandService {
                         .map(item -> workItemService.startWorkItem(item.getId())
                                 .flatMap(updatedItem -> {
                                     if (updatedItem != null) {
-                                        // 관제로 웹소켓 통해 정보 전달
+                                        // 관제로 데이터 카프카 전송
                                         clientDashboardService.sendDashboardStartData(WebSocketMessageType.WORK_STARTED);
+                                        clientDashboardService.sendToIndividualDashboard1CALData();
+                                        clientDashboardService.sendToIndividualDashboard2CALData();
+                                        clientDashboardService.sendToIndividualDashboard1PCMData();
+                                        clientDashboardService.sendToIndividualDashboard2PCMData();
+                                        clientDashboardService.sendToIndividualDashboard1EGLData();
+                                        clientDashboardService.sendToIndividualDashboard2EGLData();
+                                        clientDashboardService.sendToIndividualDashboard1CGLData();
+                                        clientDashboardService.sendToIndividualDashboard2CGLData();
+                                        
                                         // 웹소켓으로 정보 전달
                                         Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
                                         socketData.subscribe(data -> {
@@ -152,8 +161,16 @@ public class CoilWorkCommandService {
                 .then(finishWorkUpdates(itemId, materialId))
                 .doOnSuccess(v -> {
                     log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId);
-                    // 작업 완료 시 관제로 데이터 전송
+                    // 작업 완료 시 관제로 데이터 카프카 전송
                     clientDashboardService.sendDashboardEndData(WebSocketMessageType.WORK_COMPLETED);
+                    clientDashboardService.sendToIndividualDashboard1CALData();
+                    clientDashboardService.sendToIndividualDashboard2CALData();
+                    clientDashboardService.sendToIndividualDashboard1PCMData();
+                    clientDashboardService.sendToIndividualDashboard2PCMData();
+                    clientDashboardService.sendToIndividualDashboard1EGLData();
+                    clientDashboardService.sendToIndividualDashboard2EGLData();
+                    clientDashboardService.sendToIndividualDashboard1CGLData();
+                    clientDashboardService.sendToIndividualDashboard2CGLData();
 
                     // 웹소켓으로 정보 전달
                     Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
