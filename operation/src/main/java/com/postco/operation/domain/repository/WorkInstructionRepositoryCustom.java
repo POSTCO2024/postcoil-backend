@@ -8,4 +8,5 @@ import java.util.List;
 public interface WorkInstructionRepositoryCustom {
     List<ControlClientDTO.StatisticsInfo> getStatisticsInfo();
     List<AnalysisDashboardClientDTO.StatisticsInfo> getAnlysisStaticsInfo(String SchProcess);
+    public List<AnalysisDashboardClientDTO.StatisticsInfo> getAnlysisAllStaticsInfo();
 }

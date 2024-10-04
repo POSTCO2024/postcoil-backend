@@ -70,6 +70,28 @@ public class WorkInstructionCustomImpl implements WorkInstructionRepositoryCusto
                 .map(this::mapToAnalysisStatisticsInfo)
                 .collect(Collectors.toList());
     }
+    @Override
+    public List<AnalysisDashboardClientDTO.StatisticsInfo> getAnlysisAllStaticsInfo() {
+        QWorkInstruction wi = QWorkInstruction.workInstruction;
+        QCoilSupply cs = QCoilSupply.coilSupply;
+
+        List<Tuple> results = queryFactory
+                .select(wi.process,
+                        cs.totalCoils.sum(),
+                        cs.totalCoils.subtract(cs.totalProgressed).subtract(cs.totalRejects).sum(),
+                        cs.totalProgressed.sum(),
+                        wi.startTime.min())
+                .from(wi)
+                .join(cs).on(wi.id.eq(cs.workInstruction.id))
+                .where(wi.workStatus.eq(WorkStatus.IN_PROGRESS))
+                .groupBy(wi.process)
+                .fetch();
+
+        // 결과를 매핑
+        return results.stream()
+                .map(this::mapToAnalysisStatisticsInfo)
+                .collect(Collectors.toList());
+    }
 
     // 쿼리 결과를 StatisticsInfo로 매핑하는 메서드
     private ControlClientDTO.StatisticsInfo mapToStatisticsInfo(Tuple tuple) {

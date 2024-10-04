@@ -45,7 +45,7 @@ public class ClientDashboardService {
 
     public AnalysisDashboardClientDTO sendFirstStatus(String SchProcess) {
         AnalysisDashboardClientDTO firstStatus = AnalysisDashboardClientDTO.builder()
-                .processDashboard(workInstructionCustom.getAnlysisStaticsInfo(SchProcess))
+                .processDashboard(workInstructionCustom.getAnlysisAllStaticsInfo())
                 .totalDashboard(materialCustom.getCurrentInfo(SchProcess))
                 .build();
 
