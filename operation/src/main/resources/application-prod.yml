@@ -31,7 +31,7 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
-      group-id: ${spring.application.name}
+      group-id: operation
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -39,4 +39,4 @@ spring:
 logging:
   level:
     root: WARN
-    com.postco: INFO
+    com.postco: DEBUG
