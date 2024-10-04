@@ -1,8 +1,9 @@
 spring:
   application:
     name: schedule
-  profiles:
-    active: prod
+  config:
+    activate:
+      on-profile: prod
 
 feature-flags:
   kafka:
@@ -45,6 +46,19 @@ spring:
       retry:
         delay:
           ms: 60000
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${EUREKA_HOST}:${EUREKA_PORT:8761}/eureka/
+    registryFetchIntervalSeconds: 5
+    instanceInfoReplicationIntervalSeconds: 10
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    preferIpAddress: true
+    leaseRenewalIntervalInSeconds: 10
+    leaseExpirationDurationInSeconds: 30
+    instanceId: ${spring.application.name}:${random.value}
 
 logging:
   level:
