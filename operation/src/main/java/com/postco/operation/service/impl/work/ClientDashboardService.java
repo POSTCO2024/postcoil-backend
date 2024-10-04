@@ -4,11 +4,14 @@ import com.postco.operation.domain.repository.impl.CoilSupplyCustomImpl;
 import com.postco.operation.domain.repository.impl.MaterialCustomImpl;
 import com.postco.operation.domain.repository.impl.WorkInstructionCustomImpl;
 import com.postco.operation.infra.kafka.WebsocketProducer;
+import com.postco.operation.presentation.dto.AnalysisDashboardClientDTO;
 import com.postco.operation.presentation.dto.websocket.ControlClientDTO;
 import com.postco.operation.presentation.dto.websocket.WebSocketMessageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -39,4 +42,13 @@ public class ClientDashboardService {
         log.info("Sent monitoring data for event: {}", eventType);
     }
 
+
+    public AnalysisDashboardClientDTO sendDashboardFirstStatus() {
+        AnalysisDashboardClientDTO firstStatus = AnalysisDashboardClientDTO.builder()
+                .processDashboard(workInstructionCustom.getStatisticsInfo())
+                .totalDashboard(materialCustom.getCurrentInfo())
+                .build();
+
+        return firstStatus;
+    }
 }

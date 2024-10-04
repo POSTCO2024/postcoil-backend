@@ -1,8 +1,10 @@
 package com.postco.operation.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
+import com.postco.operation.presentation.dto.AnalysisDashboardClientDTO;
 import com.postco.operation.presentation.dto.WorkScheduleSummaryDTO;
 import com.postco.operation.service.MonitoringService;
+import com.postco.operation.service.impl.work.ClientDashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,8 @@ import java.util.List;
 public class MonitoringController {
     @Autowired
     private final MonitoringService monitoringService;
+    private final ClientDashboardService clientDashboardService;
+
 
     @GetMapping("/summary")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkScheduleSummaryDTO>>>> getWorkScheduleSummary() {
@@ -44,5 +48,11 @@ public class MonitoringController {
                                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                         .resultMsg("일일 작업 진행현황 조회 중 오류 발생")
                                         .build())));
+    }
+
+    @GetMapping("/analyze")
+    public ResponseEntity<AnalysisDashboardClientDTO> getFirstStatus() {
+        AnalysisDashboardClientDTO firstStatus = clientDashboardService.sendDashboardFirstStatus();
+        return ResponseEntity.ok(firstStatus);
     }
 }
