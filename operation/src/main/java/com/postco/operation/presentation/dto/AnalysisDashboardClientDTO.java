@@ -17,8 +17,8 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AnalysisDashboardClientDTO {
-    private List<com.postco.operation.presentation.dto.websocket.ControlClientDTO.StatisticsInfo> processDashboard;   // 공정별 작업대상재 대시보드 용
-    private List<com.postco.operation.presentation.dto.websocket.ControlClientDTO.CurrentInfo> totalDashboard; // 공정별 작업대상재 분석용
+    private List<AnalysisDashboardClientDTO.StatisticsInfo> processDashboard;   // 공정별 작업대상재 대시보드 용
+    private List<AnalysisDashboardClientDTO.CurrentInfo> totalDashboard; // 공정별 작업대상재 분석용
 
     @Data
     @Builder
@@ -42,6 +42,7 @@ public class AnalysisDashboardClientDTO {
     public static class CurrentInfo {
         private Map<String, Integer> nextProc = new HashMap<>(); // 초기화 추가\
         private Map<MaterialProgress, Integer> currProcess = new HashMap<>();
+        private Map<String, Integer> rollUnitCount = new HashMap<>();
         private String currProc; // 초기화 추가
         //        private String equipmentStatus;
         private Long workInstructionId;
@@ -52,6 +53,10 @@ public class AnalysisDashboardClientDTO {
 
         public void addCurrentProgress(MaterialProgress progress, int count) {
             this.currProcess.merge(progress, count, Integer::sum);
+        }
+
+        public void addRollUnitCount(String rollUnit, int count){
+            this.rollUnitCount.merge(rollUnit, count, Integer::sum);
         }
     }
 
