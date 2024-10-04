@@ -1,6 +1,7 @@
 package com.postco.schedule.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
+import com.postco.schedule.domain.SCHConfirm;
 import com.postco.schedule.domain.SCHPlan;
 import com.postco.schedule.presentation.dto.SCHMaterialDTO;
 import com.postco.schedule.presentation.dto.SCHPlanDTO;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -97,12 +99,30 @@ public class ScheduleController {
 
     // POST : fs002 Request
     @PostMapping("/confirm")
-    public Mono<ResponseEntity<ApiResponseDTO<Boolean>>> confirmScheduleForRedis(@RequestBody List<SCHForm> schForms) {
+    public Mono<ResponseEntity<ApiResponseDTO<List<SCHConfirm>>>> confirmScheduleForRedis(@RequestBody List<SCHForm> schForms) {
         log.info("스케줄 확정 요청. 스케줄 수: {}", schForms.size());
         return Mono.fromCallable(() -> planAfterWorkService.confirmScheduleWithNewMaterials(schForms))
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMap(result -> createSuccessResponseAndLog(result, result ? "스케줄 확정 성공" : "스케줄 확정 실패", "스케줄 확정 처리"))
-                .onErrorResume(e -> handleError("스케줄 확정 처리", e));
+                .subscribeOn(Schedulers.boundedElastic()) // 비동기 실행
+                .map(results -> {
+                    ApiResponseDTO<List<SCHConfirm>> response = ApiResponseDTO.<List<SCHConfirm>>builder()
+                            .status(HttpStatus.OK.value())
+                            .resultMsg(HttpStatus.OK.getReasonPhrase())
+                            .result(results)
+                            .build();
+
+                    return ResponseEntity.ok(response);
+                })
+                .onErrorResume(e -> {
+                    log.error("스케줄 확정 처리 중 오류 발생: {}", e.getMessage());
+
+                    ApiResponseDTO<List<SCHConfirm>> errorResponse = ApiResponseDTO.<List<SCHConfirm>>builder()
+                            .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                            .resultMsg("스케줄 확정 중 오류가 발생했습니다.")
+                            .result(Collections.emptyList())
+                            .build();
+
+                    return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse));
+                });
     }
 
     @PostMapping("/confirm/sendKafka")

@@ -52,3 +52,19 @@ INSERT INTO coil_standard_reduction (coil_type_code, process, thickness_reductio
                                                                                                                      ('HCKP', '1PCM', 5.85, 115.0, NULL),
                                                                                                                      ('HCKP', '2CAL', 1.70, 10.0, 689),
                                                                                                                      ('HPKL', '1PCM', 5.85, 115.0, NULL);
+
+
+-- View 추가
+CREATE OR REPLACE VIEW work_schedule_summary AS
+SELECT
+    wi.process,
+    COUNT(DISTINCT wi.work_instruction_id) AS total_work_instructions,
+    SUM(cs.total_coils) AS total_goal_coils,
+    SUM(cs.total_progressed) AS total_complete_coils,
+    SUM(cs.total_coils - cs.total_progressed) AS total_scheduled_coils
+FROM
+    work_instruction wi
+        JOIN
+    coil_supply cs ON wi.work_instruction_id = cs.work_instruction_id
+GROUP BY
+    wi.process;
