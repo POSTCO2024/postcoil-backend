@@ -50,7 +50,7 @@ jobs:
           cd deployment/gateway && zip -r ../../gateway-package.zip .
           cd ../eureka && zip -r ../../eureka-package.zip .
 
-      - name: Build Docker images
+      - name: Build Docker images for each service
         run: |
           for service in operation control schedule cache-service; do
             cd $service
@@ -79,7 +79,7 @@ jobs:
           path: "*-image.tar"
           retention-days: 1
 
-      - name: Prepare docker-compose-prod.yml
+      - name: Prepare docker-compose-prod.yml with updated values
         run: |
           sed -i 's|${ECR_REGISTRY}|${{ secrets.ECR_REGISTRY }}|g' docker-compose-prod.yml
           sed -i 's|${TAG}|${{ github.sha }}|g' docker-compose-prod.yml
