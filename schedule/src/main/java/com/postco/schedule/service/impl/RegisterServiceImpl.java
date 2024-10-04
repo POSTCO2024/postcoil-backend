@@ -6,11 +6,13 @@ import com.postco.schedule.domain.WorkStatus;
 import com.postco.schedule.domain.repository.SCHMaterialRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,18 +37,31 @@ public class RegisterServiceImpl {
     public Mono<Void> registerScheduleMaterials(RedisDataContainer container, RefDataContainer equipmentData) {
         return Mono.fromCallable(() -> {
                     List<SCHMaterial> schMaterials = createSchMaterials(container, equipmentData);
-                    return schMaterialRepository.saveAll(schMaterials);
+
+                    // 중복 항목 빼고 나머지 코일들 저장할 리스트
+                    List<SCHMaterial> savedMaterials = new ArrayList<>();
+
+                    for(SCHMaterial schMaterial : schMaterials){
+                        try {
+                            // 개별적으로 저장 시도
+                            savedMaterials.add(schMaterialRepository.save(schMaterial));
+                        } catch (DataIntegrityViolationException e) {
+                            // 중복된 material_id로 인한 에러를 무시하고 로그만 출력
+                            log.warn("Duplicate material_id found: {}. Skipping this entry.", schMaterial.getMaterialId());
+                        }
+                    }
+                    return savedMaterials;
                 })
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnNext(saved -> {
-                    // 등록된 CAL 공정 스케줄 대상재 수 로그
-                    log.info("등록된 CAL 공정 스케줄 대상재 수: {}", saved.size());
+                    // 새로 등록된 CAL 공정 스케줄 대상재 수 로그
+                    log.info("새롭게 등록된 CAL 공정 스케줄 대상재 수: {}", saved.size());
 
                     // 등록된 대상재의 ID 리스트 추출 후 로그
                     List<Long> savedIds = saved.stream()
                             .map(SCHMaterial::getId) // 각 대상재의 ID 추출
                             .collect(Collectors.toList());
-                    log.info("등록된 대상재 ID 리스트: {}", savedIds);
+                    log.info("새롭게 등록된 대상재 ID 리스트: {}", savedIds);
                 })
                 .then();
     }
