@@ -13,13 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Elastic Beanstalk packages
-        uses: actions/download-artifact@v4
-        with:
-          name: eb-packages
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Download Docker images
         uses: actions/download-artifact@v4
         with:
@@ -40,37 +33,10 @@ jobs:
             docker load < $image
           done
 
-      - name: Build and Push Docker images to ECR
+      - name: Push Docker images to ECR
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
           for service in operation control schedule cache-service; do
-            cd $service
-            docker build -t postco-apps:$service-${{ github.sha }} .
             docker tag postco-apps:$service-${{ github.sha }} ${{ secrets.ECR_REPOSITORY }}/postco-apps:$service-${{ github.sha }}
             docker push ${{ secrets.ECR_REPOSITORY }}/postco-apps:$service-${{ github.sha }}
-            cd ..
           done
-
-      - name: Update docker-compose.yml with actual values
-        run: |
-          sed -i 's|${ECR_REGISTRY}|${{ secrets.ECR_REPOSITORY }}|g' docker-compose-prod.yml
-          sed -i 's|${TAG}|${{ github.sha }}|g' docker-compose-prod.yml
-          sed -i 's|${EUREKA_HOST}|${{ secrets.EUREKA_HOST }}|g' docker-compose-prod.yml
-          sed -i 's|${REDIS_HOST}|${{ secrets.REDIS_HOST }}|g' docker-compose-prod.yml
-          sed -i 's|${REDIS_PORT}|${{ secrets.REDIS_PORT }}|g' docker-compose-prod.yml
-          sed -i 's|${DB_URL}|${{ secrets.DB_URL }}|g' docker-compose-prod.yml
-          sed -i 's|${DB_USERNAME}|${{ secrets.DB_USERNAME }}|g' docker-compose-prod.yml
-          sed -i 's|${DB_PASSWORD}|${{ secrets.DB_PASSWORD }}|g' docker-compose-prod.yml
-          sed -i 's|${KAFKA_BROKER}|${{ secrets.KAFKA_BROKER }}|g' docker-compose-prod.yml
-
-      - name: Deploy business services to Elastic Beanstalk
-        run: |
-          zip -r business-package.zip docker-compose-prod.yml .ebextensions
-          aws s3 cp business-package.zip s3://${{ secrets.EB_BUSINESS_BUCKET }}/business-${{ github.sha }}.zip
-          aws elasticbeanstalk create-application-version \
-            --application-name business \
-            --version-label business-${{ github.sha }} \
-            --source-bundle S3Bucket="${{ secrets.EB_BUSINESS_BUCKET }}",S3Key="business-${{ github.sha }}.zip"
-          aws elasticbeanstalk update-environment \
-            --environment-name business-env \
-            --version-label business-${{ github.sha }}
