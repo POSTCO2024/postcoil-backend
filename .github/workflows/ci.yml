@@ -89,7 +89,7 @@ jobs:
           sed -i 's|${DB_URL}|${{ secrets.DB_URL }}|g' docker-compose-prod.yml
           sed -i 's|${DB_USERNAME}|${{ secrets.DB_USERNAME }}|g' docker-compose-prod.yml
           sed -i 's|${DB_PASSWORD}|${{ secrets.DB_PASSWORD }}|g' docker-compose-prod.yml
-          sed -i 's|${KAFKA_BROKER}|${{ secrets.KAFKA_BROKER }}|g' docker-compose.-prodyml
+          sed -i 's|${KAFKA_BROKER}|${{ secrets.KAFKA_BROKER }}|g' docker-compose.-prod.yml
 
       - name: Upload docker-compose-prod.yml
         uses: actions/upload-artifact@v4
