@@ -82,6 +82,12 @@ jobs:
           sed -i 's|${ECR_REGISTRY}|${{ secrets.ECR_REPOSITORY }}|g' docker-compose-prod.yml
           sed -i 's|${TAG}|${{ github.sha }}|g' docker-compose-prod.yml
           sed -i 's|${EUREKA_HOST}|${{ secrets.EUREKA_HOST }}|g' docker-compose-prod.yml
+          sed -i 's|${REDIS_HOST}|${{ secrets.REDIS_HOST }}|g' docker-compose-prod.yml
+          sed -i 's|${REDIS_PORT}|${{ secrets.REDIS_PORT }}|g' docker-compose-prod.yml
+          sed -i 's|${DB_URL}|${{ secrets.DB_URL }}|g' docker-compose-prod.yml
+          sed -i 's|${DB_USERNAME}|${{ secrets.DB_USERNAME }}|g' docker-compose-prod.yml
+          sed -i 's|${DB_PASSWORD}|${{ secrets.DB_PASSWORD }}|g' docker-compose-prod.yml
+          sed -i 's|${KAFKA_BROKER}|${{ secrets.KAFKA_BROKER }}|g' docker-compose-prod.yml
 
       - name: Deploy business services to Elastic Beanstalk
         run: |

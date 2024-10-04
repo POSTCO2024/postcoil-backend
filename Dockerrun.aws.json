@@ -39,7 +39,7 @@
     },
     {
       "name": "cache-service",
-      "image": "${ECR_REGISTRY}postco-apps:cache-service-${TAG}",
+      "image": "${ECR_REGISTRY}/postco-apps:cache-service-${TAG}",
       "essential": true,
       "memory": 512,
       "portMappings": [

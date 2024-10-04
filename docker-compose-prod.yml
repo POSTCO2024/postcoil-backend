@@ -1,6 +1,9 @@
 version: '1'
 services:
   operation:
+    build:
+      context: ./operation
+      dockerfile: ./operation/Dockerfile
     image: ${ECR_REGISTRY}/postco-apps:operation-${TAG}
     mem_limit: 512m
     ports:
@@ -15,9 +18,12 @@ services:
       - SPRING_REDIS_PORT=${REDIS_PORT}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BROKER}
     volumes:
-      - /var/app/logs:/app/logs
+      - /var/app/logs/operation:/app/logs
 
   control:
+    build:
+      context: ./control  # control 모듈 경로 지정
+      dockerfile: ./control/Dockerfile
     image: ${ECR_REGISTRY}/postco-apps:control-${TAG}
     mem_limit: 512m
     ports:
@@ -32,9 +38,12 @@ services:
       - SPRING_REDIS_PORT=${REDIS_PORT}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BROKER}
     volumes:
-      - /var/app/logs:/app/logs
+      - /var/app/logs/control:/app/logs
 
   schedule:
+    build:
+      context: ./schedule  # schedule 모듈 경로 지정
+      dockerfile: ./schedule/Dockerfile
     image: ${ECR_REGISTRY}/postco-apps:schedule-${TAG}
     mem_limit: 512m
     ports:
@@ -49,9 +58,12 @@ services:
       - SPRING_REDIS_PORT=${REDIS_PORT}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BROKER}
     volumes:
-      - /var/app/logs:/app/logs
+      - /var/app/logs/schedule:/app/logs
 
   cache-service:
+    build:
+      context: ./cache-service  # cache-service 모듈 경로 지정
+      dockerfile: ./cache-service/Dockerfile
     image: ${ECR_REGISTRY}/postco-apps:cache-service-${TAG}
     mem_limit: 512m
     ports:
@@ -63,4 +75,4 @@ services:
       - SPRING_REDIS_PORT=${REDIS_PORT}
       - SPRING_KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BROKER}
     volumes:
-      - /var/app/logs:/app/logs
+      - /var/app/logs/cache-service:/app/logs
