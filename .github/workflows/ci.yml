@@ -21,47 +21,28 @@ jobs:
       - name: Set environment variables
         run: |
           echo "EUREKA_HOST=${{ secrets.EUREKA_HOST }}" >> $GITHUB_ENV
+          echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> $GITHUB_ENV
+          echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> $GITHUB_ENV
+          echo "DB_URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          echo "KAFKA_BROKER=${{ secrets.KAFKA_BROKER }}" >> $GITHUB_ENV
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
-      - name: Build Gateway and Eureka
-        run: |
-          cd gateway
-          ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
-          mkdir -p ../deployment/gateway
-          find build/libs -name '*.jar' -exec cp {} ../deployment/gateway/application.jar \;
-          cp -r .ebextensions ../deployment/gateway/
-
-          cd ../eureka-server
-          ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
-          mkdir -p ../deployment/eureka
-          find build/libs -name '*.jar' -exec cp {} ../deployment/eureka/application.jar \;
-          cp -r .ebextensions ../deployment/eureka/
-
-      - name: Prepare ZIP packages
-        run: |
-          cd deployment/gateway && zip -r ../../gateway-package.zip .
-          cd ../eureka && zip -r ../../eureka-package.zip .
 
       - name: Build Docker images
         run: |
           for service in operation control schedule cache-service; do
             cd $service
             ../gradlew clean build -x test -Dspring.profiles.active=prod --warning-mode all
-            docker build -t postco-apps:$service-${{ github.sha }} .
+            docker build --build-arg REDIS_HOST=${REDIS_HOST} --build-arg REDIS_PORT=${REDIS_PORT} \
+              --build-arg DB_URL=${DB_URL} --build-arg DB_USERNAME=${DB_USERNAME} \
+              --build-arg DB_PASSWORD=${DB_PASSWORD} --build-arg KAFKA_BROKER=${KAFKA_BROKER} \
+              -t postco-apps:$service-${{ github.sha }} .
             docker save postco-apps:$service-${{ github.sha }} > ../$service-image.tar
             cd ..
           done
-
-      - name: Upload Elastic Beanstalk packages
-        uses: actions/upload-artifact@v4
-        with:
-          name: eb-packages
-          path: |
-            gateway-package.zip
-            eureka-package.zip
-          retention-days: 1
 
       - name: Upload Docker images
         uses: actions/upload-artifact@v4
@@ -75,6 +56,12 @@ jobs:
           sed -i 's|${ECR_REGISTRY}|${{ secrets.ECR_REGISTRY }}|g' docker-compose.yml
           sed -i 's|${TAG}|${{ github.sha }}|g' docker-compose.yml
           sed -i 's|${EUREKA_HOST}|${{ secrets.EUREKA_HOST }}|g' docker-compose.yml
+          sed -i 's|${REDIS_HOST}|${{ secrets.REDIS_HOST }}|g' docker-compose.yml
+          sed -i 's|${REDIS_PORT}|${{ secrets.REDIS_PORT }}|g' docker-compose.yml
+          sed -i 's|${DB_URL}|${{ secrets.DB_URL }}|g' docker-compose.yml
+          sed -i 's|${DB_USERNAME}|${{ secrets.DB_USERNAME }}|g' docker-compose.yml
+          sed -i 's|${DB_PASSWORD}|${{ secrets.DB_PASSWORD }}|g' docker-compose.yml
+          sed -i 's|${KAFKA_BROKER}|${{ secrets.KAFKA_BROKER }}|g' docker-compose.yml
 
       - name: Upload docker-compose.yml
         uses: actions/upload-artifact@v4
