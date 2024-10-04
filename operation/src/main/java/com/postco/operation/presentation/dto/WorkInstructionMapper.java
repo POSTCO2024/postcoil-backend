@@ -47,6 +47,7 @@ public class WorkInstructionMapper {
                 map().setTargetId(source.getTargetId());
                 map().setInitialThickness(source.getThickness());
                 map().setInitialGoalWidth(source.getGoalWidth());
+                map().setInitialGoalThickness(source.getGoalThickness());
                 map().setWorkItemStatus(safeValueOf(source.getWorkStatus()));
                 map().setIsRejected(source.getIsRejected());
                 map().setExpectedItemDuration(source.getExpectedDuration());
