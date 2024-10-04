@@ -38,6 +38,22 @@ public class WebsocketService {
                 return "/topic/work-started"; // 작업 시작 이벤트 경로
             case WORK_COMPLETED:
                 return "/topic/work-completed"; // 작업 완료 이벤트 경로
+            case PCM_1:
+                return "/topic/dashboard-1pcm";
+            case PCM_2:
+                return "/topic/dashboard-2pcm";
+            case CAL_1:
+                return "/topic/dashboard-1cal";
+            case CAL_2:
+                return "/topic/dashboard-2cal";
+            case CGL_1:
+                return "/topic/dashboard-1cgl";
+            case CGL_2:
+                return "/topic/dashboard-2cgl";
+            case EGL_1:
+                return "/topic/dashboard-1egl";
+            case EGL_2:
+                return "/topic/dashboard-2egl";
             default:
                 return "/topic/controlData"; // 기본 경로
         }
