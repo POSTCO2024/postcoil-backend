@@ -1,6 +1,7 @@
 package com.postco.control.service;
 
 import com.postco.control.presentation.dto.websocket.ControlClientDTO;
+import com.postco.control.presentation.dto.websocket.DashBoardClientDTO;
 import com.postco.control.presentation.dto.websocket.WebSocketMessageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,13 @@ public class WebsocketService {
         messagingTemplate.convertAndSend(destination, controlDto); // 해당 목적지로 메시지 전송
 
         log.info("Sent WebSocket message to {}: eventType={}, data={}", destination, eventType, controlDto);
+    }
+    public void sendAnalysisMessage(DashBoardClientDTO dashBoardClientDTO, WebSocketMessageType eventType) {
+        log.info("Send Complete!!");
+        String destination = getWebSocketDestination(eventType); // 이벤트에 맞는 목적지를 가져옴
+        messagingTemplate.convertAndSend(destination, dashBoardClientDTO); // 해당 목적지로 메시지 전송
+
+        log.info("Sent WebSocket message to {}: eventType={}, data={}", destination, eventType, dashBoardClientDTO);
     }
 
     // 이벤트 타입에 따라 WebSocket 목적지 경로 결정

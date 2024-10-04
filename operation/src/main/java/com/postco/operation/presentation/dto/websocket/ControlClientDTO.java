@@ -18,8 +18,8 @@ import java.util.Map;
 @NoArgsConstructor
 public class ControlClientDTO {
     private List<TotalSupply> factoryDashboard;      // 공장별 작업대상재 대시보드 용
-    private List<StatisticsInfo> processDashboard;   // 공정별 작업대상재 대시보드 용
-    private List<CurrentInfo> totalDashboard; // 공정별 작업대상재 분석용
+//    private List<StatisticsInfo> processDashboard;   // 공정별 작업대상재 대시보드 용
+//    private List<CurrentInfo> totalDashboard; // 공정별 작업대상재 분석용
 
     @Data
     @Builder
