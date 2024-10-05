@@ -39,21 +39,21 @@ public class WebsocketService {
             case WORK_COMPLETED:
                 return "/topic/work-completed"; // 작업 완료 이벤트 경로
             case PCM_1:
-                return "/topic/dashboard-1pcm";
+                return "/topic/dashboard-1PCM";
             case PCM_2:
-                return "/topic/dashboard-2pcm";
+                return "/topic/dashboard-2PCM";
             case CAL_1:
-                return "/topic/dashboard-1cal";
+                return "/topic/dashboard-1CAL";
             case CAL_2:
-                return "/topic/dashboard-2cal";
+                return "/topic/dashboard-2CAL";
             case CGL_1:
-                return "/topic/dashboard-1cgl";
+                return "/topic/dashboard-1CGL";
             case CGL_2:
-                return "/topic/dashboard-2cgl";
+                return "/topic/dashboard-2CGL";
             case EGL_1:
-                return "/topic/dashboard-1egl";
+                return "/topic/dashboard-1EGL";
             case EGL_2:
-                return "/topic/dashboard-2egl";
+                return "/topic/dashboard-2EGL";
             default:
                 return "/topic/controlData"; // 기본 경로
         }
