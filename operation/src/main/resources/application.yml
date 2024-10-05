@@ -2,7 +2,7 @@ spring:
   application:
     name: operation
   profiles:
-    active: local
+    active: prod
 
 feature-flags:
   kafka:
