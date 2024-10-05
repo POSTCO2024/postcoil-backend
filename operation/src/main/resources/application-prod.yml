@@ -52,7 +52,16 @@ eureka:
     leaseExpirationDurationInSeconds: 30
     instanceId: ${spring.application.name}:${random.value}
 
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  packages-to-scan: com.postco.operation
+  paths-to-match: /api/**
+
 logging:
   level:
     root: WARN
     com.postco: DEBUG
+

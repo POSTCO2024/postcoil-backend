@@ -42,6 +42,9 @@ dependencies {
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
     implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
 
+    // mysql
+    implementation 'mysql:mysql-connector-java:8.0.33'
+
     implementation project(':core')
 
     implementation project(':websocket')
