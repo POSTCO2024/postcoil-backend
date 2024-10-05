@@ -53,4 +53,10 @@ public interface WorkInstructionService {
      * 웹소켓용 진행중인 작업지시서 조회
      */
     public Mono<List<ClientDTO>> getInProgressWorkInstructions();
+
+    /**
+     * 시뮬레이션에 필요한 작업지시서 조회
+     */
+    public Mono<List<WorkInstructionDTO.SimulationView>> getUncompletedWorkInstructionsForSimulation();
 }
+

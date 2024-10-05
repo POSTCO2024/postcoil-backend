@@ -72,4 +72,19 @@ public class WorkInstructionDTO {
         private String schStatus;
         private List<WorkInstructionItemDTO.Message> items;
     }
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class SimulationView implements DTO {
+        private Long scheduleId;
+        private String scheduleNo;
+        private String process;
+        private String rollUnit;
+        private int totalQuantity;
+        private Long expectedDuration;
+        private String schStatus;
+//        private List<WorkInstructionItemDTO.View> items;
+    }
 }
