@@ -158,7 +158,7 @@ public class SchedulingServiceImplRefac {
         Double flagThickness = 1.0;
 
         for (ConstraintInsertionDTO constraint : constraintInsertionList) {
-            if ("INSERTION".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
+            if ("INSERTION".equals(constraint.getType()) && "goal_width".equals(constraint.getTargetColumn())) {
                 flagWidth = constraint.getTargetValue();
             }
             if ("CONSTRAINT".equals(constraint.getType()) && "thickness".equals(constraint.getTargetColumn())) {
