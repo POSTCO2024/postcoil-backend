@@ -2,6 +2,10 @@ spring:
   application:
     name: operation
 
+feature-flags:
+  kafka:
+    enabled: true
+
 ---
 spring:
   datasource:
@@ -11,7 +15,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop   # 급하니깐 임시로 ...
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: false

@@ -1,3 +1,7 @@
+feature-flags:
+  kafka:
+    enabled: true
+
 spring:
   application:
     name: redis-service
