@@ -103,19 +103,7 @@ public class WorkInstructionMapper {
                 map(source.getMaterial().getCoilTypeCode(), destination.getCoilTypeCode());
             }
         });
-//        // WorkInstruction -> WorkInstructionDTO.SimulationViewItem 매핑 추가
-//        modelMapper.addMappings(new PropertyMap<WorkInstruction, WorkInstructionDTO.SimulationView>() {
-//            @Override
-//            protected void configure() {
-//                map(source.getId(), destination.getScheduleId());
-//                map(source.getScheduleNo(), destination.getScheduleNo());
-//                map(source.getProcess(), destination.getProcess());
-//                map(source.getRollUnit(), destination.getRollUnit());
-//                map(source.getTotalQuantity(), destination.getTotalQuantity());
-//                map(source.getExpectedDuration(), destination.getExpectedDuration());
-//                map(source.getWorkStatus(), destination.getSchStatus());
-//            }
-//        });
+
                 // WorkInstruction -> WorkInstructionDTO.SimulationViewItem 매핑 추가
         modelMapper.addMappings(new PropertyMap<WorkInstruction, WorkInstructionDTO.SimulationView>() {
             @Override

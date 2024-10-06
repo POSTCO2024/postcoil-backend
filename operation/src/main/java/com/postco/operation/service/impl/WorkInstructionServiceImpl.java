@@ -209,6 +209,8 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
             return dtos;
         }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
     }
+    // 시뮬레이션을 위해 예정된 작업지시서 가져오기
+
     @Override
     public Mono<List<WorkInstructionDTO.SimulationView>> getUncompletedWorkInstructionsForSimulation() {
         return Mono.fromCallable(() -> {

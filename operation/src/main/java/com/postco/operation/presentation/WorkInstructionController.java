@@ -21,7 +21,6 @@ import java.util.List;
 public class WorkInstructionController {
     private final WorkInstructionService workInstructionService;
     
-    // 삭제 Sohyun Ahn 241001
     @GetMapping("/pending-schedule")
     public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.SimulationView>>>> getWorkInstructions() {
         return workInstructionService.getUncompletedWorkInstructionsForSimulation()
