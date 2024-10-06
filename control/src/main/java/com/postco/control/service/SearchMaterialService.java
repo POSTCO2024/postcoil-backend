@@ -14,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -42,6 +43,7 @@ public class SearchMaterialService {
     public Mono<List<TargetViewDTO>> searchMaterialsByCurrProc(String currProc, String searchCriteria, String searchValue, String minValue, String maxValue, String isError) {
         // 정상재/에러재 조회
         List<TargetMaterial> materials = targetMaterialRepository.findByIsError(isError);
+//                .orElseThrow(() -> new IllegalStateException("작업대상재가 없습니다"));
 
         // Redis Mapping
         return getTargetViewDTOs(() -> mapToTargetMaterialDTO(materials))
