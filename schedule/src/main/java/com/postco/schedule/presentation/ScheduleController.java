@@ -1,6 +1,7 @@
 package com.postco.schedule.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
+import com.postco.core.utils.mapper.MapperUtils;
 import com.postco.schedule.domain.SCHConfirm;
 import com.postco.schedule.domain.SCHPlan;
 import com.postco.schedule.presentation.dto.SCHMaterialDTO;
@@ -55,7 +56,7 @@ public class ScheduleController {
         List<SCHPlanDTO.View> scheduleResults = savedPlans.stream()
                 .map(plan -> new SCHPlanDTO.View(plan.getId(), plan.getScheduleNo(), plan.getProcess(),
                         plan.getRollUnit(), plan.getPlanDate(), plan.getScExpectedDuration(),
-                        plan.getQuantity(), plan.getIsConfirmed(), null))  // 재료 리스트는 필요시 추가
+                        plan.getQuantity(), plan.getIsConfirmed(), MapperUtils.mapList(plan.getMaterials(), SCHMaterialDTO.class)))  // 재료 리스트는 필요시 추가
                 .collect(Collectors.toList());
         log.info("Scheduling Results: {}", scheduleResults);
 
