@@ -23,9 +23,9 @@ public class MonitoringController {
     private final MonitoringService monitoringService;
 
     @GetMapping("materials")
-    public Mono<ResponseEntity<ApiResponseDTO<Map<Integer, Long>>>> filteredLocationCount() {
+    public Mono<ResponseEntity<ApiResponseDTO<Map<String, Long>>>> filteredLocationCount() {
         return monitoringService.getMaterialsWithLocation().map(result -> ResponseEntity.ok(
-                        ApiResponseDTO.<Map<Integer, Long>>builder()
+                        ApiResponseDTO.<Map<String, Long>>builder()
                                 .status(HttpStatus.OK.value())
                                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                                 .result(result)
@@ -33,10 +33,10 @@ public class MonitoringController {
                 .doOnError(e -> log.error("작업대상재 조회 중 오류 발생", e))
                 .onErrorResume(e -> Mono.just(
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(ApiResponseDTO.<Map<Integer, Long>>builder()
+                                .body(ApiResponseDTO.<Map<String, Long>>builder()
                                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                                         .resultMsg("작업대상재 조회 중 오류 발생")
                                         .build())));
-        
+
     }
 }
