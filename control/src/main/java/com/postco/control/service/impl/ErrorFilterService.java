@@ -38,49 +38,55 @@ public class ErrorFilterService {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Material not found: " + targetMaterial.getMaterialId()));
 
-            // 에러 상태를 map으로 처리
             Map<String, Object> errorResult = determineErrorStatus(material, criteria);
 
             updateTargetMaterial(targetMaterial, errorResult);
         });
     }
 
-    private ErrorCriteria findHighestPriorityError(MaterialDTO.View material, List<ErrorCriteria> criteria) {
-        return ERROR_PRIORITY.stream()
-                .map(errorType -> criteria.stream()
-                        .filter(c -> c.getErrorType() == errorType && applyFilter(material, c))
-                        .findFirst()
-                        .orElse(null))
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
-    }
-
-    // 에러 결과를 Map으로 반환
     private Map<String, Object> determineErrorStatus(MaterialDTO.View material, List<ErrorCriteria> criteria) {
-        return Optional.ofNullable(findHighestPriorityError(material, criteria))
-                .map(error -> {
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("isError", "Y");
-                    result.put("errorType", error.getErrorType());
-                    return result;
-                })
-                .orElseGet(() -> {
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("isError", "N");
-                    result.put("errorType", null);
-                    return result;
-                });
+        // 정보이상재 체크
+        Map<String, Object> infoErrorResult = checkInfoError(material);
+        if ("Y".equals(infoErrorResult.get("isError"))) {
+            return infoErrorResult;
+        }
+
+        // 설비이상에러재와 관리재 체크
+        return checkCriteriaErrors(material, criteria);
     }
 
-    // 업데이트 로직
+    private Map<String, Object> checkInfoError(MaterialDTO.View material) {
+        if (material.getCoilTypeCode() == null || material.getFactoryCode() == null ||
+                material.getOrderId() == null || material.getRemProc() == null) {
+            return createErrorResult("Y", ErrorType.정보이상재);
+        }
+        return createErrorResult("N", null);
+    }
+
+    private Map<String, Object> checkCriteriaErrors(MaterialDTO.View material, List<ErrorCriteria> criteria) {
+        for (ErrorCriteria criterion : criteria) {
+            if (applyFilter(material, criterion)) {
+                ErrorType errorType = (criterion.getErrorType() == ErrorType.관리재) ?
+                        ErrorType.관리재 : ErrorType.설비이상에러재;
+                return createErrorResult("Y", errorType);
+            }
+        }
+        return createErrorResult("N", null);
+    }
+
+    private Map<String, Object> createErrorResult(String isError, ErrorType errorType) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("isError", isError);
+        result.put("errorType", errorType);
+        return result;
+    }
+
     private void updateTargetMaterial(TargetMaterial targetMaterial, Map<String, Object> errorResult) {
         targetMaterial.setIsError((String) errorResult.get("isError"));
         targetMaterial.setErrorType((ErrorType) errorResult.get("errorType"));
         targetMaterialRepository.save(targetMaterial);
     }
 
-    // 필터 적용 로직
     private boolean applyFilter(MaterialDTO.View material, ErrorCriteria criterion) {
         ErrorFilter errorFilter = ErrorFilter.fromColumnName(criterion.getColumnName());
         String value = criterion.getColumnValue();
