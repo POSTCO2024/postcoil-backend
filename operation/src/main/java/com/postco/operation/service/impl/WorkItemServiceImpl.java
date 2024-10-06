@@ -4,11 +4,16 @@ import com.postco.operation.domain.entity.WorkInstruction;
 import com.postco.operation.domain.entity.WorkInstructionItem;
 import com.postco.operation.domain.repository.WorkInstructionRepository;
 import com.postco.operation.domain.repository.WorkItemRepository;
+import com.postco.operation.presentation.dto.WorkInstructionDTO;
+import com.postco.operation.presentation.dto.WorkInstructionItemDTO;
+import com.postco.operation.presentation.dto.WorkInstructionItemMapper;
+import com.postco.operation.presentation.dto.WorkInstructionMapper;
 import com.postco.operation.presentation.dto.websocket.ClientDTO;
 import com.postco.operation.service.WorkItemService;
 import com.postco.websocket.service.CoilService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -16,6 +21,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -95,6 +101,26 @@ public class WorkItemServiceImpl implements WorkItemService {
                 .onErrorResume(e -> {
                     log.error("작업 아이템 종료 처리 중 오류 발생. ID: {}", itemId, e);
                     return Mono.just(false);
+                });
+    }
+
+    @Override
+    public Mono<List<WorkInstructionItemDTO.SimulationItemDTO>> getWorkItems(Long workInstructionId) {
+        return Mono.fromCallable(() ->
+                        transactionTemplate.execute(status -> {
+                            List<WorkInstructionItem> items = workItemRepository.findAllItemsByWorkInstructionId(workInstructionId);
+                            if (items.isEmpty()) {
+                                throw new IllegalArgumentException("해당 작업 지시에 대한 아이템이 없습니다.");
+                            }
+                            log.info("작업 지시 ID: {}에 대한 아이템 {}개 조회 완료.", workInstructionId, items.size());
+                            return WorkInstructionItemMapper.mapToSimulationItemDTOList(items);
+                        })
+                )
+                .subscribeOn(Schedulers.boundedElastic())
+                .doOnSuccess(result -> log.info("[아이템 조회] 작업 지시 ID: {}", workInstructionId))
+                .onErrorResume(e -> {
+                    log.error("작업 아이템 조회 중 오류 발생. 작업 지시 ID: {}", workInstructionId, e);
+                    return Mono.empty();
                 });
     }
 }

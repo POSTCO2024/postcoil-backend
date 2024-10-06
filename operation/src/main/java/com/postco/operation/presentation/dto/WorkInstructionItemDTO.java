@@ -89,4 +89,23 @@ public class WorkInstructionItemDTO {
         private String coilTypeCode;
 
     }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class SimulationItemDTO implements DTO {
+        private Long materialId;
+        private Long workItemId;
+        private int sequence;
+        private Long expectedItemDuration;
+        private Double initialThickness;
+        private Double initialGoalWidth;
+        private Double initialWidth;
+
+    }
+
+
+
 }
