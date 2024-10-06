@@ -12,6 +12,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -48,28 +50,30 @@ public class WorkInstructionCustomImpl implements WorkInstructionRepositoryCusto
     }
 
     @Override
-    public List<AnalysisDashboardClientDTO.StatisticsInfo> getAnlysisStaticsInfo(String SchProcess) {
-        QWorkInstruction wi = QWorkInstruction.workInstruction;
-        QCoilSupply cs = QCoilSupply.coilSupply;
+    public Mono<List<AnalysisDashboardClientDTO.StatisticsInfo>> getAnlysisStaticsInfo(String SchProcess) {
+        return Mono.fromCallable(() -> {
+            QWorkInstruction wi = QWorkInstruction.workInstruction;
+            QCoilSupply cs = QCoilSupply.coilSupply;
 
-        List<Tuple> results = queryFactory
-                .select(wi.process,
-                        cs.totalCoils.sum(),
-                        cs.totalCoils.subtract(cs.totalProgressed).subtract(cs.totalRejects).sum(),
-                        cs.totalProgressed.sum(),
-                        wi.startTime.min())
-                .from(wi)
-                .join(cs).on(wi.id.eq(cs.workInstruction.id))
-                .where(wi.workStatus.eq(WorkStatus.IN_PROGRESS))
-                .where(wi.process.eq(SchProcess))
-                .groupBy(wi.process)
-                .fetch();
+            List<Tuple> results = queryFactory
+                    .select(wi.process,
+                            cs.totalCoils.sum(),
+                            cs.totalCoils.subtract(cs.totalProgressed).subtract(cs.totalRejects).sum(),
+                            cs.totalProgressed.sum(),
+                            wi.startTime.min())
+                    .from(wi)
+                    .join(cs).on(wi.id.eq(cs.workInstruction.id))
+                    .where(wi.workStatus.eq(WorkStatus.IN_PROGRESS))
+                    .where(wi.process.eq(SchProcess))
+                    .groupBy(wi.process)
+                    .fetch();
 
-        // 결과를 매핑
-        return results.stream()
-                .map(this::mapToAnalysisStatisticsInfo)
-                .collect(Collectors.toList());
+            return results.stream()
+                    .map(this::mapToAnalysisStatisticsInfo)
+                    .collect(Collectors.toList());
+        }).subscribeOn(Schedulers.boundedElastic());
     }
+
     @Override
     public List<AnalysisDashboardClientDTO.StatisticsInfo> getAnlysisAllStaticsInfo() {
         QWorkInstruction wi = QWorkInstruction.workInstruction;

@@ -113,24 +113,17 @@ public class CoilWorkCommandService {
                         .map(item -> workItemService.startWorkItem(item.getId())
                                 .flatMap(updatedItem -> {
                                     if (updatedItem != null) {
-                                        // 관제로 데이터 카프카 전송
-                                        clientDashboardService.sendDashboardStartData(WebSocketMessageType.WORK_STARTED);
-                                        clientDashboardService.sendToIndividualDashboard1CALData();
-                                        clientDashboardService.sendToIndividualDashboard2CALData();
-                                        clientDashboardService.sendToIndividualDashboard1PCMData();
-                                        clientDashboardService.sendToIndividualDashboard2PCMData();
-                                        clientDashboardService.sendToIndividualDashboard1EGLData();
-                                        clientDashboardService.sendToIndividualDashboard2EGLData();
-                                        clientDashboardService.sendToIndividualDashboard1CGLData();
-                                        clientDashboardService.sendToIndividualDashboard2CGLData();
-                                        
-                                        // 웹소켓으로 정보 전달
-                                        Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
-                                        socketData.subscribe(data -> {
-                                            log.info("보낼 웹소켓 정보 작업시작시 : {}", data); // 실제 데이터를 로깅
-                                            coilService.directMessageToClient("/topic/work-instruction", data); // 데이터를 전송
-                                        });
-                                        return scheduleWorkCompletion(updatedItem)
+                                        return Mono.fromRunnable(() -> {
+                                                    // 관제로 데이터 카프카 전송
+                                                    clientDashboardService.sendDashboardStartData(WebSocketMessageType.WORK_STARTED);
+                                                })
+                                                .then(clientDashboardService.sendAllIndividualDashboardData().then())
+                                                .then(workInstructionService.getInProgressWorkInstructions())
+                                                .doOnNext(data -> {
+                                                    log.info("보낼 웹소켓 정보 작업시작시 : {}", data);
+                                                    coilService.directMessageToClient("/topic/work-instruction", data);
+                                                })
+                                                .then(scheduleWorkCompletion(updatedItem))
                                                 .thenReturn(itemId);
                                     }
                                     log.error("작업 시작 실패, 아이템 ID: {}", itemId);
@@ -163,21 +156,17 @@ public class CoilWorkCommandService {
                     log.info("작업 완료 처리 성공 - 아이템 ID: {}", itemId);
                     // 작업 완료 시 관제로 데이터 카프카 전송
                     clientDashboardService.sendDashboardEndData(WebSocketMessageType.WORK_COMPLETED);
-                    clientDashboardService.sendToIndividualDashboard1CALData();
-                    clientDashboardService.sendToIndividualDashboard2CALData();
-                    clientDashboardService.sendToIndividualDashboard1PCMData();
-                    clientDashboardService.sendToIndividualDashboard2PCMData();
-                    clientDashboardService.sendToIndividualDashboard1EGLData();
-                    clientDashboardService.sendToIndividualDashboard2EGLData();
-                    clientDashboardService.sendToIndividualDashboard1CGLData();
-                    clientDashboardService.sendToIndividualDashboard2CGLData();
+
+                    // 공정별 데시보드 데이터 전송
+                    clientDashboardService.sendAllIndividualDashboardData()
+                            .subscribe(null, error -> log.error("개별 대시보드 데이터 전송 실패", error));
 
                     // 웹소켓으로 정보 전달
-                    Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
-                    socketData.subscribe(data -> {
-                        log.info("보낼 웹소켓 정보 작업완료 시 : {}", data); // 실제 데이터를 로깅
-                        coilService.directMessageToClient("/topic/work-instruction", data); // 데이터를 전송
-                    });
+                    workInstructionService.getInProgressWorkInstructions()
+                            .subscribe(data -> {
+                                log.info("보낼 웹소켓 정보 작업완료 시 : {}", data);
+                                coilService.directMessageToClient("/topic/work-instruction", data);
+                            }, error -> log.error("웹소켓 데이터 전송 실패", error));
                 })
                 .doOnError(error -> log.error("작업 완료 처리 실패 - 아이템 ID: {}, 에러: {}", itemId, error.getMessage()));
     }

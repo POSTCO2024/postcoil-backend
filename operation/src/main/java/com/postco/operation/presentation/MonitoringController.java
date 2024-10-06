@@ -48,8 +48,9 @@ public class MonitoringController {
     }
 
     @GetMapping("/analyze")
-    public ResponseEntity<AnalysisDashboardClientDTO> getFirstStatus(@RequestParam String SchProcess) {
-        AnalysisDashboardClientDTO firstStatus = clientDashboardService.sendFirstStatus(SchProcess);
-        return ResponseEntity.ok(firstStatus);
+    public Mono<ResponseEntity<AnalysisDashboardClientDTO>> getFirstStatus(@RequestParam String SchProcess) {
+        return clientDashboardService.sendFirstStatus(SchProcess)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }
