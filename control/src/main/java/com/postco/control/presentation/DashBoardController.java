@@ -140,20 +140,29 @@ public class DashBoardController {
      * @return 공정 별 롤 단위 개수
      */
     @GetMapping("/rollUnit")
-    public Mono<ResponseEntity<ApiResponseDTO<Fc004aDTO.RollUnitCount>>> getRollUnit(@RequestParam String currProc) {
-        return dashBoardMaterialService.getRollUnitCountByCurrProc(currProc)
-                .map(rollUnitCount -> ResponseEntity.ok(
-                        ApiResponseDTO.<Fc004aDTO.RollUnitCount>builder()
-                                .status(HttpStatus.OK.value())
-                                .resultMsg("롤 단위 카운트 조회 성공")
-                                .result(rollUnitCount) // 롤 단위 카운트 결과를 설정
-                                .build()))
-                .doOnError(e -> log.error("롤 단위 카운트 조회 중 오류 발생", e))
+    public Mono<ResponseEntity<ApiResponseDTO<Map<String, Long>>>> getRollUnitCount(@RequestParam String currProc) {
+        return dashBoardMaterialService.getRollUnitCountByProc(currProc)
+                .map(result -> {
+                    // RollUnitCount 객체를 Map<String, Long>으로 변환
+                    Map<String, Long> rollUnitCountMap = Map.of(
+                            "A", result.getACount(),
+                            "B", result.getBCount()
+                    );
+
+                    return ResponseEntity.ok(
+                            ApiResponseDTO.<Map<String, Long>>builder()
+                                    .status(HttpStatus.OK.value())
+                                    .resultMsg("롤 단위 별 카운트 조회 성공")
+                                    .result(rollUnitCountMap)  // Map 형태로 반환
+                                    .build()
+                    );
+                })
+                .doOnError(e -> log.error("롤 단위 별 카운트 조회 중 오류 발생", e))
                 .onErrorResume(e -> Mono.just(
                         ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                .body(ApiResponseDTO.<Fc004aDTO.RollUnitCount>builder()
+                                .body(ApiResponseDTO.<Map<String, Long>>builder()
                                         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                                        .resultMsg("롤 단위 카운트 조회 중 오류 발생")
+                                        .resultMsg("롤 단위 별 카운트 조회 중 오류 발생")
                                         .build())));
     }
 

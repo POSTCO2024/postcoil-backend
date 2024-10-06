@@ -47,7 +47,6 @@ public interface TargetMaterialRepository extends JpaRepository<TargetMaterial, 
     List<Long> findNormalMaterialIds();
 
     // 롤 단위
-    @Query("SELECT tm.rollUnitName, COUNT(tm) FROM TargetMaterial tm WHERE tm.id IN :materialIds AND tm.isError = 'N' GROUP BY tm.rollUnitName")
-    List<Object[]> countByRollUnitName(@Param("materialIds") List<Long> materialIds);
+    List<TargetMaterial> findByMaterialIdIn(List<Long> materialIds);
 }
 
