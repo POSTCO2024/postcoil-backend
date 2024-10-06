@@ -58,6 +58,7 @@ public class SchedulingServiceImplRefac {
 
         AtomicInteger sequence = new AtomicInteger(1); // 시퀀스 시작 값을 1로 설정
         finalCoilList.forEach(coil -> coil.setSequence(sequence.getAndIncrement()));
+
         return finalCoilList;  // 최종 편성된 코일 반환
     }
 
@@ -158,7 +159,7 @@ public class SchedulingServiceImplRefac {
         Double flagThickness = 1.0;
 
         for (ConstraintInsertionDTO constraint : constraintInsertionList) {
-            if ("INSERTION".equals(constraint.getType()) && "width".equals(constraint.getTargetColumn())) {
+            if ("INSERTION".equals(constraint.getType()) && "goal_width".equals(constraint.getTargetColumn())) {
                 flagWidth = constraint.getTargetValue();
             }
             if ("CONSTRAINT".equals(constraint.getType()) && "thickness".equals(constraint.getTargetColumn())) {
