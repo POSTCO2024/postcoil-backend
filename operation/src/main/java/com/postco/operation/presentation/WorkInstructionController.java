@@ -21,15 +21,12 @@ import java.util.List;
 public class WorkInstructionController {
     private final WorkInstructionService workInstructionService;
     
-    // 삭제 Sohyun Ahn 241001
-//    @GetMapping("/uncompleted")
-//    public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.View>>>> getWorkInstructions(
-//            @RequestParam String process) {
-//        log.info("작업 지시서 조회 요청. 공정: {}, 롤 단위: {}", process);
-//        return workInstructionService.getUncompletedWorkInstructions(process)
-//                .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
-//                .onErrorResume(e -> handleError("작업 지시서 조회", e));
-//    }
+    @GetMapping("/pending-schedule")
+    public Mono<ResponseEntity<ApiResponseDTO<List<WorkInstructionDTO.SimulationView>>>> getWorkInstructions() {
+        return workInstructionService.getUncompletedWorkInstructionsForSimulation()
+                .flatMap(result -> createSuccessResponseAndLog(result, "작업 지시서 조회 성공", "작업 지시서 조회"))
+                .onErrorResume(e -> handleError("작업 지시서 조회", e));
+    }
 
     /*
      * 추가 Sohyun Ahn 240930,

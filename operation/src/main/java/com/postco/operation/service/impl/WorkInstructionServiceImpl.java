@@ -209,6 +209,22 @@ public class WorkInstructionServiceImpl implements WorkInstructionService {
             return dtos;
         }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
     }
+    // 시뮬레이션을 위해 예정된 작업지시서 가져오기
+
+    @Override
+    public Mono<List<WorkInstructionDTO.SimulationView>> getUncompletedWorkInstructionsForSimulation() {
+        return Mono.fromCallable(() -> {
+            log.info("시뮬레이션 작업 지시서 조회 서비스 시작. 공정: {}, 롤 단위: {}");
+            List<WorkInstruction> workInstructions = workInstructionRepository.findUncompletedWithItemsForSimulation();
+            log.info("작업지시문 : {}", workInstructions.get(0));
+            List<WorkInstructionDTO.SimulationView> dtos = workInstructions.stream()
+                    .map(WorkInstructionMapper::mapToSimulationView)
+                    .collect(Collectors.toList());
+            log.info("작업 지시서 조회 완료. 조회된 작업 지시서 수: {}", dtos.size());
+            log.info("매핑된 작업지시문 : {}", dtos);
+            return dtos;
+        }).subscribeOn(Schedulers.boundedElastic());  // 블로킹 작업을 별도의 스레드 풀에서 실행
+    }
 
     /*
      * 추가 Sohyun Ahn 240930,

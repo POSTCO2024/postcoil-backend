@@ -104,6 +104,20 @@ public class WorkInstructionMapper {
                 map(source.getMaterial().getCoilTypeCode(), destination.getCoilTypeCode());
             }
         });
+
+                // WorkInstruction -> WorkInstructionDTO.SimulationViewItem 매핑 추가
+        modelMapper.addMappings(new PropertyMap<WorkInstruction, WorkInstructionDTO.SimulationView>() {
+            @Override
+            protected void configure() {
+                map(source.getId(), destination.getScheduleId());
+                map(source.getScheduleNo(), destination.getScheduleNo());
+                map(source.getProcess(), destination.getProcess());
+                map(source.getRollUnit(), destination.getRollUnit());
+                map(source.getTotalQuantity(), destination.getTotalQuantity());
+                map(source.getExpectedDuration(), destination.getExpectedDuration());
+                map(source.getWorkStatus(), destination.getSchStatus());
+            }
+        });
     }
 
     // ScheduleResultDTO.View -> WorkInstructionDTO.Create 매핑
@@ -194,6 +208,23 @@ public class WorkInstructionMapper {
     public static WorkInstructionItemDTO.Message mapToItemMessageDto(WorkInstructionItem item) {
         log.info("mapToItemMessageDto : {}", modelMapper.map(item, WorkInstructionItemDTO.Message.class));
         return modelMapper.map(item, WorkInstructionItemDTO.Message.class);
+    }
+//    // WorkInstruction 엔티티 -> WorkInstructionDTO.SimulationViewItem 매핑
+//    public static WorkInstructionDTO.SimulationView mapToSimulationView(WorkInstruction entity) {
+//        WorkInstructionDTO.SimulationView dto = modelMapper.map(entity, WorkInstructionDTO.SimulationView.class);
+//        if (entity.getItems() != null) {
+//            dto.setItems(entity.getItems().stream()
+//                    .map(WorkInstructionMapper::mapToItemDto)
+//                    .collect(Collectors.toList()));
+//        }
+//        log.info("mapToSimulationView : {}", dto);
+//        return dto;
+//    }
+        // WorkInstruction 엔티티 -> WorkInstructionDTO.SimulationView 매핑
+    public static WorkInstructionDTO.SimulationView mapToSimulationView(WorkInstruction entity) {
+        WorkInstructionDTO.SimulationView dto = modelMapper.map(entity, WorkInstructionDTO.SimulationView.class);
+        log.info("mapToSimulationView : {}", dto);
+        return dto;
     }
 
     private static WorkStatus safeValueOf(String status) {

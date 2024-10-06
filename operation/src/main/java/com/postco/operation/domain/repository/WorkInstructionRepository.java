@@ -22,6 +22,10 @@ public interface WorkInstructionRepository extends JpaRepository<WorkInstruction
 
     @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items i LEFT JOIN FETCH i.material WHERE w.process = :process and w.workStatus != 'COMPLETED'")
     List<WorkInstruction> findUncompletedWithItems(String process);
+    @Query("SELECT DISTINCT w FROM WorkInstruction w  WHERE w.workStatus = 'PENDING'")
+    List<WorkInstruction> findUncompletedWithItemsForSimulation();
+//    @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items i LEFT JOIN FETCH i.material WHERE w.workStatus != 'COMPLETED'")
+//    List<WorkInstruction> findUncompletedWithItemsForSimulation();
 
     @Query("SELECT DISTINCT w FROM WorkInstruction w LEFT JOIN FETCH w.items i LEFT JOIN FETCH i.material " +
             "WHERE w.workStatus = 'COMPLETED' " +
