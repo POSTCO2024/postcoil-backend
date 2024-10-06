@@ -94,6 +94,8 @@ public class SchedulePlanServiceImpl {
                     dto.setGoalThickness(material.getGoalThickness());
                     dto.setNextProc(material.getNextProc());
                     dto.setMaterialNo(material.getMaterialNo());
+                    dto.setMaterialId(material.getMaterialId()); // 추가 Sohyun Ahn 2024-10-07
+                    dto.setTargetId(material.getTargetId()); // 추가 Sohyun Ahn 2024-10-07
 
                     // SCHPlan의 id를 schedulePlanId 필드에 매핑
                     if (material.getSchPlan() != null) {
