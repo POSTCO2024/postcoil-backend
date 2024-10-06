@@ -2,7 +2,7 @@ spring:
   application:
     name: cache-service
   profiles:
-    active: prod
+    active: local
 
 server:
   port: 9000

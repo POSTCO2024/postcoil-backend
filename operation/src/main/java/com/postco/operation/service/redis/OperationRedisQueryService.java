@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.postco.core.dto.ScheduleMaterialDTO;
 import com.postco.core.dto.ScheduleResultDTO;
+import com.postco.core.dto.TargetMaterialDTO;
 import com.postco.core.redis.cqrs.query.GenericRedisQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -48,6 +51,14 @@ public class OperationRedisQueryService {
                     });
                 })
                 .doOnError(error -> log.error("Error fetching schedules from Redis", error));
+    }
+
+    public Mono<Set<Long>> fetchNormalMaterialIds() {
+        return redisQueryService.fetchAllBySinglePrefix("target:", TargetMaterialDTO.View.class)
+                .filter(target -> "N".equals(target.getIsError()))
+                .map(TargetMaterialDTO.View::getMaterialId)
+                .collect(Collectors.toSet())
+                .doOnNext(ids -> log.info("[Redis 성공] 정상재 material ID를 불러왔습니다. 개수: {}", ids.size()));
     }
 
 }
