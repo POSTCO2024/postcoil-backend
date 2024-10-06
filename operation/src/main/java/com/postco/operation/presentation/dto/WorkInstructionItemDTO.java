@@ -25,6 +25,7 @@ public class WorkInstructionItemDTO {
         private Double initialThickness;
         private Double initialGoalWidth;
         private Double initialWidth;
+        private Double initialGoalThickness;
 
     }
 
@@ -47,6 +48,7 @@ public class WorkInstructionItemDTO {
         private Double initialThickness;
         private Double initialGoalWidth;
         private Double initialWidth;
+        private Double initialGoalThickness;
         private Double temperature;
         private String preProc;
         private String nextProc;
@@ -76,6 +78,7 @@ public class WorkInstructionItemDTO {
         private Double initialThickness;
         private Double initialGoalWidth;
         private Double initialWidth;
+        private Double initialGoalThickness;
         private Double temperature;
         private String preProc;
         private String nextProc;

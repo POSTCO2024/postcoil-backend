@@ -2,8 +2,8 @@ package com.postco.operation.presentation;
 
 import com.postco.core.dto.ApiResponseDTO;
 import com.postco.operation.service.CoilSupplyService;
-import com.postco.operation.service.impl.work.CoilWorkCommandService;
 import com.postco.operation.service.WorkItemService;
+import com.postco.operation.service.impl.work.CoilWorkCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,6 +17,7 @@ import java.util.Objects;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/coil-work")
+@CrossOrigin(origins = {"http://localhost:8081", "http://localhost:4000"})
 @Slf4j
 public class WorkController {
     private final CoilWorkCommandService coilWorkCommandService;
@@ -61,10 +62,6 @@ public class WorkController {
 
     // 긴급 정지 API
     @PostMapping
-
-
-
-
 
 
     // 공통 응답 생성 메서드
