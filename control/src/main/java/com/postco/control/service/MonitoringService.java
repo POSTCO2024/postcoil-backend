@@ -21,16 +21,18 @@ public class MonitoringService {
      *
      * @return
      */
-    public Mono<Map<Integer, Long>> getMaterialsWithLocation() {
+    public Mono<Map<String, Long>> getMaterialsWithLocation() {
 //        controlRedisQueryService.getAllMaterialsFromRedis().subscribe(list -> {
 //            list.forEach(System.out::println);
 //        });
         return controlRedisQueryService.getAllMaterialsFromRedis()
                 .map(list -> list.stream()
-                        .collect(Collectors.groupingBy(
-                                material -> Integer.parseInt(String.valueOf(material.getStorageLoc()).substring(0, 1)),
-                                Collectors.counting()
-                        ))
+                                .collect(Collectors.groupingBy(
+//                                material -> Integer.parseInt(String.valueOf(material.getStorageLoc()).substring(0, 1)),
+//                                Collectors.counting()
+                                        material -> material.getYard(),
+                                        Collectors.counting()
+                                ))
                 );
 
     }
