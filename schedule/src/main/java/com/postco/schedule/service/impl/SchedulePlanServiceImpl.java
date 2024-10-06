@@ -156,6 +156,7 @@ public class SchedulePlanServiceImpl {
                 .scExpectedDuration(calculateTotalDuration(scheduledMaterials))
                 .quantity(scheduledMaterials.size())
                 .isConfirmed("N")
+                .materials(scheduledMaterials) // 추가 241006 by Sohyun Ahn
                 .build();
 
         // 스케줄 Plan DB에 저장
