@@ -94,42 +94,37 @@ public class DashBoardMaterialService {
     }
     
     // 롤 단위 비율
-    public Mono<Fc004aDTO.RollUnitCount> getRollUnitCountByCurrProc(String currProc) {
+    public Mono<Fc004aDTO.RollUnitCount> getRollUnitCountByProc(String currProc) {
+        // DB에서 정상재(에러 아닌 것) 조회
+        Set<Long> normalMaterialIds = targetMaterialRepository.findByIsError("N").stream()
+                .map(TargetMaterial::getMaterialId)
+                .collect(Collectors.toSet());
+
+        // Redis에서 공정 데이터를 가져와서 필터링
         return controlRedisQueryService.getRedisData()
-                .flatMap(container -> {
+                .map(container -> {
                     List<Long> materialIds = container.getMaterials().stream()
-                            .filter(material -> currProc.equals(material.getCurrProc())) // 공정(currProc) 필터링
-                            .map(MaterialDTO.View::getId) // ID 추출
+                            .filter(material -> currProc.equals(material.getCurrProc())
+                                    && normalMaterialIds.contains(material.getId()))  // 정상재 필터링
+                            .map(material -> material.getId())
                             .collect(Collectors.toList());
 
-                    // repository에서 조회
-                    List<Object[]> results = targetMaterialRepository.countByRollUnitName(materialIds);
-                    System.out.print(results);
+                    // DB에서 필터링된 재료들의 RollUnitName을 조회
+                    List<TargetMaterial> filteredMaterials = targetMaterialRepository.findByMaterialIdIn(materialIds);
 
-                    Map<String, Long> rollUnitCountMap = new HashMap<>();
+                    // 롤 단위 별 카운트 계산
+                    long aCount = filteredMaterials.stream()
+                            .filter(material -> "A".equals(material.getRollUnitName()))  // 롤 단위가 A인 경우
+                            .count();
 
-                    for (Object[] result : results) {
-                        String rollUnitName = (String) result[0];
-                        Long count = (Long) result[1];
+                    long bCount = filteredMaterials.stream()
+                            .filter(material -> "B".equals(material.getRollUnitName()))  // 롤 단위가 B인 경우
+                            .count();
 
-                        // 롤 유닛 이름에 따라 카운트를 맵에 저장
-                        rollUnitCountMap.put(rollUnitName, count);
-                    }
-
-                    // A와 B의 카운트를 각각 추출
-                    long aCount = rollUnitCountMap.getOrDefault("A", 0L);
-                    long bCount = rollUnitCountMap.getOrDefault("B", 0L);
-
-                    // DTO 생성
-                    Fc004aDTO.RollUnitCount rollUnitCount = Fc004aDTO.RollUnitCount.builder()
+                    return Fc004aDTO.RollUnitCount.builder()
                             .ACount(aCount)
                             .BCount(bCount)
                             .build();
-
-                    return Mono.just(rollUnitCount);
                 });
-
     }
-
-
 }
