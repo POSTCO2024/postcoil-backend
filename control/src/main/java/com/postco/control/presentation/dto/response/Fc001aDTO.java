@@ -12,7 +12,7 @@ public class Fc001aDTO{
     @ToString
     public static class Table implements DTO {
         private String coilTypeCode;
-        private Long totalCnt;
+        // private Long totalCnt;
         private Long proc1CAL;
         private Long proc2CAL;
         private Long proc1EGL;
