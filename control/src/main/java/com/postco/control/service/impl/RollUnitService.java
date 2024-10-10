@@ -15,11 +15,10 @@ public class RollUnitService {
     public String determineRollUnit(double thickness) {
         List<RollUnit> rollUnits = rollUnitRepository.findAll();
 
-        for (RollUnit rollUnit : rollUnits) {
-            if(rollUnit.isInRange(thickness)) {
-                return rollUnit.getRollUnitName();
-            }
-        }
-        return "Unknown";
+        return rollUnits.stream()
+                .filter(rollUnit -> rollUnit.isInRange(thickness))
+                .findFirst()
+                .map(RollUnit::getRollUnitName)
+                .orElse("A");
     }
 }

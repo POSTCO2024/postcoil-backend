@@ -1,6 +1,8 @@
 package com.postco.schedule.domain.repository;
 
 import com.postco.schedule.domain.SCHMaterial;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,6 @@ public interface SCHMaterialRepository extends JpaRepository<SCHMaterial, Long> 
     List<SCHMaterial> findByCurrProc(String currProc);
     List<SCHMaterial> findAllById(Iterable<Long> id);
     List<SCHMaterial> findBySchPlanIsNullAndSchConfirmIsNullAndCurrProc(String currProc);
-    List<SCHMaterial> findBySchPlanIsNotNullAndSchConfirmIsNullAndCurrProc(String currProc);
+    Page<SCHMaterial> findBySchPlanIsNullAndSchConfirmIsNullAndCurrProc(String currProc, Pageable pageable);
 
 }
