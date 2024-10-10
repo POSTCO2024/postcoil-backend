@@ -67,7 +67,7 @@ public class TargetMaterialQueryServiceImpl implements TargetMaterialQueryServic
     public Mono<List<TargetViewDTO>> getNormalMaterialsByCurrProc(String currProc) {
         return getTargetViewDTOs(this::getNormalTargetMaterials)
                 .map(targetViews -> targetViews.stream()
-                        .filter(view -> currProc.equals(view.getMaterial().getCurrProc()))
+                        .filter(view -> (currProc.equals(view.getMaterial().getCurrProc()) && (view.getIsError().equals("N"))))
                         .collect(Collectors.toList()));
     }
 
