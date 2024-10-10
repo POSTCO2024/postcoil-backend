@@ -14,6 +14,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 
 @Service
@@ -21,33 +22,33 @@ import java.util.function.Function;
 @Slf4j
 public class SupplyQueueManager {
     private static final String EQUIPMENT_QUEUE_KEY_PREFIX = "equipmentQueue:";
-    private static final String WORK_INSTRUCTION_QUEUE_KEY_PREFIX = "workInstructionQueue:";
-    private static final long DELAY_IN_SECONDS = 3L;                  // 설비 앞까지 오는 시간dt
+    private static final String SUPPLY_REQUEST_QUEUE_KEY_PREFIX = "supplyRequestQueue:";
+    private static final long DELAY_IN_SECONDS = 3L;
 
     private final ReactiveRedisTemplate<String, String> redisTemplate;
     private final CoilSupplyService coilSupplyService;
     private final TransactionTemplate transactionTemplate;
 
-    public Mono<Void> addItemsToQueue(String equipmentCode, Long workInstructionId, List<WorkInstructionItem> items) {
+    public Mono<Void> addItemsToQueue(String equipmentCode, Long workInstructionId, String supplyRequestId, List<WorkInstructionItem> items) {
         String equipmentQueueKey = EQUIPMENT_QUEUE_KEY_PREFIX + equipmentCode;
-        String workInstructionQueueKey = WORK_INSTRUCTION_QUEUE_KEY_PREFIX + equipmentCode + ":" + workInstructionId;
+        String supplyRequestQueueKey = SUPPLY_REQUEST_QUEUE_KEY_PREFIX + equipmentCode + ":" + supplyRequestId;
 
-        return redisTemplate.opsForList().rightPush(equipmentQueueKey, workInstructionId.toString())
+        return redisTemplate.opsForList().rightPush(equipmentQueueKey, supplyRequestId)
                 .then(Flux.fromIterable(items)
-                        .flatMap(item -> redisTemplate.opsForList().rightPush(workInstructionQueueKey, item.getId().toString())
-                                .doOnSuccess(result -> log.info("[보급 요청 성공] 설비 {}, 작업지시 {}: 큐에 작업 아이템 ID : {} 추가됨",
-                                        equipmentCode, workInstructionId, item.getId()))
-                                .doOnError(error -> log.error("[보급 요청 실패] 설비 {}, 작업지시 {}: 큐 추가 중 오류 발생: {}",
-                                        equipmentCode, workInstructionId, error.getMessage())))
+                        .flatMap(item -> redisTemplate.opsForList().rightPush(supplyRequestQueueKey, item.getId().toString())
+                                .doOnSuccess(result -> log.info("[보급 요청 성공] 설비 {}, 작업지시 {}, 보급요청 ID {}: 큐에 작업 아이템 ID : {} 추가됨",
+                                        equipmentCode, workInstructionId, supplyRequestId, item.getId()))
+                                .doOnError(error -> log.error("[보급 요청 실패] 설비 {}, 작업지시 {}, 보급요청 ID {}: 큐 추가 중 오류 발생: {}",
+                                        equipmentCode, workInstructionId, supplyRequestId, error.getMessage())))
                         .collectList())
                 .then();
     }
 
-    public Mono<Void> processSupplyInBackground(String equipmentCode, CoilSupply coilSupply, int supplyCount, Function<Long, Mono<Long>> startWorkOnItem) {
+    public Mono<Void> processSupplyInBackground(String equipmentCode, CoilSupply coilSupply, String supplyRequestId, int supplyCount, Function<Long, Mono<Long>> startWorkOnItem) {
         return completeSupplyAfterDelay(equipmentCode, coilSupply, supplyCount)
-                .then(processAllWorkInstructions(equipmentCode, startWorkOnItem))
-                .doOnSuccess(v -> log.info("설비 {}: 모든 작업 완료", equipmentCode))
-                .doOnError(e -> log.error("설비 {}: 작업 처리 중 오류 발생", equipmentCode, e));
+                .then(processSupplyRequest(equipmentCode, supplyRequestId, startWorkOnItem))
+                .doOnSuccess(v -> log.info("설비 {}, 보급요청 ID {}: 작업 완료", equipmentCode, supplyRequestId))
+                .doOnError(e -> log.error("설비 {}, 보급요청 ID {}: 작업 처리 중 오류 발생", equipmentCode, supplyRequestId, e));
     }
 
     private Mono<Void> completeSupplyAfterDelay(String equipmentCode, CoilSupply coilSupply, int suppliedCount) {
@@ -66,50 +67,21 @@ public class SupplyQueueManager {
                 });
     }
 
-    private Mono<Void> processAllWorkInstructions(String equipmentCode, Function<Long, Mono<Long>> startWorkOnItem) {
-        return processNextWorkInstruction(equipmentCode, startWorkOnItem)
-                .repeat()
-                .takeUntil(hasMore -> !hasMore)
+    private Mono<Void> processSupplyRequest(String equipmentCode, String supplyRequestId, Function<Long, Mono<Long>> startWorkOnItem) {
+        String supplyRequestQueueKey = SUPPLY_REQUEST_QUEUE_KEY_PREFIX + equipmentCode + ":" + supplyRequestId;
+        return processAllItemsInQueue(supplyRequestQueueKey, startWorkOnItem)
+                .then(redisTemplate.opsForList().leftPop(EQUIPMENT_QUEUE_KEY_PREFIX + equipmentCode))
                 .then();
     }
 
-    private Mono<Boolean> processNextWorkInstruction(String equipmentCode, Function<Long, Mono<Long>> startWorkOnItem) {
-        String equipmentQueueKey = EQUIPMENT_QUEUE_KEY_PREFIX + equipmentCode;
-        return redisTemplate.opsForList().leftPop(equipmentQueueKey)
-                .flatMap(workInstructionId -> {
-                    String workInstructionQueueKey = WORK_INSTRUCTION_QUEUE_KEY_PREFIX + equipmentCode + ":" + workInstructionId;
-                    return processWorkInstructionItems(equipmentCode, workInstructionQueueKey, startWorkOnItem)
-                            .then(checkAndProcessRemainingItems(equipmentQueueKey, workInstructionQueueKey, workInstructionId))
-                            .thenReturn(true);
-                })
-                .defaultIfEmpty(false)
-                .doOnNext(hasMore -> {
-                    if (!hasMore) {
-                        log.info("설비 {}: 처리할 작업 지시가 더 이상 없습니다.", equipmentCode);
-                    }
-                });
-    }
-
-    private Mono<Void> checkAndProcessRemainingItems(String equipmentQueueKey, String workInstructionQueueKey, String workInstructionId) {
-        return redisTemplate.opsForList().size(workInstructionQueueKey)
-                .flatMap(size -> {
-                    if (size == 0) {
-                        log.info("작업 지시 {} 의 모든 아이템 처리 완료", workInstructionId);
-                        return Mono.empty();
-                    } else {
-                        log.info("작업 지시 {} 에 처리할 아이템이 {} 개 남아있음", workInstructionId, size);
-                        return redisTemplate.opsForList().rightPush(equipmentQueueKey, workInstructionId);
-                    }
-                })
-                .then();
-    }
-
-    private Mono<Void> processWorkInstructionItems(String equipmentCode, String workInstructionQueueKey, Function<Long, Mono<Long>> startWorkOnItem) {
-        return redisTemplate.opsForList().leftPop(workInstructionQueueKey)
+    private Mono<Void> processAllItemsInQueue(String queueKey, Function<Long, Mono<Long>> startWorkOnItem) {
+        return redisTemplate.opsForList().leftPop(queueKey)
                 .flatMap(itemId -> Mono.justOrEmpty(Long.parseLong(itemId)))
                 .flatMap(id -> startWorkOnItem.apply(id)
-                        .doOnSuccess(startedId -> log.info("설비 {}: 작업 아이템 ID 처리 시작: {}", equipmentCode, startedId))
-                        .doOnError(e -> log.error("설비 {}: 작업 아이템 ID {} 처리 중 오류 발생", equipmentCode, id, e)))
+                        .doOnSuccess(startedId -> log.info("작업 아이템 ID 처리 시작: {}", startedId))
+                        .doOnError(e -> log.error("작업 아이템 ID {} 처리 중 오류 발생", id, e)))
+                .repeat()
+                .takeUntil(Objects::isNull)
                 .then();
     }
 }

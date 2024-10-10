@@ -24,6 +24,7 @@ import reactor.util.function.Tuples;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,12 +47,6 @@ public class CoilWorkCommandService {
     // 1) 코일 보급 처리 -> 업데이트
     // 2) 코일 작업 시작 및 종료
     public Mono<Boolean> requestSupply(Long workInstructionId, int supplyCount) {
-        // 웹소켓으로 정보 전달
-        Mono<List<ClientDTO>> socketData = workInstructionService.getInProgressWorkInstructions();
-        socketData.subscribe(data -> {
-            log.info("보낼 웹소켓 정보 보급 클릭시 : {}", data); // 실제 데이터를 로깅
-            coilService.directMessageToClient("/topic/work-instruction", data); // 데이터를 전송
-        });
         return Mono.fromCallable(() ->
                         transactionTemplate.execute(status -> {
                             WorkInstruction workInstruction = workInstructionRepository.findByIdWithItems(workInstructionId)
@@ -60,7 +55,7 @@ public class CoilWorkCommandService {
                             CoilSupply coilSupply = coilSupplyRepository.findByWorkInstruction(workInstruction)
                                     .orElseThrow(() -> new IllegalArgumentException("No CoilSupply found for the work instruction"));
 
-                            String equipmentCode = workInstruction.getProcess(); // 공정 코드를 설비 코드로 사용
+                            String equipmentCode = workInstruction.getProcess();
                             log.info("작업 지시서 ID: {}, 설비 코드: {}, 보급 요청 수량: {}", workInstructionId, equipmentCode, supplyCount);
 
                             List<WorkInstructionItem> itemsToQueue = prepareItemsForQueue(workInstruction, supplyCount);
@@ -72,9 +67,13 @@ public class CoilWorkCommandService {
                     List<WorkInstructionItem> itemsToQueue = result.getT1();
                     CoilSupply coilSupply = result.getT2();
                     String equipmentCode = result.getT3();
-                    return supplyQueueManager.addItemsToQueue(equipmentCode, workInstructionId, itemsToQueue)
+
+                    // 각 보급 요청에 대해 고유한 요청 ID 생성
+                    String supplyRequestId = UUID.randomUUID().toString();
+
+                    return supplyQueueManager.addItemsToQueue(equipmentCode, workInstructionId, supplyRequestId, itemsToQueue)
                             .doOnSuccess(success -> {
-                                supplyQueueManager.processSupplyInBackground(equipmentCode, coilSupply, itemsToQueue.size(), this::startWorkOnItem)
+                                supplyQueueManager.processSupplyInBackground(equipmentCode, coilSupply, supplyRequestId, itemsToQueue.size(), this::startWorkOnItem)
                                         .doOnError(error -> log.error("백그라운드 처리 중 오류 발생", error))
                                         .doOnSuccess(processed -> log.info("백그라운드 처리 완료"))
                                         .subscribeOn(Schedulers.boundedElastic())
