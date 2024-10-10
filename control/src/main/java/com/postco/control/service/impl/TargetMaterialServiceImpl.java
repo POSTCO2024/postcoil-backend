@@ -16,10 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -75,11 +72,13 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
 
         return materials.stream()
                 .map(material -> {
-                    OrderDTO.View order = orderMap.get(material.getOrderId());
-                    TargetMaterialDTO.Create targetMaterial = TargetMaterialMapper.mapToTargetMaterialCreate(material, order);
+                    Optional<OrderDTO.View> orderOpt = Optional.ofNullable(material.getOrderId())
+                            .map(orderMap::get);
+
+                    TargetMaterialDTO.Create targetMaterial = TargetMaterialMapper.mapToTargetMaterialCreate(material, orderOpt.orElse(null));
 
                     // 롤 단위 설정
-                    String rollUnitName = setRollUnit(material);
+                    String rollUnitName = setRollUnit(orderOpt);
                     targetMaterial.setRollUnitName(rollUnitName);
 
                     return targetMaterial;
@@ -88,8 +87,10 @@ public class TargetMaterialServiceImpl implements TargetMaterialService {
     }
   
     @Override
-    public String setRollUnit(MaterialDTO.View material) {
-        return rollUnitService.determineRollUnit(material.getThickness());
+    public String setRollUnit(Optional<OrderDTO.View> orderOpt) {
+        return orderOpt
+                .map(order -> rollUnitService.determineRollUnit(order.getThickness()))
+                .orElse("A");
     }
 
     @Transactional

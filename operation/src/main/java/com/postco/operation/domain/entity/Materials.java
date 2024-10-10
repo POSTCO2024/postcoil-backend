@@ -5,6 +5,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Random;
 
 import static javax.persistence.FetchType.LAZY;
 
@@ -103,8 +104,8 @@ public class Materials extends BaseEntity implements com.postco.core.entity.Enti
     }
 
     public void updateThickAndWidth(double reduceThickValue, double reduceWidthValue) {
-        this.thickness -= reduceThickValue;
-        this.width -= reduceWidthValue;
+        this.thickness = Math.max(0.001, this.thickness - reduceThickValue) + new Random().nextDouble() * 0.0005;
+        this.width = Math.max(0.001, this.width - reduceWidthValue) + new Random().nextDouble() * 0.0005;
     }
 
     public void updateEntireProgress() {

@@ -7,6 +7,7 @@ import com.postco.core.dto.TargetMaterialDTO;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TargetMaterialService {
 
@@ -29,9 +30,9 @@ public interface TargetMaterialService {
 
     /**
      * 추출된 작업대상재에 롤 단위를 매핑합니다.
-     * @param material 작업대상재
+     * @param orderOpt 작업대상재
      */
-    String setRollUnit(MaterialDTO.View material);
+    String setRollUnit(Optional<OrderDTO.View> orderOpt);
     boolean isTargetMaterialExists(Long materialId, String materialNo);
 
 }
