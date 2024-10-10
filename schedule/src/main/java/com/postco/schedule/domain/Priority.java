@@ -35,9 +35,6 @@ public class Priority implements com.postco.core.entity.Entity, Serializable {
     @Column(length = 50)
     private String targetColumn;
 
-    @Column(length = 50)
-    private String option;
-
     // 새로 추가된 필드
     private String processCode;
     private String rollUnit;
