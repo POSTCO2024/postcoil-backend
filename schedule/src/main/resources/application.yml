@@ -2,7 +2,7 @@ spring:
   application:
     name: schedule
   profiles:
-    active: local
+    active: prod
 
 # feature flag 추가
 feature-flags:
