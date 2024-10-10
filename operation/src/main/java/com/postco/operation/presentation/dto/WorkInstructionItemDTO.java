@@ -103,6 +103,7 @@ public class WorkInstructionItemDTO {
         private Double initialThickness;
         private Double initialGoalWidth;
         private Double initialWidth;
+        private Double initialGoalThickness;
 
     }
 
