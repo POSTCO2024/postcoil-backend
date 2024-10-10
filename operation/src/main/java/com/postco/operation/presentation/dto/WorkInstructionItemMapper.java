@@ -30,6 +30,7 @@ public class WorkInstructionItemMapper {
                 map(source.getExpectedItemDuration(), destination.getExpectedItemDuration());
                 map(source.getInitialThickness(), destination.getInitialThickness());
                 map(source.getInitialGoalWidth(), destination.getInitialGoalWidth());
+                map(source.getInitialGoalThickness(), destination.getInitialGoalThickness() );
                 map(source.getInitialWidth(), destination.getInitialWidth());
             }
         });
