@@ -1,49 +1,36 @@
 package com.postco.control.service.impl;
 
 import com.postco.control.presentation.dto.response.Fc001aDTO;
-import com.postco.core.dto.MaterialDTO;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.function.Consumer;
 
+@Slf4j
 public class ProcessCounter {
-    public static void countNextProc(MaterialDTO.View view, Map<String, Fc001aDTO.Table> resultMap) {
-        String coilTypeCode = view.getCoilTypeCode();
-        String nextProc = view.getNextProc();
+    // 각 차공정에 따른 필드 업데이트 로직을 Map에 미리 정의
+    private static final Map<String, Consumer<Fc001aDTO.Table>> processCountUpdater = Map.of(
+            "1CAL", table -> table.setProc1CAL(table.getProc1CAL() + 1),
+            "2CAL", table -> table.setProc2CAL(table.getProc2CAL() + 1),
+            "1EGL", table -> table.setProc1EGL(table.getProc1EGL() + 1),
+            "2EGL", table -> table.setProc2EGL(table.getProc2EGL() + 1),
+            "1CGL", table -> table.setProc1CGL(table.getProc1CGL() + 1),
+            "2CGL", table -> table.setProc2CGL(table.getProc2CGL() + 1),
+            "101", table -> table.setProc1Packing(table.getProc1Packing() + 1),
+            "201", table -> table.setProc2Packing(table.getProc2Packing() + 1)
+    );
 
-        // 기존에 있던 테이블을 가져오거나 새로 생성
-        Fc001aDTO.Table table = resultMap.getOrDefault(coilTypeCode, new Fc001aDTO.Table(coilTypeCode, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L, 0L));
+    // 차공정에 따른 카운팅을 수행하는 메서드
+    public static void countNextProc(Fc001aDTO.Table tableEntry, String nextProc) {
+        // 해당 차공정에 대한 업데이트 로직이 있는지 확인
+        Consumer<Fc001aDTO.Table> updater = processCountUpdater.get(nextProc);
 
-        // 각 공정에 맞게 Count
-        switch (nextProc) {
-            case "1CAL":
-                table.setProc1CAL(table.getProc1CAL() + 1);
-                break;
-            case "2CAL":
-                table.setProc2CAL(table.getProc2CAL() + 1);
-                break;
-            case "1EGL":
-                table.setProc1EGL(table.getProc1EGL() + 1);
-                break;
-            case "2EGL":
-                table.setProc2EGL(table.getProc2EGL() + 1);
-                break;
-            case "1CGL":
-                table.setProc1CGL(table.getProc1CGL() + 1);
-                break;
-            case "2CGL":
-                table.setProc2CGL(table.getProc2CGL() + 1);
-                break;
-            case "101":
-                table.setProc1Packing(table.getProc1Packing() + 1);
-                break;
-            case "201":
-                table.setProc2Packing(table.getProc2Packing() + 1);
-                break;
+        if (updater != null) {
+            // 해당 공정이 존재하면 업데이트 수행
+            updater.accept(tableEntry);
+        } else {
+            // 없는 공정일 경우 경고 로그 출력
+            log.warn("알 수 없는 차공정: " + nextProc);
         }
-
-        // 총 합계 (Total Cnt) 계산하기
-        table.setTotalCnt(table.getTotalCnt() + 1);
-
-        resultMap.put(coilTypeCode, table); // HashMap에 저장
     }
 }

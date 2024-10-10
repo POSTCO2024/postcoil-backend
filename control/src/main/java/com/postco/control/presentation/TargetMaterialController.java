@@ -69,9 +69,8 @@ public class TargetMaterialController {
      */
 
     @GetMapping("/nextProcTable")
-    public Mono<ResponseEntity<ApiResponseDTO<List<Fc001aDTO.Table>>>> getMaterialTable() {
-        // 서비스 호출하여 Mono로 반환된 값을 처리
-        return nextProcessQueryService.getMaterialTable()
+    public Mono<ResponseEntity<ApiResponseDTO<List<Fc001aDTO.Table>>>> getMaterialTable(@RequestParam String currProc) {
+        return nextProcessQueryService.getMaterialTable(currProc)
                 .map(result -> {
                     ApiResponseDTO<List<Fc001aDTO.Table>> responseDTO = ApiResponseDTO.<List<Fc001aDTO.Table>>builder()
                             .status(HttpStatus.OK.value())
