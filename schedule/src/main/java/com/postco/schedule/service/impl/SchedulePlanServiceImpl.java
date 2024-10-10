@@ -11,6 +11,8 @@ import com.postco.schedule.presentation.dto.SCHPlanDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +38,9 @@ public class SchedulePlanServiceImpl {
    // private final SchedulingServiceImplRefac testSchedule;
 
     // GET : fs001 Request
-    public List<SCHMaterialDTO> getMaterialsByProcessCode(String processCode) {
-        return MapperUtils.mapList(schMaterialRepository.findBySchPlanIsNullAndSchConfirmIsNullAndCurrProc(processCode), SCHMaterialDTO.class);
+    public Page<SCHMaterialDTO> getMaterialsByProcessCode(String processCode, Pageable pageable) {
+        Page<SCHMaterial> materialsPage = schMaterialRepository.findBySchPlanIsNullAndSchConfirmIsNullAndCurrProc(processCode, pageable);
+        return MapperUtils.mapPage(materialsPage, SCHMaterialDTO.class);
     }
 
     /**

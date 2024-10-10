@@ -11,6 +11,9 @@ import com.postco.schedule.service.impl.ScheduleConfirmServiceImpl;
 import com.postco.schedule.service.impl.SchedulePlanServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,10 +37,15 @@ public class ScheduleController {
 
     // GET : fs001 Request
     @GetMapping("/plan/{processCode}")
-    public ResponseEntity<ApiResponseDTO<List<SCHMaterialDTO>>> findAllMaterials(@PathVariable String processCode){
-        List<SCHMaterialDTO> results = schedulePlanService.getMaterialsByProcessCode(processCode);
+    public ResponseEntity<ApiResponseDTO<Page<SCHMaterialDTO>>> findAllMaterials(
+            @PathVariable String processCode,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size) {
 
-        ApiResponseDTO<List<SCHMaterialDTO>> response = ApiResponseDTO.<List<SCHMaterialDTO>>builder()
+        Pageable pageable = PageRequest.of(page, size);
+        Page<SCHMaterialDTO> results = schedulePlanService.getMaterialsByProcessCode(processCode, pageable);
+
+        ApiResponseDTO<Page<SCHMaterialDTO>> response = ApiResponseDTO.<Page<SCHMaterialDTO>>builder()
                 .status(HttpStatus.OK.value())
                 .resultMsg(HttpStatus.OK.getReasonPhrase())
                 .result(results)
